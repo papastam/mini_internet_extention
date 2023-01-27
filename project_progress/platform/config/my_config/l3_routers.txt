@@ -1,5 +1,0 @@
-R1	DNS				L2-DCN:miniinterneteth/d_host           linux
-R2	MATRIX          L2-DCN:miniinterneteth/d_host           vtysh
-R3	MATRIX_TARGET   routinator:miniinterneteth/d_host		vtysh
-R4	N/A           	host:miniinterneteth/d_routinator       vtysh
-R5	MEASUREMENT   	host:miniinterneteth/d_host             vtysh

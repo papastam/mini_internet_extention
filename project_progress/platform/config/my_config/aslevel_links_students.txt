@@ -1,4 +1,0 @@
-1   R4	Peer	2    R5	Peer	179.0.1.1/24
-2   R5	Peer	1    R4	Peer	179.0.1.2/24
-1   R5	Peer	2    R4	Peer	179.0.2.1/24
-2   R4	Peer	1    R5	Peer	179.0.2.2/24
