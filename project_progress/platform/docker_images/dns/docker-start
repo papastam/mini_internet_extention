@@ -1,0 +1,8 @@
+#!/bin/sh
+
+chown -R root:named /etc/bind /var/run/named
+chown -R named:named /var/cache/bind
+chmod -R 770 /etc/bind /var/cache/bind /var/run/named
+find /etc/bind /var/cache/bind -type f -exec chmod 640 -- {} +
+
+exec "$@"
