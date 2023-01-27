@@ -7,9 +7,9 @@ The [mini-internet](mini-inter.net) platform is a teaching platform (made at ETH
 This platform is used for years now in the HY335B course at CSD and for my thesis I extended it with a couple of new features that can be seen below
 # New features
  - Restore mechanism from configuration file for
- - Hosts
- - Switches 
- - Routers
+    - Hosts
+    - Switches 
+    - Routers
  - Visualization tool for AS topology
  - Visualization tool for traffic (traceroute, ping)
  - Pingall implementation
