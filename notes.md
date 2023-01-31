@@ -1,17 +1,26 @@
-
 # Rodamap
 1. Restore mechanism from configuration file for Hosts, Switches, Routers
- - [ ] ./restore_configs.sh in new version
-2. Visualization tool for AS topology
- - [] [networkx](https://networkx.github.io/) for python
- - [] [LibreNMS](https://github.com/librenms)
-3. Visualization tool for traffic (traceroute, ping)
+   - [ ] [./restore_configs.sh](https://github.com/nsg-ethz/mini_internet_project/pull/19) Pull Request
 
-4. Pingall implementation
+2. Visualization tool
+   - Tools:
+     - [networkx](https://networkx.github.io/) for python
+     - [LibreNMS](https://github.com/librenms)
+   - [ ] Visualization tool for AS topology
+   - [ ] Visualization tool for traffic (traceroute, ping)
 
-5. Traceroute all implementation
+3. Ping all/Traceroute all implementation
+   - [ ] pingall
+   - [ ] tracerouteall
 
-6. Decentralized or Cluster-based architecture- Interconnection between clusters and performance analysis
+4. Auto grading and auto debuging tools for TA use
+   - [ ] Admin page on the webserver containing auto grading and auto debuging tools for TA use
 
-7. Auto grading and auto debuging tools for TA use
- - [ ] Admin page on the webserver containing auto grading and auto debuging tools for TA use
+5. Improvements on the website
+   - [ ] Add admin page for TA use
+     - [ ] Auto grading-debugnihg tools
+     - [ ] Resource usage monitoring
+
+6. Decentralized or Cluster-based architecture - Interconnection between clusters
+   
+   - Waiting for confirmation from Okeanos
