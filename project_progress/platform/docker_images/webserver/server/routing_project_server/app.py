@@ -101,6 +101,11 @@ def create_app(config=None):
         krill_url = app.config['KRILL_URL'].format(hostname=hostname)
         return render_template("krill.html", krill_url=krill_url)
 
+    @app.route("/test")
+    def test():
+        """Test page."""
+        return render_template("test.html")
+
     @app.route("/matrix")
     def connectivity_matrix():
         """Create the connectivity matrix."""
