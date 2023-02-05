@@ -8,4 +8,6 @@ docker rm WEB
 docker stop PROXY
 docker rm PROXY
 
-time ../../setup/website_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
+cd ../..
+time ./setup/website_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
+# time ../../groups/rpki/webserver_links.sh
