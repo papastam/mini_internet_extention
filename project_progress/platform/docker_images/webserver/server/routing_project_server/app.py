@@ -24,11 +24,18 @@ from time import sleep
 from typing import Optional
 from urllib.parse import urlparse
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, url_for, session
 from flask_basicauth import BasicAuth
 from jinja2 import StrictUndefined
 
-from . import bgp_policy_analyzer, matrix, parsers
+from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
+from flask_sqlalchemy import SQLAlchemy
+from wtforms.validators import InputRequired, Length, ValidationError
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField
+from flask_bcrypt import Bcrypt
+
+from . import bgp_policy_analyzer, matrix, parsers, admin
 
 config_defaults = {
     'LOCATIONS': {
@@ -52,6 +59,9 @@ config_defaults = {
     'ANALYSIS_UPDATE_FREQUENCY': 300,  # seconds
     'MATRIX_CACHE': '/tmp/cache/matrix.pickle',
     'ANALYSIS_CACHE': '/tmp/cache/analysis.db',
+    #admin login page config
+    'SQLALCHEMY_DATABASE_URI' : 'sqlite:///database.db',
+    'SECRET_KEY' : 'thisisasecretkey'
 }
 
 
@@ -69,7 +79,13 @@ def create_app(config=None):
     elif config is not None:
         app.config.from_pyfile(config)
 
+    #Used for bgp analysis, to be removed
     basic_auth = BasicAuth(app)
+
+    #Admin login init
+    admin.login_manager.init_app(app)
+    admin.db.init_app(app)
+    bcrypt = Bcrypt(app) 
 
     @app.template_filter()
     def format_datetime(utcdatetime, format='%Y-%m-%d at %H:%M'):
@@ -100,11 +116,6 @@ def create_app(config=None):
         hostname = urlparse(request.base_url).hostname
         krill_url = app.config['KRILL_URL'].format(hostname=hostname)
         return render_template("krill.html", krill_url=krill_url)
-
-    @app.route("/test")
-    def test():
-        """Test page."""
-        return render_template("test.html")
 
     @app.route("/matrix")
     def connectivity_matrix():
@@ -145,6 +156,7 @@ def create_app(config=None):
             last_updated=updated, update_frequency=frequency,
         )
 
+    #TODO: Move it to the admin side
     @app.route("/bgp-analysis")
     @basic_auth.required
     def bgp_analysis():
@@ -234,6 +246,29 @@ def create_app(config=None):
             # Only matching ASes for first one.
             dropdown_others={conn[1]['asn'] for conn in selected_connections},
         )
+
+    @app.route("/login", methods=['GET', 'POST'])
+    def login():
+        form = admin.LoginForm()
+        if form.validate_on_submit():
+            print(f"user {form.username.data} requested login")
+            admin_user = admin.Admin.query.filter_by(username=form.username.data).first()
+            if admin:
+                if bcrypt.check_password_hash(admin.password, form.password.data):
+                    print(f"logging in user {form.username.data}")
+                    login_user(admin_user)
+                    return redirect(url_for('dashboard'))
+        return render_template('login.html', form=form)
+
+    @app.route("/admin")
+    @login_required
+    def admin_home():
+        return redirect(url_for('dashboard'))
+
+    @app.route("/dashboard")
+    @login_required
+    def dashboard():
+        return render_template("admin/dashboard.html")
 
     # Start workers if configured.
     if app.config["BACKGROUND_WORKERS"] and app.config['AUTO_START_WORKERS']:
