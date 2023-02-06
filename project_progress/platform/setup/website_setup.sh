@@ -49,6 +49,7 @@ DIRECTORY="$1"
 # Source directories.
 DATADIR="$(pwd ${DIRECTORY})/groups"
 CONFIGDIR="$(pwd ${DIRECTORY})/config"
+IMAGESDIR="$(pwd ${DIRECTORY})/docker_images"
 
 # Directory for server config.
 mkdir -p "${DATADIR}/webserver"
@@ -107,8 +108,10 @@ docker run -itd --name="WEB" --cpus=2 \
     -v ${DATADIR}:${DATADIR_SERVER} \
     -v ${CONFIGDIR}:${CONFIGDIR_SERVER} \
     -v ${CONFIGFILE}:/server/config.py \
+    -v ${IMAGESDIR}/webserver/server/routing_project_server:/server/routing_project_server \
     -e SERVER_CONFIG=/server/config.py \
     -e TZ=${TZ} \
+    -e FLASK_DEBUG=1 \
     -l traefik.enable=true \
     -l traefik.http.routers.web.entrypoints=web \
     -l traefik.http.routers.websecure.entrypoints=websecure \
