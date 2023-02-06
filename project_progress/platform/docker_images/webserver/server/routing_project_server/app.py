@@ -24,7 +24,7 @@ from time import sleep
 from typing import Optional
 from urllib.parse import urlparse
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for, session
+from flask import Flask, jsonify, redirect, render_template, request, url_for, flash
 from flask_basicauth import BasicAuth
 from jinja2 import StrictUndefined
 
@@ -64,6 +64,9 @@ config_defaults = {
     'SECRET_KEY' : 'thisisasecretkey'
 }
 
+admin_users= {
+    "papastam": "admin"
+}   
 
 def create_app(config=None):
     """Create and configure the app."""
@@ -84,8 +87,19 @@ def create_app(config=None):
 
     #Admin login init
     admin.login_manager.init_app(app)
-    admin.db.init_app(app)
     bcrypt = Bcrypt(app) 
+
+    admin.db.init_app(app)
+    with app.app_context():
+        admin.db.create_all()
+
+        #Add admin users
+        for user, password in admin_users.items():
+            new_user = admin.Admin(username=user, password=bcrypt.generate_password_hash(password).decode('utf-8'))
+            admin.db.session.add(new_user)
+            admin.db.session.commit()
+            print("Added new admin user:")
+            print(new_user.username)
 
     @app.template_filter()
     def format_datetime(utcdatetime, format='%Y-%m-%d at %H:%M'):
@@ -247,28 +261,37 @@ def create_app(config=None):
             dropdown_others={conn[1]['asn'] for conn in selected_connections},
         )
 
-    @app.route("/login", methods=['GET', 'POST'])
-    def login():
+    #############################################
+    ########### Admin side ######################
+    #############################################
+
+    @app.route("/admin", methods=['GET', 'POST'])
+    # @app.route("/admin/login", methods=['GET', 'POST'])
+    def admin_login():
         form = admin.LoginForm()
         if form.validate_on_submit():
             print(f"user {form.username.data} requested login")
             admin_user = admin.Admin.query.filter_by(username=form.username.data).first()
-            if admin:
-                if bcrypt.check_password_hash(admin.password, form.password.data):
-                    print(f"logging in user {form.username.data}")
-                    login_user(admin_user)
-                    return redirect(url_for('dashboard'))
-        return render_template('login.html', form=form)
+            if admin_user and bcrypt.check_password_hash(admin_user.password, form.password.data):
+                print(f"logging in user {form.username.data}")
+                login_user(admin_user)
+                flash('Logged in successfully.', 'success')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Login unsuccessful. Please check username and password', 'danger')
+        return render_template('admin/login.html', form=form)
 
-    @app.route("/admin")
-    @login_required
-    def admin_home():
-        return redirect(url_for('dashboard'))
-
-    @app.route("/dashboard")
+    @app.route("/admin/dashboard")
     @login_required
     def dashboard():
         return render_template("admin/dashboard.html")
+
+    @app.route("/admin/logout")
+    @login_required
+    def logout():
+        logout_user()
+        flash('Logged out successfully.', 'success')
+        return redirect(url_for('admin_login'))
 
     # Start workers if configured.
     if app.config["BACKGROUND_WORKERS"] and app.config['AUTO_START_WORKERS']:

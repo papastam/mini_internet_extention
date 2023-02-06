@@ -7,6 +7,7 @@ from flask_bcrypt import Bcrypt
 
 db = SQLAlchemy()
 login_manager = LoginManager()
+login_manager.login_view = '/admin'
 
 class LoginForm(FlaskForm):
         username = StringField(validators=[InputRequired(),], render_kw={"placeholder": "Username"}, )
@@ -21,8 +22,5 @@ class Admin(db.Model, UserMixin):
     password = db.Column(db.String(80), nullable=False)
 
 @login_manager.user_loader
-def load_user(user_id):
-    return Admin.get(user_id)
-
 def login_user(user):
-    pass
+    return Admin.query.get(int(user))
