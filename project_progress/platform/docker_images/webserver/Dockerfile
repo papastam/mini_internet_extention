@@ -12,6 +12,9 @@ RUN apk add --no-cache --virtual .deps \
     apk add --no-cache libev-dev zlib-dev jpeg-dev && \
     pip install bjoern
 
+RUN apk add build-base linux-headers && \
+    pip install psutil
+
 COPY server /server
 RUN pip install -e /server
 
