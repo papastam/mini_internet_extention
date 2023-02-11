@@ -1,4 +1,7 @@
-run: 
+build:
+	docker build --tag="miniinterneteth/d_webserver" "."
+
+run: build 
 	sudo ./run_server.sh
 
 stop: 
