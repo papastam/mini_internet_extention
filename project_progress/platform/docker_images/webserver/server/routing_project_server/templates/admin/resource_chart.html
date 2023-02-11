@@ -1,0 +1,23 @@
+<div id="{{ type }}_usage">
+    <h6>{{ type }} Usage</h6>
+    <div id="{{ type }}_usage_chart">
+        <canvas id="{{ type }}_usage_chart_canvas"></canvas>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+      const {{type}}_ctx = document.getElementById('{{ type }}_usage_chart_canvas');
+    
+      new Chart({{type}}_ctx, {
+        type: 'line',
+        data: {
+          labels: [':00', ':01', ':02', ':03', ':04', ':05'],
+          datasets: [{
+            label: '{{type}} usage',
+            data: [12, 19, 3, 5, 2, 3],
+            borderWidth: 1
+          }]
+        }
+      });
+    </script>
+</div>
