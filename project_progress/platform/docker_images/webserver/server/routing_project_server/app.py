@@ -35,6 +35,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from flask_bcrypt import Bcrypt
 
+import psutil
+
 from . import bgp_policy_analyzer, matrix, parsers, admin
 
 config_defaults = {
@@ -266,7 +268,6 @@ def create_app(config=None):
     #############################################
 
     @app.route("/admin", methods=['GET', 'POST'])
-    # @app.route("/admin/login", methods=['GET', 'POST'])
     def admin_login():
         form = admin.LoginForm()
         if form.validate_on_submit():
@@ -279,11 +280,16 @@ def create_app(config=None):
                 return redirect(url_for('dashboard'))
             else:
                 flash('Login unsuccessful. Please check username and password', 'danger')
+        
         return render_template('admin/login.html', form=form)
 
-    @app.route("/admin/dashboard")
+    @app.route("/admin/dashboard", methods=["GET"])
     @login_required
     def dashboard():
+        print("requested dashboard!")
+        if 'stats' in request.args:
+            print("requested stats only")
+            return jsonify(cpu=psutil.cpu_percent(), memory=psutil.virtual_memory()[2], disk=psutil.disk_usage('/')[3])
         return render_template("admin/dashboard.html")
 
     @app.route("/admin/logout")

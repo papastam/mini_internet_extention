@@ -7,6 +7,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'flask', 'bjoern', 'flask-basicauth', 'flask_bcrypt', 'wtforms', 'flask_wtf', 'flask_sqlalchemy', 'flask_login'
+        'flask', 'bjoern', 'flask-basicauth', 'flask_bcrypt', 'wtforms', 'flask_wtf', 'flask_sqlalchemy', 'flask_login', 'psutil'
     ],
 )

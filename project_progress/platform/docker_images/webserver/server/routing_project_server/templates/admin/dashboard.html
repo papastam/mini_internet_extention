@@ -3,8 +3,132 @@
 
 {% block head %}
 {{ super() }}
+
+<script>
+let updateIntervalId = -1; // -1 means not running
+update=true;
+
+// setInterval() returns a value that we can use to stop the repeated
+// invocations by calling clearInterval(). (Similarly, setTimeout()
+// returns a value that you can pass to clearTimeout())
+function stopCheckingForStats() {
+    clearInterval(updateIntervalId);
+    updateIntervalId = -1
+    return 1;
+}
+
+function startCheckingForStats(){
+    // Call get_updates every 1 second
+    if (updateIntervalId != -1){
+        console.log("Already running")
+        return -1;
+    }
+    return updateIntervalId = setInterval(get_updates, 1000);
+}
+
+function get_updates(){
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            console.log("DEBUG: got response: " + xhr.responseText);
+            return xhr.responseText;
+
+        } else {
+            console.log('Request failed. Returned status of ' + xhr.status);
+            return -1;
+        }
+    };
+
+    xhr.open('GET', '?stats=true');
+    xhr.setRequestHeader('Content-type','application/json');
+    xhr.send();
+}
+
+$(document).ready(function() {
+    console.log("document ready, starting to refresh stats!");
+    startCheckingForStats();
+    $("#refreshSwitch").prop("checked", true)
+
+    $("#refreshSwitch").change(function() {
+        console.log("refreshSwitch changed")
+        if (this.checked) {
+            startCheckingForStats();
+        } else {
+            stopCheckingForStats();
+        }
+    });
+});
+
+// startCheckingForStats();
+
+</script>
+
+<style>
+    .maincontainer {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        align-items: flex-start;
+        align-content: flex-start;
+        padding: 2px 50px;
+    }
+
+    .chartbox {
+        width: 400px;
+        height: auto;
+        box-shadow: 0 4px 8px 0 rgb(0 0 0 / 20%), 0 6px 20px 0 rgb(0 0 0 / 19%);
+        margin: 10px;
+        padding: 5px;
+    }
+
+    .controll_bar {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        align-items: flex-start;
+        align-content: flex-start;
+        padding: 5px 20px;
+    }
+
+    .heading_right {
+        margin-left: auto;
+    }
+</style>
+
 {% endblock %}
 
 {% block body %}
-<h6>Dashboard: Under Construction</h6>
+
+<div class="controll_bar">
+    <div class="heading_right custom-control custom-switch">
+        <input type="checkbox" class="custom-control-input" id="refreshSwitch">
+        <label class="custom-control-label" for="refreshSwitch">Refresh stats</label>
+    </div>
+</div>
+
+<div class="maincontainer">
+    <div class="chartbox">
+    {% set type="Cpu" %}
+    {% include "admin/resource_chart.html" %}
+    </div>
+    
+    <div class="chartbox">
+    {% set type="Memory" %}
+    {% include "admin/resource_chart.html" %}
+    </div>
+    
+    <div class="chartbox">
+    {% set type="Disk" %}
+    {% include "admin/resource_chart.html" %}
+    </div>
+
+    <div class="chartbox">
+    {% set type="Network" %}
+    {% include "admin/resource_chart.html" %}
+    </div>
+</div>
+
+
 {% endblock %}
