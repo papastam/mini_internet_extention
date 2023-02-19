@@ -8,6 +8,36 @@
 let updateIntervalId = -1; // -1 means not running
 update=true;
 
+cpu     = [];
+memory  = [];
+disk    = [];
+
+chartlist = [];
+
+
+function addData(chart, label, data) {
+    chart.data.labels.push(label);
+    chart.data.datasets.forEach((dataset) => {
+        dataset.data.push(data[dataset.label]);
+    });    
+    chart.update();
+}
+
+function fillData(chart, data){
+    clearData(chart);
+    for (var i = 0; i < data.length; i++) {
+        addData(chart, data[i].time, data[i]);
+    }
+}
+
+function clearData(chart){
+    chart.data.labels = [];
+    chart.data.datasets.forEach((dataset) => {
+        dataset.data = [];
+    });
+    chart.update();
+}
+
 // setInterval() returns a value that we can use to stop the repeated
 // invocations by calling clearInterval(). (Similarly, setTimeout()
 // returns a value that you can pass to clearTimeout())
@@ -31,7 +61,18 @@ function get_updates(){
     xhr.onload = function () {
         if (xhr.readyState == 4 && xhr.status == 200) {
             console.log("DEBUG: got response: " + xhr.responseText);
-            return xhr.responseText;
+            json_resp = JSON.parse(xhr.responseText);
+            
+            //translate to chart labls
+            input_json = {};
+            input_json["CPU"] = json_resp["cpu"];
+            input_json["Memory"] = json_resp["memory"];
+            input_json["Disk"] = json_resp["disk"];
+
+            addData(server_res_chart, json_resp.time, input_json)
+
+            return json_resp;
+            
 
         } else {
             console.log('Request failed. Returned status of ' + xhr.status);
@@ -45,10 +86,10 @@ function get_updates(){
 }
 
 $(document).ready(function() {
-    console.log("document ready, starting to refresh stats!");
-    startCheckingForStats();
-    $("#refreshSwitch").prop("checked", true)
-
+    // console.log("document ready, starting to refresh stats!");
+    // startCheckingForStats();
+    // $("#refreshSwitch").prop("checked", true)
+    
     $("#refreshSwitch").change(function() {
         console.log("refreshSwitch changed")
         if (this.checked) {
@@ -59,24 +100,17 @@ $(document).ready(function() {
     });
 });
 
-// startCheckingForStats();
 
 </script>
 
 <style>
     .maincontainer {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: space-around;
-        align-items: flex-start;
-        align-content: flex-start;
         padding: 2px 50px;
     }
 
     .chartbox {
-        width: 400px;
-        height: auto;
+        /*width: 400px;
+        height: auto;*/
         box-shadow: 0 4px 8px 0 rgb(0 0 0 / 20%), 0 6px 20px 0 rgb(0 0 0 / 19%);
         margin: 10px;
         padding: 5px;
@@ -110,10 +144,13 @@ $(document).ready(function() {
 
 <div class="maincontainer">
     <div class="chartbox">
-    {% set type="Cpu" %}
+
+    {% set datasets={"CPU": "cpu", "Memory": "memory", "Disk": "disk"} %}
+    {% set label="Server Resources" %}
+    {% set name="server_res" %}
     {% include "admin/resource_chart.html" %}
     </div>
-    
+{#     
     <div class="chartbox">
     {% set type="Memory" %}
     {% include "admin/resource_chart.html" %}
@@ -127,7 +164,7 @@ $(document).ready(function() {
     <div class="chartbox">
     {% set type="Network" %}
     {% include "admin/resource_chart.html" %}
-    </div>
+    </div> #}
 </div>
 
 
