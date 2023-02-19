@@ -20,7 +20,7 @@ from datetime import datetime as dt
 from datetime import timezone
 from multiprocessing import Process
 from pathlib import Path
-from time import sleep
+from time import sleep, strftime, gmtime
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -59,11 +59,12 @@ config_defaults = {
     'AUTO_START_WORKERS': True,
     'MATRIX_UPDATE_FREQUENCY': 60,  # seconds
     'ANALYSIS_UPDATE_FREQUENCY': 300,  # seconds
+    "STATS_UPDATE_FREQUENCY": 60,
     'MATRIX_CACHE': '/tmp/cache/matrix.pickle',
     'ANALYSIS_CACHE': '/tmp/cache/analysis.db',
     #admin login page config
-    'SQLALCHEMY_DATABASE_URI' : 'sqlite:///database.db',
-    'SECRET_KEY' : 'thisisasecretkey'
+    'SQLALCHEMY_DATABASE_URI' : 'sqlite:////server/routing_project_server/database.db',
+    'SECRET_KEY' : 'HY335_papastam'
 }
 
 admin_users= {
@@ -289,7 +290,7 @@ def create_app(config=None):
         print("requested dashboard!")
         if 'stats' in request.args:
             print("requested stats only")
-            return jsonify(cpu=psutil.cpu_percent(), memory=psutil.virtual_memory()[2], disk=psutil.disk_usage('/')[3])
+            return jsonify(time=strftime("%d-%m-%y %H:%M:%S", gmtime()), cpu=psutil.cpu_percent(), memory=psutil.virtual_memory()[2], disk=psutil.disk_usage('/')[3])
         return render_template("admin/dashboard.html")
 
     @app.route("/admin/logout")
@@ -301,7 +302,7 @@ def create_app(config=None):
 
     # Start workers if configured.
     if app.config["BACKGROUND_WORKERS"] and app.config['AUTO_START_WORKERS']:
-        start_workers(app.config)
+        start_workers(app)
 
     return app
 
@@ -309,13 +310,13 @@ def create_app(config=None):
 # Worker functions.
 # =================
 
-def start_workers(config):
+def start_workers(given_app):
     """Create background processes"""
     processes = []
 
     pmatrix = Process(
         target=loop,
-        args=(prepare_matrix, config['MATRIX_UPDATE_FREQUENCY'], config),
+        args=(prepare_matrix, given_app.config['MATRIX_UPDATE_FREQUENCY'], given_app.config),
         kwargs=dict(worker=True)
     )
     pmatrix.start()
@@ -324,11 +325,20 @@ def start_workers(config):
     pbgp = Process(
         target=loop,
         args=(prepare_bgp_analysis,
-              config['ANALYSIS_UPDATE_FREQUENCY'], config),
+              given_app.config['ANALYSIS_UPDATE_FREQUENCY'], given_app.config),
         kwargs=dict(worker=True)
     )
     pbgp.start()
     processes.append(pbgp)
+
+    stats = Process(
+        target=loop,
+        args=(measure_stats,
+              given_app.config['STATS_UPDATE_FREQUENCY'], given_app.config, given_app),
+        kwargs=dict(worker=True)
+    )
+    stats.start()
+    processes.append(stats)
 
     return processes
 
@@ -452,3 +462,20 @@ def prepare_bgp_analysis(config, asn=None, worker=False):
         last, msgs = bgp_policy_analyzer.bgp_report(
             as_data, connection_data, looking_glass_data)
     return last, freq, msgs
+
+def measure_stats(config, app, worker=False):
+
+    time = strftime("%d-%m-%y %H:%M:%S", gmtime())
+    cpu = psutil.cpu_percent()
+    memory = psutil.virtual_memory()[2]
+    disk = psutil.disk_usage('/')[3]
+
+        #Add admin users
+        # for user, password in admin_users.items():
+    with app.app_context():
+        new_measurement = admin.Measurement(cpu=cpu, memory=memory, disk=disk)
+        admin.db.session.add(new_measurement)
+        admin.db.session.commit()
+        print("Measured stats (%s)" % str(time))
+
+    return (time, cpu, memory, disk)
