@@ -71,6 +71,12 @@ admin_users= {
     "papastam": "admin"
 }   
 
+def admin_log(message):
+    """Log message to admin log."""
+    time = strftime("%d-%m-%y %H:%M:%S", gmtime())
+    with open("/server/routing_project_server/admin_login_log.txt", "a") as file:
+        file.write(time + ' | ' + message+'\n')
+
 def create_app(config=None):
     """Create and configure the app."""
     app = Flask(__name__)
@@ -101,8 +107,7 @@ def create_app(config=None):
             new_user = admin.Admin(username=user, password=bcrypt.generate_password_hash(password).decode('utf-8'))
             admin.db.session.add(new_user)
             admin.db.session.commit()
-            print("Added new admin user:")
-            print(new_user.username)
+            admin_log("INIT: Added user: " + user)
 
     @app.template_filter()
     def format_datetime(utcdatetime, format='%Y-%m-%d at %H:%M'):
@@ -272,30 +277,34 @@ def create_app(config=None):
     def admin_login():
         form = admin.LoginForm()
         if form.validate_on_submit():
-            print(f"user {form.username.data} requested login")
+            admin_log(f"LOGIN: User {form.username.data} requested login")
             admin_user = admin.Admin.query.filter_by(username=form.username.data).first()
             if admin_user and bcrypt.check_password_hash(admin_user.password, form.password.data):
-                print(f"logging in user {form.username.data}")
+                admin_log(f"LOGIN: User {form.username.data} logged in sucesfully from {request.remote_addr}")
                 login_user(admin_user)
                 flash('Logged in successfully.', 'success')
                 return redirect(url_for('dashboard'))
-            else:
+            elif admin_user:
+                admin_log(f"LOGIN: User {form.username.data} tried to login with wrong password (from {request.remote_addr})")
                 flash('Login unsuccessful. Please check username and password', 'danger')
-        
+            else:
+                admin_log(f"LOGIN: Login attemt from invalid user: {form.username.data} (from {request.remote_addr})")
+                flash('Login unsuccessful. Please check username and password', 'danger')
+
+
         return render_template('admin/login.html', form=form)
 
     @app.route("/admin/dashboard", methods=["GET"])
     @login_required
     def dashboard():
-        print("requested dashboard!")
         if 'stats' in request.args:
-            print("requested stats only")
             return jsonify(time=strftime("%d-%m-%y %H:%M:%S", gmtime()), cpu=psutil.cpu_percent(), memory=psutil.virtual_memory()[2], disk=psutil.disk_usage('/')[3])
         return render_template("admin/dashboard.html")
 
     @app.route("/admin/logout")
     @login_required
     def logout():
+        admin_log(f"LOGOUT: User {current_user.username} logged out")
         logout_user()
         flash('Logged out successfully.', 'success')
         return redirect(url_for('admin_login'))
@@ -345,7 +354,7 @@ def start_workers(given_app):
 
 def loop(function, freq, *args, **kwargs):
     """Call function in loop. Freq must be in seconds."""
-    print(f"Running worker `{function.__name__}` (every `{freq}s`).")
+    print(f"\033[32mRunning worker `{function.__name__}` \033[03m(every {freq}s).\033[00m")
     while True:
         starttime = dt.utcnow()
         try:
@@ -354,7 +363,7 @@ def loop(function, freq, *args, **kwargs):
             except Exception as error:
                 # Attach message to exception.
                 raise RuntimeError(
-                    f"Worker `{function.__name__}` crashed! Restarting."
+                    f"\033[41mWorker `{function.__name__}` crashed! Restarting.\033[00m"
                 ) from error
         except:  # pylint: disable=bare-except
             traceback.print_exc()
@@ -476,6 +485,6 @@ def measure_stats(config, app, worker=False):
         new_measurement = admin.Measurement(cpu=cpu, memory=memory, disk=disk)
         admin.db.session.add(new_measurement)
         admin.db.session.commit()
-        print("Measured stats (%s)" % str(time))
+        print("\033[93mMeasured stats \033[03m(%s)\033[00m" % str(time))
 
     return (time, cpu, memory, disk)
