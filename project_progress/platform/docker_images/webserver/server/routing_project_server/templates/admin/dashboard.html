@@ -6,14 +6,6 @@
 
 <script>
 let updateIntervalId = -1; // -1 means not running
-update=true;
-
-cpu     = [];
-memory  = [];
-disk    = [];
-
-chartlist = [];
-
 
 function addData(chart, label, data) {
     chart.data.labels.push(label);
