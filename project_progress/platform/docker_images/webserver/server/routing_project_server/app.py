@@ -298,7 +298,9 @@ def create_app(config=None):
     @login_required
     def dashboard():
         if 'stats' in request.args:
-            return jsonify(time=strftime("%d-%m-%y %H:%M:%S", gmtime()), cpu=psutil.cpu_percent(), memory=psutil.virtual_memory()[2], disk=psutil.disk_usage('/')[3])
+            start = request.args.get('start', default=0, type=int)
+            end = request.args.get('end', default=0, type=int)
+            #TODO: Do the query and return stats    
         return render_template("admin/dashboard.html")
 
     @app.route("/admin/logout")

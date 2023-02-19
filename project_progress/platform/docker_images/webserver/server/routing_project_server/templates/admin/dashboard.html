@@ -30,9 +30,6 @@ function clearData(chart){
     chart.update();
 }
 
-// setInterval() returns a value that we can use to stop the repeated
-// invocations by calling clearInterval(). (Similarly, setTimeout()
-// returns a value that you can pass to clearTimeout())
 function stopCheckingForStats() {
     clearInterval(updateIntervalId);
     updateIntervalId = -1
@@ -48,13 +45,14 @@ function startCheckingForStats(){
     return updateIntervalId = setInterval(get_updates, 1000);
 }
 
-function get_updates(){
+function get_stats(start, end){
     var xhr = new XMLHttpRequest();
     xhr.onload = function () {
         if (xhr.readyState == 4 && xhr.status == 200) {
             console.log("DEBUG: got response: " + xhr.responseText);
             json_resp = JSON.parse(xhr.responseText);
             
+            //TODO fill the diagram if the reply is list of data 
             //translate to chart labls
             input_json = {};
             input_json["CPU"] = json_resp["cpu"];
@@ -65,22 +63,18 @@ function get_updates(){
 
             return json_resp;
             
-
         } else {
             console.log('Request failed. Returned status of ' + xhr.status);
             return -1;
         }
     };
 
-    xhr.open('GET', '?stats=true');
+    xhr.open('GET', '?stats=true&start=' + start + '&end=' + end, true);
     xhr.setRequestHeader('Content-type','application/json');
     xhr.send();
 }
 
 $(document).ready(function() {
-    // console.log("document ready, starting to refresh stats!");
-    // startCheckingForStats();
-    // $("#refreshSwitch").prop("checked", true)
     
     $("#refreshSwitch").change(function() {
         console.log("refreshSwitch changed")
@@ -90,6 +84,20 @@ $(document).ready(function() {
             stopCheckingForStats();
         }
     });
+
+    $("#pull_btn").click(function(){
+        console.log("DEBUG: Pulling stats")
+        
+        start = $("#stats_start").val();
+        end = $("#stats_end").val();
+        if $("#refreshSwitch").prop("checked") == true {
+            end = 0;
+        }
+
+        get_stats(start, end);
+
+    });
+    
 });
 
 
@@ -116,11 +124,29 @@ $(document).ready(function() {
         align-items: flex-start;
         align-content: flex-start;
         padding: 5px 20px;
+        margin: 2px;
+        border: #1c1c21;
+        border-style: solid;
+        border-width: 2px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px 2px rgb(0 0 0 / 20%);
     }
 
-    .heading_right {
-        margin-left: auto;
+    .refresh_stats {
+        border-bottom: 1px;
+        border-style: solid;
     }
+
+    .date_selectionst{    
+        border-bottom: 1px;
+        border-style: solid;
+    }
+
+    .date_selctionend{
+        border-bottom: 1px;
+        border-style: solid;
+    }
+
 </style>
 
 {% endblock %}
@@ -128,9 +154,20 @@ $(document).ready(function() {
 {% block body %}
 
 <div class="controll_bar">
-    <div class="heading_right custom-control custom-switch">
+    <div class="date_selectionst">
+        <label for="stats_start">Start Date/Time</label>
+        <input class="datepicker" id="stats_start" name="start_date" type="datetime-local">
+    </div>
+    <div class="date_selctionend">
+        <label for="stats_end">End Date/Time</label>
+        <input class="datepicker" id="stats_end" name="end_date" type="datetime-local">
+    </div>
+    <div>
+        <button id="pull_btn" type="button" class="btn btn-secondary" style="background-color: #6c757d;">Pull statistics</button>
+    </div>
+    <div class="refresh_stats custom-switch">
         <input type="checkbox" class="custom-control-input" id="refreshSwitch">
-        <label class="custom-control-label" for="refreshSwitch">Refresh stats</label>
+        <label class="custom-control-label" for="refreshSwitch">Pull latest statistics</label>
     </div>
 </div>
 
@@ -142,21 +179,6 @@ $(document).ready(function() {
     {% set name="server_res" %}
     {% include "admin/resource_chart.html" %}
     </div>
-{#     
-    <div class="chartbox">
-    {% set type="Memory" %}
-    {% include "admin/resource_chart.html" %}
-    </div>
-    
-    <div class="chartbox">
-    {% set type="Disk" %}
-    {% include "admin/resource_chart.html" %}
-    </div>
-
-    <div class="chartbox">
-    {% set type="Network" %}
-    {% include "admin/resource_chart.html" %}
-    </div> #}
 </div>
 
 
