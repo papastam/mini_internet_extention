@@ -21,5 +21,4 @@ RUN pip install -e /server
 # Default config dir
 ENV SERVER_CONFIG="/server/config.py"
 
-
-CMD ["python3", "/server/run.py"]
+# CMD ["python3", "/server/run.py"]
