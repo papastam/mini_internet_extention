@@ -1,2 +1,3 @@
 #Types
 *.db #Database files
+*.log #Log files

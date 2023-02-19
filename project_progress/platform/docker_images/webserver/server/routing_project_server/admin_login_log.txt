@@ -1,5 +1,0 @@
-19-02-23 18:24:12 | INIT: Added user: papastam
-19-02-23 18:24:15 | LOGIN: User papastam requested login
-19-02-23 18:24:15 | LOGIN: User papastam logged in sucesfully from 172.17.0.1
-19-02-23 19:18:07 | LOGIN: User papastam requested login
-19-02-23 19:18:07 | LOGIN: User papastam logged in sucesfully from 172.17.0.1

@@ -12,7 +12,7 @@ if __name__ == "__main__":
         file.truncate(0)
 
     #Clear the login log
-    with open("/server/routing_project_server/admin_login_log.txt",'r+') as file:
+    with open("/server/routing_project_server/admin_login.log",'r+') as file:
         file.truncate(0)
 
     app = create_app()

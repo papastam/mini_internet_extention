@@ -74,7 +74,7 @@ admin_users= {
 def admin_log(message):
     """Log message to admin log."""
     time = strftime("%d-%m-%y %H:%M:%S", gmtime())
-    with open("/server/routing_project_server/admin_login_log.txt", "a") as file:
+    with open("/server/routing_project_server/admin_login.log", "a") as file:
         file.write(time + ' | ' + message+'\n')
 
 def create_app(config=None):
