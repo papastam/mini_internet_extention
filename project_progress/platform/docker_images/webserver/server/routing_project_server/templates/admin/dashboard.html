@@ -6,6 +6,7 @@
 
 <script>
 let updateIntervalId = -1; // -1 means not running
+latest_stats=false;
 
 function addData(chart, label, data) {
     chart.data.labels.push(label);
@@ -18,7 +19,9 @@ function addData(chart, label, data) {
 function fillData(chart, data){
     clearData(chart);
     for (var i = 0; i < data.length; i++) {
-        addData(chart, data[i].time, data[i]);
+        time = data[i].time;
+        delete data[i].time;
+        addData(chart, time, data[i]);
     }
 }
 
@@ -37,12 +40,12 @@ function stopCheckingForStats() {
 }
 
 function startCheckingForStats(){
-    // Call get_updates every 1 second
+    // Call get_updates every 1 minute
     if (updateIntervalId != -1){
         console.log("Already running")
         return -1;
     }
-    return updateIntervalId = setInterval(get_updates, 1000);
+    return updateIntervalId = setInterval(get_stats(-1,-1), 60000);
 }
 
 function get_stats(start, end){
@@ -52,14 +55,18 @@ function get_stats(start, end){
             console.log("DEBUG: got response: " + xhr.responseText);
             json_resp = JSON.parse(xhr.responseText);
             
-            //TODO fill the diagram if the reply is list of data 
-            //translate to chart labls
-            input_json = {};
-            input_json["CPU"] = json_resp["cpu"];
-            input_json["Memory"] = json_resp["memory"];
-            input_json["Disk"] = json_resp["disk"];
+            if(json_resp.length);
 
-            addData(server_res_chart, json_resp.time, input_json)
+            input_json = [];
+            for(var i = 0; i < json_resp.length; i++){
+                input_json[i] = {};
+                input_json[i]["time"] = json_resp[i]["time"];
+                input_json[i]["CPU"] = json_resp[i]["cpu"];
+                input_json[i]["Memory"] = json_resp[i]["memory"];
+                input_json[i]["Disk"] = json_resp[i]["disk"];
+            }
+
+            fillData(server_res_chart, input_json);
 
             return json_resp;
             
@@ -68,6 +75,11 @@ function get_stats(start, end){
             return -1;
         }
     };
+
+    //TODO: Implement a "pull only latest" strategy on updates
+    if(start==-1 && end==-1){
+        start = 0;
+    }
 
     xhr.open('GET', '?stats=true&start=' + start + '&end=' + end, true);
     xhr.setRequestHeader('Content-type','application/json');
@@ -78,7 +90,7 @@ $(document).ready(function() {
     
     $("#refreshSwitch").change(function() {
         console.log("refreshSwitch changed")
-        if (this.checked) {
+        if ((this.checked==true) && (latest_stats==true)){
             startCheckingForStats();
         } else {
             stopCheckingForStats();
@@ -86,12 +98,16 @@ $(document).ready(function() {
     });
 
     $("#pull_btn").click(function(){
+        latest_stats=false;
+        stopCheckingForStats();
         console.log("DEBUG: Pulling stats")
         
         start = $("#stats_start").val();
         end = $("#stats_end").val();
-        if $("#refreshSwitch").prop("checked") == true {
+        if ($("#refreshSwitch").prop("checked")){
             end = 0;
+            latest_stats = true;
+            startCheckingForStats();
         }
 
         get_stats(start, end);
@@ -155,11 +171,11 @@ $(document).ready(function() {
 
 <div class="controll_bar">
     <div class="date_selectionst">
-        <label for="stats_start">Start Date/Time</label>
+        <label for="stats_start">Start Date/Time: </label>
         <input class="datepicker" id="stats_start" name="start_date" type="datetime-local">
     </div>
     <div class="date_selctionend">
-        <label for="stats_end">End Date/Time</label>
+        <label for="stats_end">End Date/Time: </label>
         <input class="datepicker" id="stats_end" name="end_date" type="datetime-local">
     </div>
     <div>

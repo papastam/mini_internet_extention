@@ -34,6 +34,11 @@ from wtforms.validators import InputRequired, Length, ValidationError
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from flask_bcrypt import Bcrypt
+from datetime import datetime
+import json
+import time
+import string
+
 
 import psutil
 
@@ -70,6 +75,9 @@ config_defaults = {
 admin_users= {
     "papastam": "admin"
 }   
+
+def debug(message):
+    print("\033[35mDEBUG: " + message + "\033[0m")
 
 def admin_log(message):
     """Log message to admin log."""
@@ -298,9 +306,33 @@ def create_app(config=None):
     @login_required
     def dashboard():
         if 'stats' in request.args:
-            start = request.args.get('start', default=0, type=int)
-            end = request.args.get('end', default=0, type=int)
-            #TODO: Do the query and return stats    
+            start = request.args.get('start', default=0)
+            start_datetime = datetime(int(start[0:4]), int(start[5:7]), int(start[8:10]), int(start[11:13]), int(start[14:16]))
+            
+            end = request.args.get('end', default=0)
+            if (end == '0') or (end == 0):
+                end_datetime = datetime.now()
+            else:
+                end_datetime = datetime(int(end[0:4]), int(end[5:7]), int(end[8:10]), int(end[11:13]), int(end[14:16]))
+            
+            debug(f"Querying measurements from {start_datetime} to {end_datetime}")
+
+            res = admin.Measurement.query.filter(admin.Measurement.time.between(start_datetime, end_datetime)).all()
+
+            debug(f"Query returned {len(res)} measurements")
+
+            retarr=[]
+            for measurement in res:
+                retarr.append({
+                    "time": measurement.time,
+                    "cpu": measurement.cpu,
+                    "memory": measurement.memory,
+                    "disk": measurement.disk
+                })
+
+            debug(f"Returning {len(retarr)} measurements: {retarr}")
+
+            return jsonify(retarr)
         return render_template("admin/dashboard.html")
 
     @app.route("/admin/logout")

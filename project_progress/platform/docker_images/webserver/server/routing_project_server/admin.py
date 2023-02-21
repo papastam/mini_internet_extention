@@ -11,11 +11,11 @@ login_manager = LoginManager()
 login_manager.login_view = '/admin'
 
 class LoginForm(FlaskForm):
-        username = StringField(validators=[InputRequired(),], render_kw={"placeholder": "Username"}, )
+    username = StringField(validators=[InputRequired(),], render_kw={"placeholder": "Username"}, )
 
-        password = PasswordField(validators=[InputRequired()], render_kw={"placeholder": "Password"})
+    password = PasswordField(validators=[InputRequired()], render_kw={"placeholder": "Password"})
 
-        submit = SubmitField('Login')
+    submit = SubmitField('Login')
 
 class Admin(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -27,6 +27,8 @@ class Measurement(db.Model):
     cpu     = db.Column(db.Float, nullable=False)
     memory  = db.Column(db.Float, nullable=False)
     disk    = db.Column(db.Float, nullable=False)
+
+
 
 @login_manager.user_loader
 def login_user(user):

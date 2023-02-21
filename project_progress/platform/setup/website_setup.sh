@@ -39,7 +39,7 @@ SERVER_PORT_HTTPS="443"
 PORT_KRILL="3000"
 
 # Put your timezone here.
-TZ="Europe/Zurich"
+TZ="Europe/Greece"
 ######################################
 
 
