@@ -1,0 +1,4 @@
+1: buld the platform
+2: run platform/utils/ssh/portforwarding.sh
+3: ssh -p 2001 root:localhost
+4: password from passwords file
