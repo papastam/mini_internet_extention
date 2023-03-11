@@ -8,7 +8,7 @@ from sqlalchemy.sql import func
 
 db = SQLAlchemy()
 login_manager = LoginManager()
-login_manager.login_view = '/admin'
+login_manager.login_view = '/login'
 
 class LoginForm(FlaskForm):
     username = StringField(validators=[InputRequired(),], render_kw={"placeholder": "Username"}, )

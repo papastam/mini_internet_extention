@@ -19,6 +19,7 @@ COPY server /server
 RUN pip install -e /server
 
 # Default config dir
-ENV SERVER_CONFIG="/server/config.py"
+ENV PROJECT_SERVER_CONFIG="/server/project_config.py"
+ENV ADMIN_SERVER_CONFIG="/server/admin_config.py"
 
 # CMD ["python3", "/server/run.py"]

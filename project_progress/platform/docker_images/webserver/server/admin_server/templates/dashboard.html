@@ -1,5 +1,5 @@
 {% set logged_in=1 %}
-{% extends "admin/admin_base.html" %}
+{% extends "admin_base.html" %}
 
 {% block head %}
 {{ super() }}
@@ -193,7 +193,7 @@ $(document).ready(function() {
     {% set datasets={"CPU": "cpu", "Memory": "memory", "Disk": "disk"} %}
     {% set label="Server Resources" %}
     {% set name="server_res" %}
-    {% include "admin/resource_chart.html" %}
+    {% include "resource_chart.html" %}
     </div>
 </div>
 

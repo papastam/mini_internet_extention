@@ -39,7 +39,7 @@ SERVER_PORT_HTTPS="443"
 PORT_KRILL="3000"
 
 # Put your timezone here.
-TZ="Europe/Greece"
+TZ="Europe/Athens"
 ######################################
 
 
@@ -53,7 +53,8 @@ IMAGESDIR="$(pwd ${DIRECTORY})/docker_images"
 
 # Directory for server config.
 mkdir -p "${DATADIR}/webserver"
-CONFIGFILE="${DATADIR}/webserver/config.py"
+PROJECTCONFIGFILE="${DATADIR}/webserver/project_config.py"
+ADMINCONFIGFILE="${DATADIR}/webserver/admin_config.py"
 LETSENCRYPT="${DATADIR}/webserver/letsencrypt"
 
 # Directories inside the container.
@@ -82,7 +83,7 @@ else
 fi
 
 # Write the webserver config file
-cat > "$CONFIGFILE" << EOM
+cat > "$PROJECTCONFIGFILE" << EOM
 LOCATIONS = {
     "config_directory": "${CONFIGDIR_SERVER}",
     'as_config': "${CONFIGDIR_SERVER}/AS_config.txt",
@@ -99,17 +100,34 @@ HOST = '0.0.0.0'
 PORT = 8000
 EOM
 
+cat > "$ADMINCONFIGFILE" << EOM
+LOCATIONS = {
+    "config_directory": "${CONFIGDIR_SERVER}",
+    'as_config': "${CONFIGDIR_SERVER}/AS_config.txt",
+    "as_connections_public": "${CONFIGDIR_SERVER}/aslevel_links_students.txt",
+    "as_connections": "${CONFIGDIR_SERVER}/aslevel_links.txt",
+    'groups': '${DATADIR_SERVER}',
+}
+BASIC_AUTH_USERNAME = 'admin'
+BASIC_AUTH_PASSWORD = 'admin'
+BACKGROUND_WORKERS = True
+HOST = '0.0.0.0'
+PORT = 8010
+EOM
+
 # First start the web container, adding labels for the traefik proxy.
 # We only have one webserver; traffic for any hostname will go to it.
 # NOTE: Can we define all dynamic labels for krill here?
 docker run -itd --name="WEB" --cpus=2 \
-    --network bridge -p 8000:8000 \
+    --network bridge -p 8000:8000 -p 8010:8010 \
     --pids-limit 100 \
     -v ${DATADIR}:${DATADIR_SERVER} \
     -v ${CONFIGDIR}:${CONFIGDIR_SERVER} \
-    -v ${CONFIGFILE}:/server/config.py \
-    -v ${IMAGESDIR}/webserver/server/routing_project_server:/server/routing_project_server \
-    -e SERVER_CONFIG=/server/config.py \
+    -v ${PROJECTCONFIGFILE}:/server/project_config.py \
+    -v ${ADMINCONFIGFILE}:/server/admin_config.py \
+    -v ${IMAGESDIR}/webserver/server/:/server/ \
+    -e PROJECT_SERVER_CONFIG=/server/project_config.py \
+    -e ADMIN_SERVER_CONFIG=/server/admin_config.py \
     -e TZ=${TZ} \
     -e FLASK_DEBUG=1 \
     -l traefik.enable=true \

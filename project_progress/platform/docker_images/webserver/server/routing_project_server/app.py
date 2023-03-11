@@ -42,7 +42,7 @@ import string
 
 import psutil
 
-from . import bgp_policy_analyzer, matrix, parsers, admin
+from . import bgp_policy_analyzer, matrix, parsers
 
 config_defaults = {
     'LOCATIONS': {
@@ -54,7 +54,6 @@ config_defaults = {
         "config_directory": "../../../config",
         "matrix": "../../../groups/matrix/connectivity.txt"
     },
-    'KRILL_URL': "http://{hostname}:3080/index.html",
     'BASIC_AUTH_USERNAME': 'admin',
     'BASIC_AUTH_PASSWORD': 'admin',
     'HOST': '127.0.0.1',
@@ -64,35 +63,20 @@ config_defaults = {
     'AUTO_START_WORKERS': True,
     'MATRIX_UPDATE_FREQUENCY': 60,  # seconds
     'ANALYSIS_UPDATE_FREQUENCY': 300,  # seconds
-    "STATS_UPDATE_FREQUENCY": 60,
     'MATRIX_CACHE': '/tmp/cache/matrix.pickle',
     'ANALYSIS_CACHE': '/tmp/cache/analysis.db',
-    #admin login page config
-    'SQLALCHEMY_DATABASE_URI' : 'sqlite:////server/routing_project_server/database.db',
-    'SECRET_KEY' : 'HY335_papastam'
 }
-
-admin_users= {
-    "papastam": "admin"
-}   
-
 def debug(message):
     print("\033[35mDEBUG: " + message + "\033[0m")
 
-def admin_log(message):
-    """Log message to admin log."""
-    time = strftime("%d-%m-%y %H:%M:%S", gmtime())
-    with open("/server/routing_project_server/admin_login.log", "a") as file:
-        file.write(time + ' | ' + message+'\n')
-
-def create_app(config=None):
+def create_project_server(config=None):
     """Create and configure the app."""
     app = Flask(__name__)
     app.config.from_mapping(config_defaults)
     app.jinja_env.undefined = StrictUndefined
 
     if config is None:
-        config = os.environ.get("SERVER_CONFIG", None)
+        config = os.environ.get("PROJECT_SERVER_CONFIG", None)
 
     if config is not None and isinstance(config, dict):
         app.config.from_mapping(config)
@@ -101,21 +85,6 @@ def create_app(config=None):
 
     #Used for bgp analysis, to be removed
     basic_auth = BasicAuth(app)
-
-    #Admin login init
-    admin.login_manager.init_app(app)
-    bcrypt = Bcrypt(app) 
-
-    admin.db.init_app(app)
-    with app.app_context():
-        admin.db.create_all()
-
-        #Add admin users
-        for user, password in admin_users.items():
-            new_user = admin.Admin(username=user, password=bcrypt.generate_password_hash(password).decode('utf-8'))
-            admin.db.session.add(new_user)
-            admin.db.session.commit()
-            admin_log("INIT: Added user: " + user)
 
     @app.template_filter()
     def format_datetime(utcdatetime, format='%Y-%m-%d at %H:%M'):
@@ -139,13 +108,6 @@ def create_app(config=None):
     def index():
         """Redict to matrix as starting page."""
         return redirect(url_for("connectivity_matrix"))
-
-    @app.route("/krill")
-    def krill():
-        """Allow access to krill, which is embedded as an iframe."""
-        hostname = urlparse(request.base_url).hostname
-        krill_url = app.config['KRILL_URL'].format(hostname=hostname)
-        return render_template("krill.html", krill_url=krill_url)
 
     @app.route("/matrix")
     def connectivity_matrix():
@@ -276,79 +238,12 @@ def create_app(config=None):
             # Only matching ASes for first one.
             dropdown_others={conn[1]['asn'] for conn in selected_connections},
         )
-
-    #############################################
-    ########### Admin side ######################
-    #############################################
-
-    @app.route("/admin", methods=['GET', 'POST'])
-    def admin_login():
-        form = admin.LoginForm()
-        if form.validate_on_submit():
-            admin_log(f"LOGIN: User {form.username.data} requested login")
-            admin_user = admin.Admin.query.filter_by(username=form.username.data).first()
-            if admin_user and bcrypt.check_password_hash(admin_user.password, form.password.data):
-                admin_log(f"LOGIN: User {form.username.data} logged in sucesfully from {request.remote_addr}")
-                login_user(admin_user)
-                flash('Logged in successfully.', 'success')
-                return redirect(url_for('dashboard'))
-            elif admin_user:
-                admin_log(f"LOGIN: User {form.username.data} tried to login with wrong password (from {request.remote_addr})")
-                flash('Login unsuccessful. Please check username and password', 'danger')
-            else:
-                admin_log(f"LOGIN: Login attemt from invalid user: {form.username.data} (from {request.remote_addr})")
-                flash('Login unsuccessful. Please check username and password', 'danger')
-
-
-        return render_template('admin/login.html', form=form)
-
-    @app.route("/admin/dashboard", methods=["GET"])
-    @login_required
-    def dashboard():
-        if 'stats' in request.args:
-            start = request.args.get('start', default=0)
-            start_datetime = datetime(int(start[0:4]), int(start[5:7]), int(start[8:10]), int(start[11:13]), int(start[14:16]))
-            
-            end = request.args.get('end', default=0)
-            if (end == '0') or (end == 0):
-                end_datetime = datetime.now()
-            else:
-                end_datetime = datetime(int(end[0:4]), int(end[5:7]), int(end[8:10]), int(end[11:13]), int(end[14:16]))
-            
-            debug(f"Querying measurements from {start_datetime} to {end_datetime}")
-
-            res = admin.Measurement.query.filter(admin.Measurement.time.between(start_datetime, end_datetime)).all()
-
-            debug(f"Query returned {len(res)} measurements")
-
-            retarr=[]
-            for measurement in res:
-                retarr.append({
-                    "time": measurement.time,
-                    "cpu": measurement.cpu,
-                    "memory": measurement.memory,
-                    "disk": measurement.disk
-                })
-
-            debug(f"Returning {len(retarr)} measurements: {retarr}")
-
-            return jsonify(retarr)
-        return render_template("admin/dashboard.html")
-
-    @app.route("/admin/logout")
-    @login_required
-    def logout():
-        admin_log(f"LOGOUT: User {current_user.username} logged out")
-        logout_user()
-        flash('Logged out successfully.', 'success')
-        return redirect(url_for('admin_login'))
-
-    # Start workers if configured.
-    if app.config["BACKGROUND_WORKERS"] and app.config['AUTO_START_WORKERS']:
-        start_workers(app)
-
+    
+    @app.route("/as_login")
+    def as_login():
+        return ""
+    
     return app
-
 
 # Worker functions.
 # =================
@@ -373,15 +268,6 @@ def start_workers(given_app):
     )
     pbgp.start()
     processes.append(pbgp)
-
-    stats = Process(
-        target=loop,
-        args=(measure_stats,
-              given_app.config['STATS_UPDATE_FREQUENCY'], given_app.config, given_app),
-        kwargs=dict(worker=True)
-    )
-    stats.start()
-    processes.append(stats)
 
     return processes
 
@@ -505,20 +391,3 @@ def prepare_bgp_analysis(config, asn=None, worker=False):
         last, msgs = bgp_policy_analyzer.bgp_report(
             as_data, connection_data, looking_glass_data)
     return last, freq, msgs
-
-def measure_stats(config, app, worker=False):
-
-    time = strftime("%d-%m-%y %H:%M:%S", gmtime())
-    cpu = psutil.cpu_percent()
-    memory = psutil.virtual_memory()[2]
-    disk = psutil.disk_usage('/')[3]
-
-        #Add admin users
-        # for user, password in admin_users.items():
-    with app.app_context():
-        new_measurement = admin.Measurement(cpu=cpu, memory=memory, disk=disk)
-        admin.db.session.add(new_measurement)
-        admin.db.session.commit()
-        print("\033[93mMeasured stats \033[03m(%s)\033[00m" % str(time))
-
-    return (time, cpu, memory, disk)
