@@ -17,10 +17,16 @@
    - [ ] Admin page on the webserver containing auto grading and auto debuging tools for TA use
 
 5. Improvements on the website
+   - [ ] Add AS pages for hosting the virtualizes traceroute
+     - [ ] Automate the account creation based on the AS passwords
+     - [ ] Password changing option
+
    - [ ] Add admin page for TA use 
-     - [ ] Login page **(Example)[https://github.com/arpanneupane19/Python-Flask-Authentication-Tutorial]**
+     - [X] Login page **(Example)[https://github.com/arpanneupane19/Python-Flask-Authentication-Tutorial]**
      - [ ] Auto grading-debugnihg tools
-     - [ ] Resource usage monitoring
+     - [X] Resource usage monitoring
+     - [ ] BGP updates monitoring
+     - [ ] Inpact on performance (periodical ping between hosts)
 
 6. Decentralized or Cluster-based architecture - Interconnection between clusters
    
