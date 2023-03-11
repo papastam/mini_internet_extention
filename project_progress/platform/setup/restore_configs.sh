@@ -44,6 +44,7 @@ clear_config_vtysh() {
       '') ;;          # Skip blank lines
       ' '*) ;;        # Skip commands that are not top-level
       '!'*) ;;        # Skip configuration separators
+      'no'*) ;;       # Skip negative lines
       'end'*) ;;      # Skip the final 'end'
       'line'*) ;;     # Don't remove 'line vty'
       'hostname'*) ;; # Don't remove the hostname
