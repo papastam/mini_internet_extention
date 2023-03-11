@@ -28,8 +28,6 @@ class Measurement(db.Model):
     memory  = db.Column(db.Float, nullable=False)
     disk    = db.Column(db.Float, nullable=False)
 
-
-
 @login_manager.user_loader
 def login_user(user):
     return Admin.query.get(int(user))

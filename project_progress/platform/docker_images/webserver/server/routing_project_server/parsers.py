@@ -187,6 +187,14 @@ def parse_matrix_connectivity(filename: os.PathLike):
         results.append((int(row[0]), int(row[1]), True if row[2] == 'True' else False))
     return results
 
+def parse_as_passwords(filename: os.PathLike) -> Dict[int, str]:
+    """Parse the file with AS passwords."""
+    results = {}
+    reader = csv.reader(_read_clean(filename), delimiter='\t')
+    for row in reader:
+        results[int(row[0])] = row[1]
+    return results
+
 
 def _read_json_safe(filename: os.PathLike, sleep_time=0.01, max_attempts=200):
     """Read a json file, waiting if the file si currently modified."""

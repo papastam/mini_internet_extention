@@ -1,6 +1,4 @@
-{% set logged_in=0 %}
-{% extends "admin_base.html" %}
-
+{% extends "base.html" %}
 {% block head %}
 {{ super() }}
 <meta charset="UTF-8">
@@ -30,11 +28,13 @@
             <form method="POST" action="">
                 {{ form.hidden_tag() }}
 
-                <!-- Email input -->
-                <div class="form-outline mb-4">
-                    {{ form.username(class_='form-control') }}
+                <!-- ASn input -->
+                <h1>AS #</h1>
+                <div>
+                    {{ form.asn(class_='form-control') }}
                 </div>
 
+                <h1>Password</h1>
                 <!-- Password input -->
                 <div class="form-outline mb-4">
                     {{ form.password(class_='form-control') }}

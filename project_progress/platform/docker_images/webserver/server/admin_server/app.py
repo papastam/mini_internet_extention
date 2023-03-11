@@ -26,6 +26,7 @@ import psutil
 
 from . import admin
 
+# CAUTION: These default values are overwritten by the config file.
 config_defaults = {
     'LOCATIONS': {
         'groups': '../../../groups',
@@ -38,11 +39,7 @@ config_defaults = {
     'PORT': 8010,
     # Background processing for resource-intensive tasks.
     'BACKGROUND_WORKERS': False,
-    'AUTO_START_WORKERS': True,
-    "STATS_UPDATE_FREQUENCY": 60,
-    #admin login page config
-    'SQLALCHEMY_DATABASE_URI' : 'sqlite:////server/routing_project_server/database.db',
-    'SECRET_KEY' : 'HY335_papastam'
+    'AUTO_START_WORKERS': True
 }
 
 admin_users= {

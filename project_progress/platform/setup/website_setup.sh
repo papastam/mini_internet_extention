@@ -83,37 +83,41 @@ else
 fi
 
 # Write the webserver config file
-cat > "$PROJECTCONFIGFILE" << EOM
-LOCATIONS = {
-    "config_directory": "${CONFIGDIR_SERVER}",
-    'as_config': "${CONFIGDIR_SERVER}/AS_config.txt",
-    "as_connections_public": "${CONFIGDIR_SERVER}/aslevel_links_students.txt",
-    "as_connections": "${CONFIGDIR_SERVER}/aslevel_links.txt",
-    'groups': '${DATADIR_SERVER}',
-    "matrix": "${DATADIR_SERVER}/matrix/connectivity.txt"
-}
-KRILL_URL="${KRILL_SCHEME}://{hostname}:${PORT_KRILL}/index.html"
-BASIC_AUTH_USERNAME = 'admin'
-BASIC_AUTH_PASSWORD = 'admin'
-BACKGROUND_WORKERS = True
-HOST = '0.0.0.0'
-PORT = 8000
-EOM
+# MOVED to the files in the server directory
+# No need to do this here
 
-cat > "$ADMINCONFIGFILE" << EOM
-LOCATIONS = {
-    "config_directory": "${CONFIGDIR_SERVER}",
-    'as_config': "${CONFIGDIR_SERVER}/AS_config.txt",
-    "as_connections_public": "${CONFIGDIR_SERVER}/aslevel_links_students.txt",
-    "as_connections": "${CONFIGDIR_SERVER}/aslevel_links.txt",
-    'groups': '${DATADIR_SERVER}',
-}
-BASIC_AUTH_USERNAME = 'admin'
-BASIC_AUTH_PASSWORD = 'admin'
-BACKGROUND_WORKERS = True
-HOST = '0.0.0.0'
-PORT = 8010
-EOM
+# cat > "$PROJECTCONFIGFILE" << EOM
+# LOCATIONS = {
+#     "config_directory": "${CONFIGDIR_SERVER}",
+#     'as_config': "${CONFIGDIR_SERVER}/AS_config.txt",
+#     "as_connections_public": "${CONFIGDIR_SERVER}/aslevel_links_students.txt",
+#     "as_connections": "${CONFIGDIR_SERVER}/aslevel_links.txt",
+#     'groups': '${DATADIR_SERVER}',
+#     "matrix": "${DATADIR_SERVER}/matrix/connectivity.txt",
+#     "as_passwords": "../data/passwords.txt"
+# }
+# KRILL_URL="${KRILL_SCHEME}://{hostname}:${PORT_KRILL}/index.html"
+# BASIC_AUTH_USERNAME = 'admin'
+# BASIC_AUTH_PASSWORD = 'admin'
+# BACKGROUND_WORKERS = True
+# HOST = '0.0.0.0'
+# PORT = 8000
+# EOM
+
+# cat > "$ADMINCONFIGFILE" << EOM
+# LOCATIONS = {
+#     "config_directory": "${CONFIGDIR_SERVER}",
+#     'as_config': "${CONFIGDIR_SERVER}/AS_config.txt",
+#     "as_connections_public": "${CONFIGDIR_SERVER}/aslevel_links_students.txt",
+#     "as_connections": "${CONFIGDIR_SERVER}/aslevel_links.txt",
+#     'groups': '${DATADIR_SERVER}',
+# }
+# BASIC_AUTH_USERNAME = 'admin'
+# BASIC_AUTH_PASSWORD = 'admin'
+# BACKGROUND_WORKERS = True
+# HOST = '0.0.0.0'
+# PORT = 8010
+# EOM
 
 # First start the web container, adding labels for the traefik proxy.
 # We only have one webserver; traffic for any hostname will go to it.
@@ -123,8 +127,6 @@ docker run -itd --name="WEB" --cpus=2 \
     --pids-limit 100 \
     -v ${DATADIR}:${DATADIR_SERVER} \
     -v ${CONFIGDIR}:${CONFIGDIR_SERVER} \
-    -v ${PROJECTCONFIGFILE}:/server/project_config.py \
-    -v ${ADMINCONFIGFILE}:/server/admin_config.py \
     -v ${IMAGESDIR}/webserver/server/:/server/ \
     -e PROJECT_SERVER_CONFIG=/server/project_config.py \
     -e ADMIN_SERVER_CONFIG=/server/admin_config.py \
@@ -136,6 +138,10 @@ docker run -itd --name="WEB" --cpus=2 \
     --hostname="web" \
     --privileged \
     "${DOCKERHUB_USER}/d_webserver"
+
+
+    # -v ${PROJECTCONFIGFILE}:/server/project_config.py \
+    # -v ${ADMINCONFIGFILE}:/server/admin_config.py \
 
 # Next start the proxy
 # Setup based on the following tutorials:

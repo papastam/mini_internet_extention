@@ -31,6 +31,7 @@ from jinja2 import StrictUndefined
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from wtforms.validators import InputRequired, Length, ValidationError
+from wtforms.fields import SelectField
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from flask_bcrypt import Bcrypt
@@ -44,6 +45,7 @@ import psutil
 
 from . import bgp_policy_analyzer, matrix, parsers
 
+# CAUTION: These default values are overwritten by the config file.
 config_defaults = {
     'LOCATIONS': {
         'groups': '../../../groups',
@@ -52,7 +54,8 @@ config_defaults = {
         "../../../config/external_links_config_students.txt",
         "as_connections": "../../../config/external_links_config.txt",
         "config_directory": "../../../config",
-        "matrix": "../../../groups/matrix/connectivity.txt"
+        "matrix": "../../../groups/matrix/connectivity.txt",
+        "as_passwords": "../data/passwords.txt"
     },
     'BASIC_AUTH_USERNAME': 'admin',
     'BASIC_AUTH_PASSWORD': 'admin',
@@ -65,9 +68,24 @@ config_defaults = {
     'ANALYSIS_UPDATE_FREQUENCY': 300,  # seconds
     'MATRIX_CACHE': '/tmp/cache/matrix.pickle',
     'ANALYSIS_CACHE': '/tmp/cache/analysis.db',
+
 }
+class LoginForm(FlaskForm):
+    asn = SelectField('AS#', choices=[('1', '1'), ('2', '2')])
+    password = PasswordField('Password', validators=[InputRequired(), Length(min=8, max=80)])
+    submit = SubmitField('Login')
+
+#AS Login Database
+db = SQLAlchemy()
+bcrypt = Bcrypt() 
+logged_in = False
+class AS_team(db.Model, UserMixin):
+    asn = db.Column(db.Integer, nullable=False, unique=True, primary_key=True)
+    password = db.Column(db.String(80), nullable=False)
+
+
 def debug(message):
-    print("\033[35mDEBUG: " + message + "\033[0m")
+    print("\033[35mDEBUG: " + str(message) + "\033[0m")
 
 def create_project_server(config=None):
     """Create and configure the app."""
@@ -83,8 +101,26 @@ def create_project_server(config=None):
     elif config is not None:
         app.config.from_pyfile(config)
 
+    # debug(parsers.parse_as_passwords(app.config['LOCATIONS']['as_passwords']))
+
     #Used for bgp analysis, to be removed
     basic_auth = BasicAuth(app)
+
+    #AS Login manager
+    login_manager = LoginManager()
+    login_manager.login_view = '/as_login'
+    
+    @login_manager.user_loader
+    def login_user(asn):
+        global logged_in 
+        logged_in = True
+        return AS_team.query.get(int(asn))
+
+    login_manager.init_app(app)
+    bcrypt.init_app(app)
+    db.init_app(app)
+
+    register_as_login(app)
 
     @app.template_filter()
     def format_datetime(utcdatetime, format='%Y-%m-%d at %H:%M'):
@@ -239,11 +275,44 @@ def create_project_server(config=None):
             dropdown_others={conn[1]['asn'] for conn in selected_connections},
         )
     
-    @app.route("/as_login")
+    @app.route("/as_login", methods=['GET', 'POST'])
     def as_login():
-        return ""
+        form = LoginForm()
+        if form.validate_on_submit():
+            as_team = AS_team.query.filter_by(username=form.asn.data).first()
+            if as_team and bcrypt.check_password_hash(as_team.password, form.password.data):
+                login_user(as_team)
+                flash('Logged in successfully.', 'success')
+                return redirect(url_for('dashboard'))
+            elif as_team:
+                flash('Login unsuccessful. Please check username and password', 'danger')
+            else:
+                flash('Login unsuccessful. Please check username and password', 'danger')
+
+
+        return render_template('as_login.html', form=form)
     
+    @app.route("/change_pass", methods=['GET', 'POST'])
+    @login_required
+    def change_pass():
+        return render_template('change_pass.html')
+
+
+    @app.route("/traceroute")
+    @login_required
+    def traceroute():
+        return render_template('traceroute.html')
+
+    @app.route("/logout")
+    @login_required
+    def logout():
+        global logged_in 
+        logged_in = False
+        logout_user()
+        return redirect(url_for('matrix'))
+
     return app
+
 
 # Worker functions.
 # =================
@@ -391,3 +460,16 @@ def prepare_bgp_analysis(config, asn=None, worker=False):
         last, msgs = bgp_policy_analyzer.bgp_report(
             as_data, connection_data, looking_glass_data)
     return last, freq, msgs
+
+def register_as_login(app):
+    as_cridentials = parsers.parse_as_passwords(app.config['LOCATIONS']['as_passwords'])
+        
+    with app.app_context():
+        db.create_all()
+
+        #Add admin users
+        for asn, password in as_cridentials.items():
+            AS_team.query.delete()
+            new_user = AS_team(asn=asn, password=bcrypt.generate_password_hash(password).decode('utf-8'))
+            db.session.add(new_user)
+            db.session.commit()
