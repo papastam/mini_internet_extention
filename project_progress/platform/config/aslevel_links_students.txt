@@ -1,0 +1,4 @@
+1	ZURI	Peer	2	ZURI	Peer	179.0.1.1/24
+2	ZURI	Peer	1	ZURI	Peer	179.0.1.2/24
+1	LOND	Peer	2	LOND	Peer	179.0.2.1/24
+2	LOND	Peer	1	LOND	Peer	179.0.2.2/24

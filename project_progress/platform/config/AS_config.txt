@@ -1,1 +1,2 @@
-1   AS  Config  router_config_small.txt    empty.txt    empty.txt	empty.txt	empty.txt
+1   AS  Config  router_config_small.txt    internal_links_config_small.txt    empty.txt	empty.txt	empty.txt
+2   AS  Config  router_config_small.txt    internal_links_config_small.txt    empty.txt	empty.txt	empty.txt

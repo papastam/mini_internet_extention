@@ -10,75 +10,75 @@
 {% macro icon(role) -%}
 {% set key = role|lower if role|lower in icons else 'other' %}
 <div
-    class="hidden sm:flex shrink-0 items-center justify-center text-2xl row-span-2 w-12 mr-4 rounded-full {{icons[key][1]}}">
+    class="tw-hidden sm:tw-flex tw-shrink-0 tw-items-center tw-justify-center tw-text-2xl tw-row-span-2 tw-w-12 tw-mr-4 tw-rounded-full tw-{{icons[key][1]}}">
     {{icons[key][0]|safe}}
 </div>
 {%- endmacro %}
 {% macro tiny_icon(role) -%}
 {% set key = role|lower if role|lower in icons else 'other' %}
 <span
-    class="visible sm:hidden flex shrink-0 items-center justify-center text-xs w-5 mr-0.5 rounded-full {{icons[key][1]}}">
+    class="tw-visible sm:tw-hidden tw-flex tw-shrink-0 tw-items-center tw-justify-center tw-text-xs tw-w-5 tw-mr-0.5 tw-rounded-full tw-{{icons[key][1]}}">
     {{icons[key][0]|safe}}
 </span>
 {%- endmacro %}
 {% macro party(data) -%}
-<div class="w-full mb-2 p-2 px-4 rounded border border-neutral-300 flex flex-col">
-    <div class="self-center text-sm flex flex-row">
+<div class="tw-w-full tw-mb-2 tw-p-2 tw-px-4 tw-rounded tw-border tw-border-neutral-300 tw-flex tw-flex-col">
+    <div class="tw-self-center tw-text-sm tw-flex tw-flex-row">
         {{tiny_icon(data.role)}}
-        <span class="text-neutral-700">{{data.role|upper}}</span>
+        <span class="tw-text-neutral-700">{{data.role|upper}}</span>
     </div>
-    <div class="flex flex-row justify-center sm:justify-start">
+    <div class="tw-flex tw-flex-row tw-justify-center sm:tw-justify-start">
         {{icon(data.role)}}
-        <div class="flex flex-col">
+        <div class="tw-flex tw-flex-col">
             <!-- IXP case -->
             {% if "IXP" in data.router %}
-            <div class="font-bold"><b>AS {{data.router}}</b> </div>
-            <div class="text-sm text-neutral-700">{{data.ip if data.ip is not none else "N/A"}}</div>
+            <div class="tw-font-bold"><b>AS {{data.router}}</b> </div>
+            <div class="tw-text-sm tw-text-neutral-700">{{data.ip if data.ip is not none else "N/A"}}</div>
             <!-- Case of a normal AS -->
             {% else %}
-            <div class="font-bold"><b>AS {{data.asn}}</b> <span class="text-neutral-500">/</span>
+            <div class="tw-font-bold"><b>AS {{data.asn}}</b> <span class="tw-text-neutral-500">/</span>
                 {{data.router}}</div>
-            <div class="text-sm text-neutral-700">{{data.ip if data.ip is not none else "N/A"}}</div>
+            <div class="tw-text-sm tw-text-neutral-700">{{data.ip if data.ip is not none else "N/A"}}</div>
             {% endif %}
         </div>
     </div>
 </div>
 {%- endmacro %}
 {% macro connected() -%}
-<div class="text-xl text-neutral-500 font-bold mono self-center mx-2 sm:mx-4 md:mx-8">
+<div class="tw-text-xl tw-text-neutral-500 tw-font-bold tw-mono tw-self-center tw-mx-2 sm:tw-mx-4 md:tw-mx-8">
     <>
 </div>
 {%- endmacro %}
 
 {% block body %}
-<div class="max-w-4xl mx-auto p-6">
+<div class="tw-max-w-4xl tw-mx-auto tw-p-6">
     {{ h1("AS connections") }}
     <p>
         This list shows all inter-AS connections. For each connection, it shows both involved ASes, the edge-routers at
         which their networks are connected, as well as their business relationship.
     </p>
-    <p class="mb-4">
+    <p class="tw-mb-4">
         Initially, the interfaces are not yet configured.
         When setting them up, use the IP addresses provided below.
     </p>
 
     {% if connections %}
-    <div class="grid justify-center justify-items-center items-center overflow-x-auto mb-16"
+    <div class="tw-grid tw-justify-center tw-justify-items-center tw-items-center tw-overflow-x-auto tw-mb-16"
         style="grid-template-columns: min-content() fit-content(200px)  min-content();">
         <!-- First row: reset button. -->
-        <div class="col-span-3 justify-self-center">
+        <div class="tw-col-span-3 tw-justify-self-center">
             <form action="{{url_for('as_connections')}}">
-                <button type="submit" class="rounded border p-0 px-4
-                    text-black border-black
-                    disabled:text-neutral-400 disabled:border-neutral-300
-                    hover:text-[#ff7e79] hover:border-[#ff7e79]
+                <button type="submit" class="tw-rounded tw-border tw-p-0 tw-px-4
+                    tw-text-black tw-border-black
+                    disabled:tw-text-neutral-400 disabled:tw-border-neutral-300
+                    hover:tw-text-[#ff7e79] hover:tw-border-[#ff7e79]
                     " {% if group is none %}disabled{% endif %}>reset
                     filter</button>
             </form>
         </div>
         <!-- Second row: filters. -->
-        <div class="mb-2 px-4">
-            <select class="bg-transparent font-bold border-0 border-b-2 border-neutral-400 hover:border-[#ff7e79]"
+        <div class="tw-mb-2 tw-px-4">
+            <select class="tw-bg-transparent tw-font-bold tw-border-0 tw-border-b-2 tw-border-neutral-400 hover:tw-border-[#ff7e79]"
                 onchange="if (this.value) window.location.href=this.value">
                 <option {% if group is none %}selected{%endif%} value="{{url_for('as_connections', group=None)}}">
                     any AS
@@ -92,9 +92,9 @@
             </select>
         </div>
         {{ connected() }}
-        <div class="mb-2 px-4">
+        <div class="tw-mb-2 tw-px-4">
             <select
-                class="max-w-4xl m-2 bg-transparent font-bold border-0 border-b-2 border-neutral-400 hover:border-[#ff7e79]"
+                class="tw-max-w-4xl tw-m-2 tw-bg-transparent tw-font-bold tw-border-0 tw-border-b-2 tw-border-neutral-400 hover:tw-border-[#ff7e79]"
                 onchange="if (this.value) window.location.href=this.value">
                 <option {% if othergroup is none %}selected{%endif%} value="{{url_for('as_connections', group=group)}}">
                     any AS
@@ -119,4 +119,4 @@
     <p>There are no connections!</p>
     {% endif %}
     {% endblock %}
-</div>
+</div>  

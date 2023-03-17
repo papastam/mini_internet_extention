@@ -24,55 +24,55 @@ style="background-image: repeating-linear-gradient(45deg, transparent, transpare
 
 {% block body %}
 <!-- Column for text etc with fixed size. -->
-<div class="max-w-4xl mx-auto p-6">
+<div class="tw-max-w-4xl tw-mx-auto tw-p-6">
 	{{ h1("connectivity matrix") }}
 	{{ update_message(update_frequency, last_updated)}}
-	<p class="mb-2">
+	<p class="tw-mb-2">
 		This connectivity matrix indicates the networks that each group
 	</p>
-	<ul class="list-disc list-inside mb-2">
-		<li>can reach with a valid AS-level path (<span class="bg-[#56c157]">&nbsp;&nbsp;&nbsp;</span>);
+	<ul class="tw-list-disc tw-list-inside tw-mb-2">
+		<li>can reach with a valid AS-level path (<span class="tw-bg-[#56c157]">&nbsp;&nbsp;&nbsp;</span>);
 		</li>
-		<li>can reach with an invalid AS-level path (<span class="bg-[#f0ad4e]">&nbsp;&nbsp;&nbsp;</span>);
+		<li>can reach with an invalid AS-level path (<span class="tw-bg-[#f0ad4e]">&nbsp;&nbsp;&nbsp;</span>);
 		</li>
-		<li>cannot reach (<span class="bg-[#d5605e]">&nbsp;&nbsp;&nbsp;</span>). </li>
+		<li>cannot reach (<span class="tw-bg-[#d5605e]">&nbsp;&nbsp;&nbsp;</span>). </li>
 	</ul>
-	<p class="mb-2">
+	<p class="tw-mb-2">
 		We determine reachability by sending periodic pings between all networks,
 		if the ping succeeds, we consider the AS reachable.
 		In addition to the ping, we compare the BGP looking glass outputs with
 		the project topology to determine whether the path between two ASes is valid, i.e. if it does not violate any
 		policies.
 	</p>
-	<p class="mb-8">
+	<p class="tw-mb-8">
 		Note that the period for pings between two ASes can be higher than the matrix update frequency, and it may take a few matrix updates until a
 		change for a particular pair of ASes is visible.
 	</p>
 	<!-- Progress bar -->
 	{% if valid or invalid or failure %}
-	<div class="w-full rounded-lg border border-neutral-300 bg-neutral-300 flex mb-8">
-		<div class="basis-[{{valid}}%] rounded-l-lg px-2 p-1 bg-[#56c157]"
+	<div class="tw-w-full tw-rounded-lg tw-border tw-border-neutral-300 tw-bg-neutral-300 tw-flex tw-mb-8">
+		<div class="tw-basis-[{{valid}}%] tw-rounded-l-lg tw-px-2 tw-p-1 tw-bg-[#56c157]"
 			title="Reachable with valid path: {{valid}}%" {{stripes(not valid)}}>
 			{{valid}}%
 		</div>
-		<div class="basis-[{{invalid}}%] px-2 p-1 bg-[#f0ad4e] border-x-2 border-white/50"
+		<div class="tw-basis-[{{invalid}}%] tw-px-2 tw-p-1 tw-bg-[#f0ad4e] tw-border-x-2 tw-border-white/50"
 			title="Reachable with invalid path: {{invalid}}%" {{stripes(not invalid)}}>
 			{{invalid}}%
 		</div>
-		<div class="basis-[{{failure}}%] px-2 p-1 rounded-r-lg bg-[#d5605e]" title="Not reachable: {{failure}}%"
+		<div class="tw-basis-[{{failure}}%] tw-px-2 tw-p-1 tw-rounded-r-lg tw-bg-[#d5605e]" title="Not reachable: {{failure}}%"
 			{{stripes(not failure)}}>
 			{{failure}}%
 		</div>
 	</div>
 	{% else %}
-	<p class="italic text-neutral-500 mb-6 text-center mt-16">
+	<p class="tw-italic tw-text-neutral-500 tw-mb-6 tw-text-center tw-mt-16">
 		Sorry, no data is available! Please check in later.
 	</p>
 	{% endif %}
 	<div
-		class="2xl:hidden mb-8 p-4 text-md border-l-4 bg-neutral-100 text-neutral-700 border-neutral-400 flex flex-row">
+		class="2xl:tw-hidden tw-mb-8 tw-p-4 tw-text-md tw-border-l-4 tw-bg-neutral-100 tw-text-neutral-700 tw-border-neutral-400 tw-flex tw-flex-row">
 		<div
-			class="flex shrink-0 items-center justify-center text-2xl row-span-2 w-12 h-12 mr-4 rounded-full bg-orange-300">
+			class="tw-flex tw-shrink-0 tw-items-center tw-justify-center tw-text-2xl tw-row-span-2 tw-w-12 tw-h-12 tw-mr-4 tw-rounded-full tw-bg-orange-300">
 			🚨
 		</div>
 		<p>
@@ -87,38 +87,38 @@ style="background-image: repeating-linear-gradient(45deg, transparent, transpare
 <!-- Thus setting it to 85% gives us (almost) square cells. -->
 {% if connectivity %}
 {% set n = connectivity|length %}
-<div class="max-w-full mx-auto mb-16 overflow-x-auto">
-	<div class="grid border border-white/50 border-collapse mono {% if n>= 50 %}text-xs{% endif %}"
+<div class="tw-max-w-full tw-mx-auto tw-mb-16 tw-overflow-x-auto">
+	<div class="tw-grid tw-border tw-border-white/50 tw-border-collapse tw-mono {% if n>= 50 %}tw-text-xs{% endif %}"
 		style="grid-template-columns: fit-content(100px) repeat({{ n }}, minmax(20px, 1fr));">
 		<!-- header row. -->
-		<div class="border border-white/50 text-center self-end">AS</div>
+		<div class="tw-border tw-border-white/50 tw-text-center tw-self-end">AS</div>
 		{% for asn in (connectivity|sort) %}
-		<div class="border border-white/50 text-center even:bg-neutral-200 flex flex-col justify-end">
+		<div class="tw-border tw-border-white/50 tw-text-center even:tw-bg-neutral-200 tw-flex tw-flex-col tw-justify-end">
 			{{ stacknumber(asn) }}
 		</div>
 		{% endfor %}
 		<!-- content rows -->
 		<!-- Add a little padding to ASN to make it look nicer. -->
 		{% for asn in connectivity|sort %}
-		<div class="border border-white/50 even:bg-neutral-200 text-right pr-1">{{asn}}</div>
+		<div class="tw-border tw-border-white/50 even:tw-bg-neutral-200 tw-text-right tw-pr-1">{{asn}}</div>
 		{% for asn_dst in connectivity[asn]|sort %}
 		{% if not connectivity[asn][asn_dst] %}
-		<div class="border border-white/50 bg-[#d5605e]" title="AS{{asn}}&rarr;AS{{asn_dst}}: Not Reachable"
+		<div class="tw-border tw-border-white/50 tw-bg-[#d5605e]" title="AS{{asn}}&rarr;AS{{asn_dst}}: Not Reachable"
 			style="padding-bottom: 80%;">
 		</div>
 		{% else %}
 		{% if validity and (asn in validity) and (asn_dst in validity[asn]) %}
 		{% if validity[asn][asn_dst] %}
-		<div class="border border-white/50 bg-[#56c157]" title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable with valid path"
+		<div class="tw-border tw-border-white/50 tw-bg-[#56c157]" title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable with valid path"
 			style="padding-bottom: 80%;">
 		</div>
 		{% else %}
-		<div class="border border-white/50 bg-[#f0ad4e]"
+		<div class="tw-border tw-border-white/50 tw-bg-[#f0ad4e]"
 			title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable with invalid path" style="padding-bottom: 80%;">
 		</div>
 		{% endif %}
 		{% else %}
-		<div class="border border-white/50 bg-[#56c157]"
+		<div class="tw-border tw-border-white/50 tw-bg-[#56c157]"
 			title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable, but validity of path could not be verified."
 			style="padding-bottom: 80%;">
 		</div>

@@ -190,7 +190,12 @@ def parse_matrix_connectivity(filename: os.PathLike):
 def parse_as_passwords(filename: os.PathLike) -> Dict[int, str]:
     """Parse the file with AS passwords."""
     results = {}
-    reader = csv.reader(_read_clean(filename), delimiter='\t')
+    
+    try:
+        reader = csv.reader(_read_clean(filename), delimiter='\t')
+    except FileNotFoundError:
+        return 
+    
     for row in reader:
         results[int(row[0])] = row[1]
     return results

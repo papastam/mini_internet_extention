@@ -26,11 +26,11 @@
 {% endblock %}
 
 {% block body %}
-<div id="lg-body" class="max-w-4xl mx-auto px-6 pt-6 mb-16">
+<div id="lg-body" class="tw-max-w-4xl tw-mx-auto tw-px-6 tw-pt-6 tw-mb-16">
     {{ h1("looking glass") }}
 
-    <blockquote class="relative m-4 mb-8 p-4 text-md border-l-4 bg-neutral-100 text-neutral-700 border-neutral-400">
-        <p class="italic quote  mb-4">
+    <blockquote class="tw-relative tw-m-4 tw-mb-8 tw-p-4 tw-text-md tw-border-l-4 tw-bg-neutral-100 tw-text-neutral-700 tw-border-neutral-400">
+        <p class="tw-italic tw-quote tw-mb-4">
             Looking Glass servers (LG servers) are servers on the Internet running one of a variety of publicly
             available Looking Glass software implementations. They are commonly deployed by autonomous systems (AS) to
             offer access to their routing infrastructure in order to facilitate debugging network issues. A Looking
@@ -38,20 +38,20 @@
             acts as a limited, read-only portal to routers of whatever organization is running the LG server.
         </p>
         <cite>
-            <a href="https://en.wikipedia.org/wiki/Looking_Glass_server" class="flex items-center not-italic">
-                <img alt="avatar" class="w-12 mr-4 rounded-full"
+            <a href="https://en.wikipedia.org/wiki/Looking_Glass_server" class="tw-flex tw-items-center tw-not-italic">
+                <img alt="avatar" class="tw-w-12 tw-mr-4 tw-rounded-full"
                     src="https://upload.wikimedia.org/wikipedia/commons/6/63/Wikipedia-logo.png" />
-                <div class="flex flex-col">
-                    <span class="text-md text-neutral-800 ">Looking Glass Server</span>
-                    <span class="text-sm text-neutral-500 ">wikipedia.org</span>
+                <div class="tw-flex tw-flex-col">
+                    <span class="tw-text-md tw-text-neutral-800 ">Looking Glass Server</span>
+                    <span class="tw-text-sm tw-text-neutral-500 ">wikipedia.org</span>
                 </div>
             </a>
         </cite>
     </blockquote>
-    <div class="flex items-center justify-center">
-        <div class="mr-8 mb-4">
-            <span class="font-bold">AS</span>
-            <select class="bg-transparent border-0 border-b-2 border-neutral-400 hover:border-[#ff7e79]"
+    <div class="tw-flex tw-items-center tw-justify-center">
+        <div class="tw-mr-8 tw-mb-4">
+            <span class="tw-font-bold">AS</span>
+            <select class="tw-bg-transparent tw-border-0 tw-border-b-2 tw-border-neutral-400 hover:tw-border-[#ff7e79]"
                 onchange="if (this.value) window.location.href=this.value">
                 {% for _group in dropdown_groups|sort %}
                 <option {% if _group==group %}selected{%endif%}
@@ -61,9 +61,9 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="mb-4">
-            <span class="font-bold">Router</span>
-            <select class="bg-transparent border-0 border-b-2 border-neutral-400 hover:border-[#ff7e79]"
+        <div class="tw-mb-4">
+            <span class="tw-font-bold">Router</span>
+            <select class="tw-bg-transparent tw-border-0 tw-border-b-2 tw-border-neutral-400 hover:tw-border-[#ff7e79]"
                 onchange="if (this.value) window.location.href=this.value">
                 {% for _router in dropdown_routers %}
                 <option {% if _router==router %}selected{%endif%}
@@ -77,7 +77,7 @@
     </div>
 
     <pre id="code"
-        class="box-border w-48 text-sm px-4 py-2 rounded border border-neutral-300 bg-neutral-100 overflow-x-auto mb-6">{{filecontent|safe}}</pre>
+        class="tw-box-border tw-w-48 tw-text-sm tw-px-4 tw-py-2 tw-rounded tw-border tw-border-neutral-300 tw-bg-neutral-100 tw-overflow-x-auto tw-mb-6">{{filecontent|safe}}</pre>
 
     {{ h1("policy analysis") }}
     {{ update_message(update_frequency, last_updated)}}
@@ -86,8 +86,8 @@
         The BGP advertisements of <b>AS {{group}}</b> do not seem to violate any policies.
     </p>
     {% else %}
-    <p class="mb-2">The BGP advertisements of <b>AS {{group}}</b> violate policies:</p>
-    <ul class="list-disc list-inside">
+    <p class="tw-mb-2">The BGP advertisements of <b>AS {{group}}</b> violate policies:</p>
+    <ul class="tw-list-disc tw-list-inside">
         {% for msg in bgp_hints %}
         <li>{{msg}}</li>
         {% endfor %}

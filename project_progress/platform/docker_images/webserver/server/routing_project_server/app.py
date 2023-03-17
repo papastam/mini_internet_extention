@@ -45,7 +45,9 @@ import psutil
 
 from . import bgp_policy_analyzer, matrix, parsers
 
-# CAUTION: These default values are overwritten by the config file.
+# CAUTION: These default values are overwritten by the setup script.
+# ./setup_webserver.sh will write to file 'groups/webserver/admin_config.py' and 'groups/webserver/project_config.py' 
+# and then mount them to the docker /server directory.
 config_defaults = {
     'LOCATIONS': {
         'groups': '../../../groups',
@@ -80,12 +82,15 @@ db = SQLAlchemy()
 bcrypt = Bcrypt() 
 logged_in = False
 class AS_team(db.Model, UserMixin):
-    asn = db.Column(db.Integer, nullable=False, unique=True, primary_key=True)
+    asn = db.Column(db.Integer, primary_key=True)
     password = db.Column(db.String(80), nullable=False)
 
 
 def debug(message):
     print("\033[35mDEBUG: " + str(message) + "\033[0m")
+
+def error(message):
+    print("\033[31mERROR: " + str(message) + "\033[0m")
 
 def create_project_server(config=None):
     """Create and configure the app."""
@@ -311,6 +316,10 @@ def create_project_server(config=None):
         logout_user()
         return redirect(url_for('matrix'))
 
+    # Start workers if configured.
+    if app.config["BACKGROUND_WORKERS"] and app.config['AUTO_START_WORKERS']:
+        start_workers(app)
+        
     return app
 
 
@@ -462,14 +471,19 @@ def prepare_bgp_analysis(config, asn=None, worker=False):
     return last, freq, msgs
 
 def register_as_login(app):
+    
     as_cridentials = parsers.parse_as_passwords(app.config['LOCATIONS']['as_passwords'])
-        
+    if not as_cridentials:
+        error("AS login info was not loaded. AS Teams Login will not be available.")
+        return
+
     with app.app_context():
         db.create_all()
 
         #Add admin users
         for asn, password in as_cridentials.items():
+            debug(f"Adding team {asn} with password {password}")
             AS_team.query.delete()
             new_user = AS_team(asn=asn, password=bcrypt.generate_password_hash(password).decode('utf-8'))
             db.session.add(new_user)
-            db.session.commit()
+        db.session.commit()
