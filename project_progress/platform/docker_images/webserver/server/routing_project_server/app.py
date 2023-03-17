@@ -70,21 +70,22 @@ config_defaults = {
     'ANALYSIS_UPDATE_FREQUENCY': 300,  # seconds
     'MATRIX_CACHE': '/tmp/cache/matrix.pickle',
     'ANALYSIS_CACHE': '/tmp/cache/analysis.db',
-
 }
-class LoginForm(FlaskForm):
-    asn = SelectField('AS#', choices=[('1', '1'), ('2', '2')])
-    password = PasswordField('Password', validators=[InputRequired(), Length(min=8, max=80)])
-    submit = SubmitField('Login')
 
 #AS Login Database
 db = SQLAlchemy()
 bcrypt = Bcrypt() 
 logged_in = False
-class AS_team(db.Model, UserMixin):
-    asn = db.Column(db.Integer, primary_key=True)
-    password = db.Column(db.String(80), nullable=False)
+login_choices = []
 
+class LoginForm(FlaskForm):
+    asn = SelectField('AS#', choices=login_choices, validators=[InputRequired()])
+    password = PasswordField('Password', validators=[InputRequired(), Length(min=8, max=80)])
+    submit = SubmitField('Login')
+
+class AS_team(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    password = db.Column(db.String(80), nullable=False)
 
 def debug(message):
     print("\033[35mDEBUG: " + str(message) + "\033[0m")
@@ -112,16 +113,14 @@ def create_project_server(config=None):
     basic_auth = BasicAuth(app)
 
     #AS Login manager
-    login_manager = LoginManager()
+    login_manager = LoginManager(app)
     login_manager.login_view = '/as_login'
     
     @login_manager.user_loader
-    def login_user(asn):
-        global logged_in 
-        logged_in = True
+    def load_user(asn):
         return AS_team.query.get(int(asn))
 
-    login_manager.init_app(app)
+    # login_manager.init_app(app)
     bcrypt.init_app(app)
     db.init_app(app)
 
@@ -187,6 +186,7 @@ def create_project_server(config=None):
             connectivity=connectivity, validity=validity,
             valid=valid, invalid=invalid, failure=failure,
             last_updated=updated, update_frequency=frequency,
+            logged_in=logged_in
         )
 
     #TODO: Move it to the admin side
@@ -198,6 +198,7 @@ def create_project_server(config=None):
         return render_template(
             "bgp_analysis.html", messages=messages,
             last_updated=updated, update_frequency=freq,
+            logged_in=logged_in
         )
 
     @app.route("/looking-glass")
@@ -243,7 +244,7 @@ def create_project_server(config=None):
             bgp_hints=messages,
             group=group, router=router,
             dropdown_groups=dropdown_groups, dropdown_routers=dropdown_routers,
-            last_updated=updated, update_frequency=freq,
+            last_updated=updated, update_frequency=freq,logged_in=logged_in
         )
 
     @app.route("/as-connections")
@@ -278,35 +279,38 @@ def create_project_server(config=None):
             dropdown_groups=all_ases,
             # Only matching ASes for first one.
             dropdown_others={conn[1]['asn'] for conn in selected_connections},
+            logged_in=logged_in
         )
     
     @app.route("/as_login", methods=['GET', 'POST'])
     def as_login():
+        global logged_in
         form = LoginForm()
         if form.validate_on_submit():
-            as_team = AS_team.query.filter_by(username=form.asn.data).first()
+            as_team = AS_team.query.filter_by(id=form.asn.data).first()
+            debug(f"Login attempt for {form.asn.data} with password {form.password.data}")
             if as_team and bcrypt.check_password_hash(as_team.password, form.password.data):
+                logged_in = as_team.id
                 login_user(as_team)
                 flash('Logged in successfully.', 'success')
-                return redirect(url_for('dashboard'))
+                return redirect(url_for('connectivity_matrix'))
             elif as_team:
                 flash('Login unsuccessful. Please check username and password', 'danger')
             else:
                 flash('Login unsuccessful. Please check username and password', 'danger')
-
 
         return render_template('as_login.html', form=form)
     
     @app.route("/change_pass", methods=['GET', 'POST'])
     @login_required
     def change_pass():
-        return render_template('change_pass.html')
+        return render_template('change_pass.html',logged_in=logged_in)
 
 
     @app.route("/traceroute")
     @login_required
     def traceroute():
-        return render_template('traceroute.html')
+        return render_template('traceroute.html',logged_in=logged_in)
 
     @app.route("/logout")
     @login_required
@@ -314,7 +318,7 @@ def create_project_server(config=None):
         global logged_in 
         logged_in = False
         logout_user()
-        return redirect(url_for('matrix'))
+        return redirect(url_for('connectivity_matrix'))
 
     # Start workers if configured.
     if app.config["BACKGROUND_WORKERS"] and app.config['AUTO_START_WORKERS']:
@@ -322,9 +326,13 @@ def create_project_server(config=None):
         
     return app
 
-
-# Worker functions.
-# =================
+# ===================================================
+# ===================================================
+# ===================================================
+# ================ Worker functions =================
+# ===================================================
+# ===================================================
+# ===================================================
 
 def start_workers(given_app):
     """Create background processes"""
@@ -471,7 +479,8 @@ def prepare_bgp_analysis(config, asn=None, worker=False):
     return last, freq, msgs
 
 def register_as_login(app):
-    
+    global login_choices
+
     as_cridentials = parsers.parse_as_passwords(app.config['LOCATIONS']['as_passwords'])
     if not as_cridentials:
         error("AS login info was not loaded. AS Teams Login will not be available.")
@@ -479,11 +488,12 @@ def register_as_login(app):
 
     with app.app_context():
         db.create_all()
+        AS_team.query.delete()
 
         #Add admin users
         for asn, password in as_cridentials.items():
-            debug(f"Adding team {asn} with password {password}")
-            AS_team.query.delete()
-            new_user = AS_team(asn=asn, password=bcrypt.generate_password_hash(password).decode('utf-8'))
+            login_choices.append((str(asn),str(asn)))
+
+            new_user = AS_team(id=asn, password=bcrypt.generate_password_hash(password).decode('utf-8'))
             db.session.add(new_user)
         db.session.commit()

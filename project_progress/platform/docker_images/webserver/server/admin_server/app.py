@@ -81,10 +81,10 @@ def create_admin_server(config=None):
     admin.db.init_app(app)
     with app.app_context():
         admin.db.create_all()
+        admin.Admin.query.delete()
 
         #Add admin users
         for user, password in admin_users.items():
-            admin.Admin.query.delete()
             new_user = admin.Admin(username=user, password=bcrypt.generate_password_hash(password).decode('utf-8'))
             admin.db.session.add(new_user)
             admin.db.session.commit()

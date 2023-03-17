@@ -6,10 +6,6 @@
 'traceroute': 'traceroute',
 } -%}
 
-{% if not (logged_in is defined) %}
-    {% set logged_in = False %}
-{%  endif %}
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -38,8 +34,8 @@
     <div style="display: flex;justify-content: flex-start;position: relative;height: 100px;background-color: #1c1c21 ;">
         <div style="flex: 0 1 auto;margin-right: auto;padding: 10px;color: white;">
             <div style="display: flex;flex-direction: column;">
-                {% if logged_in == True %}
-                    <span>Logged in as AS: </span>
+                {% if (logged_in is defined) and (logged_in != False) %}
+                    <span>Logged in as AS: {{logged_in}}</span>
                     <a class="tw-block tw-mt-4 lg:tw-inline-block lg:tw-mt-0 hover:tw-font-bold tw-mr-4 tw-text-lg" href="{{url_for("logout")}}">[ ] Log Out</a>
                 {% else %}
                     <span>You are not logged in</span>

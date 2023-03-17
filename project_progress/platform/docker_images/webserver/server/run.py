@@ -9,9 +9,11 @@ from admin_server import create_admin_server
 
 if __name__ == "__main__":
 
-        # #Clear the database
-    # with open("/server/routing_project_server/database.db",'r+') as file:
-    #     file.truncate(0)
+    #Clear the databases
+    with open("/server/routing_project_server/database.db",'r+') as file:
+        file.truncate(0)
+    with open("/server/admin_server/database.db",'r+') as file:
+        file.truncate(0)
 
     #Clear the admin login log
     with open("/server/admin_server/admin_login.log",'r+') as file:
