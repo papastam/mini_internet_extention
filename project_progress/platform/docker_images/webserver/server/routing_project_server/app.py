@@ -78,6 +78,11 @@ bcrypt = Bcrypt()
 logged_in = False
 login_choices = []
 
+class ChangePassForm(FlaskForm):
+    old_pass = PasswordField('Old Password', validators=[InputRequired(), Length(min=8, max=80)])
+    new_pass = PasswordField('New Password', validators=[InputRequired(), Length(min=8, max=80)])
+    confirm_pass = PasswordField('Confirm New Password', validators=[InputRequired(), Length(min=8, max=80)])
+
 class LoginForm(FlaskForm):
     asn = SelectField('AS#', choices=login_choices, validators=[InputRequired()])
     password = PasswordField('Password', validators=[InputRequired(), Length(min=8, max=80)])
@@ -304,7 +309,8 @@ def create_project_server(config=None):
     @app.route("/change_pass", methods=['GET', 'POST'])
     @login_required
     def change_pass():
-        return render_template('change_pass.html',logged_in=logged_in)
+        form = ChangePassForm()
+        return render_template('change_pass.html',logged_in=logged_in, form=form)
 
 
     @app.route("/traceroute")

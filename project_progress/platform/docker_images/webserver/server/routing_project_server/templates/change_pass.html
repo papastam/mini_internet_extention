@@ -1,2 +1,31 @@
 {% extends "base.html" %}
-<h5>Change Pass</h5>
+{% from 'macros.html' import h1 %}
+
+{% block body %}
+<div class="tw-max-w-4xl tw-mx-auto tw-p-6 tw-w-3/5">
+	{{ h1("Change AS password") }}
+	<p class="tw-mb-2">
+	Here you can change your AS's password. This includes:
+	</p>
+	<ul class="tw-list-disc tw-list-inside tw-mb-2">
+		<li>The ssh password of your proxy container</li>
+		<li>The login password to this website</li>
+	</ul>
+	<div class="tw-flex tw-flex-col tw-border-white tw-border-l-amber-500 tw-border-2 tw-place-content-center tw-p-2 tw-pl-5">
+		<div>
+			<p>Enter your old AS password:</p>
+			{{ form.old_pass(class_='form-control tw-mb-3 tw-border-2 tw-rounded-md tw-border-[#ff7e79] tw-drop-shadow-lg
+
+') }}
+		</div>
+		<div>
+			<p>Enter your new AS password:</p>
+			{{ form.new_pass(class_='form-control tw-mb-3 tw-border-2 tw-rounded-md tw-border-[#ff7e79] tw-drop-shadow-lg') }}
+		<div>
+		</div>
+			<p>Confirm your new AS password:</p>
+			{{ form.confirm_pass(class_='form-control tw-mb-3 tw-border-2 tw-rounded-md tw-border-[#ff7e79] tw-drop-shadow-lg') }}
+		</div>
+	</div>
+</div>
+{% endblock %}
