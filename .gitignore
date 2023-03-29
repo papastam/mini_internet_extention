@@ -3,3 +3,7 @@
 *.log #Log files
 project_progress/platform/docker_images/webserver/server/routing_project_server/database.db
 .gitignore
+nohup.out
+
+# Directories
+old_version*

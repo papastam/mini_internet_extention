@@ -50,6 +50,7 @@ DIRECTORY="$1"
 DATADIR="$(pwd ${DIRECTORY})/groups"
 CONFIGDIR="$(pwd ${DIRECTORY})/config"
 IMAGESDIR="$(pwd ${DIRECTORY})/docker_images"
+UTILSDIR="$(pwd ${DIRECTORY})/utils"
 
 # Directory for server config.
 mkdir -p "${DATADIR}/webserver"
@@ -58,6 +59,7 @@ ADMINCONFIGFILE="${DATADIR}/webserver/admin_config.py"
 LETSENCRYPT="${DATADIR}/webserver/letsencrypt"
 
 # Directories inside the container.
+SERVER_DIR="/server"
 DATADIR_SERVER='/server/data'
 CONFIGDIR_SERVER='/server/configs'
 
@@ -91,7 +93,8 @@ LOCATIONS = {
     "as_connections": "${CONFIGDIR_SERVER}/aslevel_links.txt",
     'groups': '${DATADIR_SERVER}',
     "matrix": "${DATADIR_SERVER}/matrix/connectivity.txt",
-    "as_passwords": "${DATADIR_SERVER}/passwords.txt"
+    "as_passwords": "${DATADIR_SERVER}/passwords.txt",
+    "docker_pipe": "${SERVER_DIR}/docker_pipe"
 }
 KRILL_URL="${KRILL_SCHEME}://{hostname}:${PORT_KRILL}/index.html"
 BASIC_AUTH_USERNAME = 'admin'
@@ -136,6 +139,7 @@ docker run -itd --name="WEB" --cpus=2 \
     -v ${IMAGESDIR}/webserver/server/:/server/ \
     -v ${PROJECTCONFIGFILE}:/server/project_config.py \
     -v ${ADMINCONFIGFILE}:/server/admin_config.py \
+    -v ${UTILSDIR}/pipe/docker_pipe:/server/docker_pipe \
     -e PROJECT_SERVER_CONFIG=/server/project_config.py \
     -e ADMIN_SERVER_CONFIG=/server/admin_config.py \
     -e TZ=${TZ} \

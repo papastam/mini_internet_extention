@@ -231,7 +231,7 @@ echo ""
 echo ""
 
 echo "Waiting 60sec for RPKI CA and proxy to startup.."
-sleep 60
+# sleep 60
 
 echo "rpki_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 echo "rpki_setup.sh: "
@@ -243,6 +243,15 @@ echo ""
 echo "website_setup.sh: "
 echo "website_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 time ./setup/website_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
+
+echo ""
+echo ""
+
+echo "pipe_setup.sh: "
+echo "pipe_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
+rm -f ${DIRECTORY}/nohup.out
+time nohup ./setup/pipe_setup.sh "${DIRECTORY}" &
+echo "Docker pipe output is: ${DIRECTORY}/nohup.out"
 
 echo ""
 echo ""

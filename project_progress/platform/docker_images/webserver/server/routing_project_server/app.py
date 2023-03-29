@@ -82,6 +82,7 @@ class ChangePassForm(FlaskForm):
     old_pass = PasswordField('Old Password', validators=[InputRequired(), Length(min=8, max=80)])
     new_pass = PasswordField('New Password', validators=[InputRequired(), Length(min=8, max=80)])
     confirm_pass = PasswordField('Confirm New Password', validators=[InputRequired(), Length(min=8, max=80)])
+    submit = SubmitField('Change Password')
 
 class LoginForm(FlaskForm):
     asn = SelectField('AS#', choices=login_choices, validators=[InputRequired()])
@@ -310,8 +311,22 @@ def create_project_server(config=None):
     @login_required
     def change_pass():
         form = ChangePassForm()
-        return render_template('change_pass.html',logged_in=logged_in, form=form)
+        if form.validate_on_submit():
+            if form.confirm_pass.data != form.new_pass.data:
+                # This case is handled in frontend, if orverriden dont react to change request
+                pass
+            else:
+                as_team = AS_team.query.filter_by(id=logged_in).first()
+                password = form.new_pass.data
+                with open(app.config['LOCATIONS']['docker_pipe'], 'w') as pipe:
+                    pipe.write(f"change_pass {as_team.id} {password}\n")
+                    pipe.write("\n")
+                    pipe.close()
+                flash('Password changed successfully.', 'success') 
 
+
+        return render_template('change_pass.html',logged_in=logged_in, form=form)
+    
 
     @app.route("/traceroute")
     @login_required
