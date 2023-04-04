@@ -29,19 +29,12 @@ from flask_basicauth import BasicAuth
 from jinja2 import StrictUndefined
 
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
-from flask_sqlalchemy import SQLAlchemy
 from wtforms.validators import InputRequired, Length, ValidationError
 from wtforms.fields import SelectField
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from flask_bcrypt import Bcrypt
-from datetime import datetime
-import json
-import time
-import string
-
-
-import psutil
+import database as db
 
 from . import bgp_policy_analyzer, matrix, parsers
 
@@ -73,7 +66,7 @@ config_defaults = {
 }
 
 #AS Login Database
-db = SQLAlchemy()
+# db = SQLAlchemy()
 bcrypt = Bcrypt() 
 logged_in = False
 login_choices = []
@@ -89,17 +82,13 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[InputRequired(), Length(min=8, max=80)])
     submit = SubmitField('Login')
 
-class AS_team(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    password = db.Column(db.String(80), nullable=False)
-
 def debug(message):
     print("\033[35mDEBUG: " + str(message) + "\033[0m")
 
 def error(message):
     print("\033[31mERROR: " + str(message) + "\033[0m")
 
-def create_project_server(config=None):
+def create_project_server(db_session, config=None):
     """Create and configure the app."""
     app = Flask(__name__)
     app.config.from_mapping(config_defaults)
@@ -113,8 +102,6 @@ def create_project_server(config=None):
     elif config is not None:
         app.config.from_pyfile(config)
 
-    # debug(parsers.parse_as_passwords(app.config['LOCATIONS']['as_passwords']))
-
     #Used for bgp analysis, to be removed
     basic_auth = BasicAuth(app)
 
@@ -124,13 +111,12 @@ def create_project_server(config=None):
     
     @login_manager.user_loader
     def load_user(asn):
-        return AS_team.query.get(int(asn))
+        return db.AS_teams.query.get(int(asn))
 
-    # login_manager.init_app(app)
+    login_manager.init_app(app)
     bcrypt.init_app(app)
-    db.init_app(app)
 
-    register_as_login(app)
+    register_as_login(app, db_session)
 
     @app.template_filter()
     def format_datetime(utcdatetime, format='%Y-%m-%d at %H:%M'):
@@ -293,7 +279,7 @@ def create_project_server(config=None):
         global logged_in
         form = LoginForm()
         if form.validate_on_submit():
-            as_team = AS_team.query.filter_by(id=form.asn.data).first()
+            as_team = db.AS_teams.query.filter_by(id=form.asn.data).first()
             debug(f"Login attempt for {form.asn.data} with password {form.password.data}")
             if as_team and bcrypt.check_password_hash(as_team.password, form.password.data):
                 logged_in = as_team.id
@@ -311,22 +297,23 @@ def create_project_server(config=None):
     @login_required
     def change_pass():
         form = ChangePassForm()
-        if form.validate_on_submit():
+        debug("Requested change pass")
+        if form.is_submitted():
+            debug("HELLO?")
             if form.confirm_pass.data != form.new_pass.data:
+                debug(f"{form.confirm_pass.data} != {form.new_pass.data}")
                 # This case is handled in frontend, if orverriden dont react to change request
                 pass
             else:
-                as_team = AS_team.query.filter_by(id=logged_in).first()
                 password = form.new_pass.data
+                debug(f"Changing password for {logged_in} to '{password}'")
                 with open(app.config['LOCATIONS']['docker_pipe'], 'w') as pipe:
-                    pipe.write(f"change_pass {as_team.id} {password}\n")
-                    pipe.write("\n")
+                    pipe.write(f"change_pass {logged_in} {password}\n")
+                    pipe.flush()
                     pipe.close()
                 flash('Password changed successfully.', 'success') 
 
-
         return render_template('change_pass.html',logged_in=logged_in, form=form)
-    
 
     @app.route("/traceroute")
     @login_required
@@ -499,22 +486,17 @@ def prepare_bgp_analysis(config, asn=None, worker=False):
             as_data, connection_data, looking_glass_data)
     return last, freq, msgs
 
-def register_as_login(app):
+def register_as_login(app, db_session):
     global login_choices
 
     as_cridentials = parsers.parse_as_passwords(app.config['LOCATIONS']['as_passwords'])
     if not as_cridentials:
         error("AS login info was not loaded. AS Teams Login will not be available.")
-        return
 
-    with app.app_context():
-        db.create_all()
-        AS_team.query.delete()
+    #Add admin users
+    for asn, password in as_cridentials.items():
+        login_choices.append((str(asn),str(asn)))
 
-        #Add admin users
-        for asn, password in as_cridentials.items():
-            login_choices.append((str(asn),str(asn)))
-
-            new_user = AS_team(id=asn, password=bcrypt.generate_password_hash(password).decode('utf-8'))
-            db.session.add(new_user)
-        db.session.commit()
+        new_user = db.AS_teams(asn=asn, password=password)
+        db_session.add(new_user)
+    db_session.commit()

@@ -10,21 +10,15 @@ from flask import Flask, jsonify, redirect, render_template, request, url_for, f
 from flask_basicauth import BasicAuth
 from jinja2 import StrictUndefined
 
-from flask_login import login_user, login_required, logout_user, current_user
-# from flask_sqlalchemy import SQLAlchemy
-# from wtforms.validators import InputRequired, Length, ValidationError
-# from flask_wtf import FlaskForm
-# from wtforms import StringField, PasswordField, SubmitField
+from flask_login import login_user, login_required, LoginManager, logout_user, current_user
+from wtforms.validators import InputRequired
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField
 from flask_bcrypt import Bcrypt
 from datetime import datetime
-# import json
-# import time
-# import string
-
-
+import database as db
 import psutil
 
-from . import admin
 
 # CAUTION: These default values are overwritten by the config file.
 config_defaults = {
@@ -46,6 +40,19 @@ admin_users= {
     "papastam": "admin"
 }   
 
+# db = SQLAlchemy()
+login_manager = LoginManager()
+login_manager.login_view = '/login'
+
+class LoginForm(FlaskForm):
+    username = StringField(validators=[InputRequired(),], render_kw={"placeholder": "Username"}, )
+    password = PasswordField(validators=[InputRequired()], render_kw={"placeholder": "Password"})
+    submit = SubmitField('Login')
+    
+@login_manager.user_loader
+def login_user(user):
+    return db.Admin.query.get(int(user))
+
 def debug(message):
     print("\033[35mDEBUG: " + message + "\033[0m")
 
@@ -55,7 +62,7 @@ def admin_log(message):
     with open("/server/routing_project_server/admin_login.log", "a") as file:
         file.write(time + ' | ' + message+'\n')
 
-def create_admin_server(config=None):
+def create_admin_server(db_session, config=None):
     """Create and configure the app."""
     app = Flask(__name__)
     app.config.from_mapping(config_defaults)
@@ -72,23 +79,16 @@ def create_admin_server(config=None):
     #Used for bgp analysis, to be removed
     basic_auth = BasicAuth(app)
 
-
-
     #Admin login init
-    admin.login_manager.init_app(app)
+    login_manager.init_app(app)
     bcrypt = Bcrypt(app) 
 
-    admin.db.init_app(app)
-    with app.app_context():
-        admin.db.create_all()
-        admin.Admin.query.delete()
-
-        #Add admin users
-        for user, password in admin_users.items():
-            new_user = admin.Admin(username=user, password=bcrypt.generate_password_hash(password).decode('utf-8'))
-            admin.db.session.add(new_user)
-            admin.db.session.commit()
-            admin_log("INIT: Added user: " + user)
+    #Add admin users
+    for user, password in admin_users.items():
+        new_user = db.Admin(username=user, password=bcrypt.generate_password_hash(password).decode('utf-8'))
+        db_session.add(new_user)
+        db_session.commit()
+        admin_log("INIT: Added user: " + user)
 
     @app.route("/")
     @login_required
@@ -103,10 +103,10 @@ def create_admin_server(config=None):
 
     @app.route("/login", methods=['GET', 'POST'])
     def admin_login():
-        form = admin.LoginForm()
+        form = LoginForm()
         if form.validate_on_submit():
             admin_log(f"LOGIN: User {form.username.data} requested login")
-            admin_user = admin.Admin.query.filter_by(username=form.username.data).first()
+            admin_user = db.Admin.query.filter_by(username=form.username.data).first()
             if admin_user and bcrypt.check_password_hash(admin_user.password, form.password.data):
                 admin_log(f"LOGIN: User {form.username.data} logged in sucesfully from {request.remote_addr}")
                 login_user(admin_user)
@@ -137,7 +137,7 @@ def create_admin_server(config=None):
             
             debug(f"Querying measurements from {start_datetime} to {end_datetime}")
 
-            res = admin.Measurement.query.filter(admin.Measurement.time.between(start_datetime, end_datetime)).all()
+            res = db.Measurement.query.filter(db.Measurement.time.between(start_datetime, end_datetime)).all()
 
             debug(f"Query returned {len(res)} measurements")
 
@@ -155,6 +155,16 @@ def create_admin_server(config=None):
             return jsonify(retarr)
         return render_template("dashboard.html")
 
+    @app.route("/as_teams")
+    @login_required
+    def as_teams():
+        pass
+
+    @app.route("/teams_config")
+    @login_required
+    def teams_config():
+        pass
+
     @app.route("/logout")
     @login_required
     def logout():
@@ -165,21 +175,21 @@ def create_admin_server(config=None):
 
     # Start workers if configured.
     if app.config["BACKGROUND_WORKERS"] and app.config['AUTO_START_WORKERS']:
-        start_workers(app)
+        start_workers(app, db_session)
 
     return app
 
 # Worker functions.
 # =================
 
-def start_workers(given_app):
+def start_workers(given_app,app_db_session=None):
     """Create background processes"""
     processes = []
 
     stats = Process(
         target=loop,
         args=(measure_stats,
-              given_app.config['STATS_UPDATE_FREQUENCY'], given_app.config, given_app),
+              given_app.config['STATS_UPDATE_FREQUENCY'], given_app.config, given_app, app_db_session),
         kwargs=dict(worker=True)
     )
     stats.start()
@@ -207,19 +217,19 @@ def loop(function, freq, *args, **kwargs):
         if remaining_secs > 0:
             sleep(remaining_secs)
 
-def measure_stats(config, app, worker=False):
+def measure_stats(config, app, db_session, worker=False):
 
     time = strftime("%d-%m-%y %H:%M:%S", gmtime())
     cpu = psutil.cpu_percent()
     memory = psutil.virtual_memory()[2]
     disk = psutil.disk_usage('/')[3]
 
-        #Add admin users
-        # for user, password in admin_users.items():
+    #Add admin users
+    # for user, password in admin_users.items():
     with app.app_context():
-        new_measurement = admin.Measurement(cpu=cpu, memory=memory, disk=disk)
-        admin.db.session.add(new_measurement)
-        admin.db.session.commit()
+        new_measurement = db.Measurement(cpu=cpu, memory=memory, disk=disk)
+        db_session.add(new_measurement)
+        db_session.commit()
         print("\033[93mMeasured stats \033[03m(%s)\033[00m" % str(time))
 
     return (time, cpu, memory, disk)
