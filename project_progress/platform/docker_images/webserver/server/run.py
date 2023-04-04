@@ -4,28 +4,31 @@
 import bjoern
 from multiprocessing import Process
 
+from database import init_db
 from routing_project_server import create_project_server
 from admin_server import create_admin_server
 
 if __name__ == "__main__":
 
+
     #Clear the databases
-    with open("/server/routing_project_server/database.db",'r+') as file:
+    with open("/server/database/database.db",'r+') as file:
         file.truncate(0)
-    with open("/server/admin_server/database.db",'r+') as file:
-        file.truncate(0)
+    
+    # init the database and get a new session
+    db_session = init_db()
 
     #Clear the admin login log
     with open("/server/admin_server/admin_login.log",'r+') as file:
         file.truncate(0)
     
-    project_server = create_project_server()
+    project_server = create_project_server(db_session)
     project_host = project_server.config['HOST']
     project_port = project_server.config['PORT']
     
     # bjoern.run(project_server, project_host, project_port)
     
-    admin_server = create_admin_server()
+    admin_server = create_admin_server(db_session)
     admin_host = admin_server.config['HOST']
     admin_port = admin_server.config['PORT']
 

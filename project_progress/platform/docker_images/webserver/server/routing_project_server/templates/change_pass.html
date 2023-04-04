@@ -1,14 +1,6 @@
 {% extends "base.html" %}
 {% from 'macros.html' import h1 %}
 
-<!-- !!!!!!!!!!!!!!!!! Not Tested list !!!!!!!!!!!!!!!!! 
-1. jquerry functionality
-2. id field in jinja form
-3. tailwind classes used
-4. writing in the errormsg <div>
--->
-
-
 {% block head%}
 {{ super() }}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"> </script>
@@ -64,12 +56,11 @@
 				<p>Confirm your new AS password:</p>
 				{{ form.confirm_pass(id_='confirm_pass',class_='form-control tw-mb-3 tw-border-2 tw-rounded-md tw-border-[#ff7e79] tw-drop-shadow-lg') }}
 			</div>
-			<div class="tw-flex"">
+			<div class="tw-flex">
 				<div class="tw-w-3/5">
 					<p id="error_msg" class="tw-text-red-600">New password and it's confirmation is not matching</p>
 				</div>
 				<div>
-					<!-- {{ form.submit(class_='btn btn-primary btn-block mb-4', style='background-color:#3b71ca') }} -->
 					{{ form.submit(id_="submit_btn",class_='btn btn-primary btn-block mb-4', style='background-color:#3b71ca') }}
 				</div>
 			</div>
