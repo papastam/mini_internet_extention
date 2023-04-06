@@ -1,5 +1,4 @@
 #!/bin/bash
-
 DIRECTORY="$1/utils/pipe/docker_pipe"
 CHANGEPASS_SCRIPT="$1/utils/changeASpassword/changeASpass.sh"
 echo "Listening to pipe: ${DIRECTORY}"

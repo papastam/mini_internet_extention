@@ -25,6 +25,14 @@ class Admin(Base):
     username = db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
 
+    # Needed to be a User class for Flask-Login
+    is_authenticated    = db.Column(db.Boolean, nullable=False, default=True)
+    is_active           = db.Column(db.Boolean, nullable=False, default=True)
+    is_anonymous        = db.Column(db.Boolean, nullable=False, default=False)
+
+    def get_id(self):
+        return self.id
+
 class Measurement(Base):
     __tablename__ = "measurement"
  
@@ -43,6 +51,14 @@ class AS_teams(Base):
     member2     = db.Column(db.Integer, nullable=True)
     member3     = db.Column(db.Integer, nullable=True)
     member4     = db.Column(db.Integer, nullable=True)
+
+    # Needed to be a User class for Flask-Login
+    is_authenticated    = db.Column(db.Boolean, nullable=False, default=True)
+    is_active           = db.Column(db.Boolean, nullable=False, default=True)
+    is_anonymous        = db.Column(db.Boolean, nullable=False, default=False)
+
+    def get_id(self):
+        return self.asn
 
 class Students(Base):
     __tablename__ = "students"

@@ -41,13 +41,11 @@
 		<li>The login password to this website</li>
 	</ul>
 	<div class="tw-flex tw-flex-col tw-border-white tw-border-l-amber-500 tw-border-2 tw-place-content-center tw-p-2 tw-pl-5">
-		<div>
-			<p>Enter your old AS password:</p>
-			{{ form.old_pass(class_='form-control tw-mb-3 tw-border-2 tw-rounded-md tw-border-[#ff7e79] tw-drop-shadow-lg
-
-') }}
-		</div>
 		<form method="POST" action="">
+			<div>
+				<p>Enter your old AS password:</p>
+				{{ form.old_pass(class_='form-control tw-mb-3 tw-border-2 tw-rounded-md tw-border-[#ff7e79] tw-drop-shadow-lg') }}
+			</div>
 			<div>
 				<p>Enter your new AS password:</p>
 				{{ form.new_pass(id_='new_pass',class_='form-control tw-mb-3 tw-border-2 tw-rounded-md tw-border-[#ff7e79] tw-drop-shadow-lg') }}

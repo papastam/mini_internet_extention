@@ -41,17 +41,12 @@ admin_users= {
 }   
 
 # db = SQLAlchemy()
-login_manager = LoginManager()
-login_manager.login_view = '/login'
 
 class LoginForm(FlaskForm):
     username = StringField(validators=[InputRequired(),], render_kw={"placeholder": "Username"}, )
     password = PasswordField(validators=[InputRequired()], render_kw={"placeholder": "Password"})
     submit = SubmitField('Login')
     
-@login_manager.user_loader
-def login_user(user):
-    return db.Admin.query.get(int(user))
 
 def debug(message):
     print("\033[35mDEBUG: " + message + "\033[0m")
@@ -80,8 +75,15 @@ def create_admin_server(db_session, config=None):
     basic_auth = BasicAuth(app)
 
     #Admin login init
+    login_manager = LoginManager()
+    login_manager.login_view = '/login'
     login_manager.init_app(app)
     bcrypt = Bcrypt(app) 
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return db_session.query(db.Admin).get(int(user_id))
+
 
     #Add admin users
     for user, password in admin_users.items():
@@ -104,9 +106,9 @@ def create_admin_server(db_session, config=None):
     @app.route("/login", methods=['GET', 'POST'])
     def admin_login():
         form = LoginForm()
-        if form.validate_on_submit():
+        if form.is_submitted():
             admin_log(f"LOGIN: User {form.username.data} requested login")
-            admin_user = db.Admin.query.filter_by(username=form.username.data).first()
+            admin_user = db_session.query(db.Admin).filter(db.Admin.username==form.username.data).first()
             if admin_user and bcrypt.check_password_hash(admin_user.password, form.password.data):
                 admin_log(f"LOGIN: User {form.username.data} logged in sucesfully from {request.remote_addr}")
                 login_user(admin_user)
@@ -137,7 +139,7 @@ def create_admin_server(db_session, config=None):
             
             debug(f"Querying measurements from {start_datetime} to {end_datetime}")
 
-            res = db.Measurement.query.filter(db.Measurement.time.between(start_datetime, end_datetime)).all()
+            res = db_session.query(db.Measurement).filter(db.Measurement.time.between(start_datetime, end_datetime)).all()
 
             debug(f"Query returned {len(res)} measurements")
 

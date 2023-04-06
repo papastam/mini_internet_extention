@@ -108,12 +108,13 @@ def create_project_server(db_session, config=None):
     #AS Login manager
     login_manager = LoginManager(app)
     login_manager.login_view = '/as_login'
+    login_manager.init_app(app)
     
     @login_manager.user_loader
     def load_user(asn):
-        return db.AS_teams.query.get(int(asn))
+        debug("Loading user: " + str(db_session.query(db.AS_teams).get(int(asn)).asn))
+        return db_session.query(db.AS_teams).get(int(asn))
 
-    login_manager.init_app(app)
     bcrypt.init_app(app)
 
     register_as_login(app, db_session)
@@ -278,16 +279,25 @@ def create_project_server(db_session, config=None):
     def as_login():
         global logged_in
         form = LoginForm()
+        next_url = request.form.get("next")
+
         if form.validate_on_submit():
-            as_team = db.AS_teams.query.filter_by(id=form.asn.data).first()
+            as_team = db_session.query(db.AS_teams).filter(db.AS_teams.asn == form.asn.data).first()
             debug(f"Login attempt for {form.asn.data} with password {form.password.data}")
-            if as_team and bcrypt.check_password_hash(as_team.password, form.password.data):
-                logged_in = as_team.id
+        
+            if as_team and (as_team.password==form.password.data):
+                logged_in = as_team.asn
                 login_user(as_team)
+                db_session.commit()
                 flash('Logged in successfully.', 'success')
+        
+                if next_url:
+                    return redirect(next_url)
                 return redirect(url_for('connectivity_matrix'))
+        
             elif as_team:
                 flash('Login unsuccessful. Please check username and password', 'danger')
+        
             else:
                 flash('Login unsuccessful. Please check username and password', 'danger')
 
@@ -297,9 +307,8 @@ def create_project_server(db_session, config=None):
     @login_required
     def change_pass():
         form = ChangePassForm()
-        debug("Requested change pass")
         if form.is_submitted():
-            debug("HELLO?")
+
             if form.confirm_pass.data != form.new_pass.data:
                 debug(f"{form.confirm_pass.data} != {form.new_pass.data}")
                 # This case is handled in frontend, if orverriden dont react to change request
@@ -307,10 +316,19 @@ def create_project_server(db_session, config=None):
             else:
                 password = form.new_pass.data
                 debug(f"Changing password for {logged_in} to '{password}'")
+
+                # Change password in database
+                as_team = db_session.query(db.AS_teams).filter(db.AS_teams.asn == logged_in).first()
+                as_team.password = password
+                db_session.commit()
+                
+                # Change password in docker
                 with open(app.config['LOCATIONS']['docker_pipe'], 'w') as pipe:
-                    pipe.write(f"change_pass {logged_in} {password}\n")
+                    pipe.write(f"changepass {logged_in} {password}\n")
                     pipe.flush()
                     pipe.close()
+
+                
                 flash('Password changed successfully.', 'success') 
 
         return render_template('change_pass.html',logged_in=logged_in, form=form)
