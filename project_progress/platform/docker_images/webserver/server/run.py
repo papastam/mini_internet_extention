@@ -14,14 +14,18 @@ if __name__ == "__main__":
     #Clear the databases
     with open("/server/database/database.db",'r+') as file:
         file.truncate(0)
+
+    #Clear the log files
+    with open("/server/routing_project_server/as.log",'r+') as file:
+        file.truncate(0)    
+    with open("/server/admin_server/admin_login.log",'r+') as file:
+        file.truncate(0)
     
     # init the database and get a new session
     db_session = init_db()
 
-    #Clear the admin login log
-    with open("/server/admin_server/admin_login.log",'r+') as file:
-        file.truncate(0)
-    
+
+
     project_server = create_project_server(db_session)
     project_host = project_server.config['HOST']
     project_port = project_server.config['PORT']

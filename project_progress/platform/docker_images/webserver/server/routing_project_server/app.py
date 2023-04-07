@@ -88,6 +88,12 @@ def debug(message):
 def error(message):
     print("\033[31mERROR: " + str(message) + "\033[0m")
 
+def as_log(message):
+    """Log message to admin log."""
+    time = strftime("%d-%m-%y %H:%M:%S", gmtime())
+    with open("/server/routing_project_server/as.log", "a") as file:
+        file.write(time + ' | ' + message+'\n')
+
 def create_project_server(db_session, config=None):
     """Create and configure the app."""
     app = Flask(__name__)
@@ -112,7 +118,6 @@ def create_project_server(db_session, config=None):
     
     @login_manager.user_loader
     def load_user(asn):
-        debug("Loading user: " + str(db_session.query(db.AS_teams).get(int(asn)).asn))
         return db_session.query(db.AS_teams).get(int(asn))
 
     bcrypt.init_app(app)
@@ -283,9 +288,9 @@ def create_project_server(db_session, config=None):
 
         if form.validate_on_submit():
             as_team = db_session.query(db.AS_teams).filter(db.AS_teams.asn == form.asn.data).first()
-            debug(f"Login attempt for {form.asn.data} with password {form.password.data}")
         
             if as_team and (as_team.password==form.password.data):
+                as_log(f"Successful attempt for {form.asn.data} with password {form.password.data}")
                 logged_in = as_team.asn
                 login_user(as_team)
                 db_session.commit()
@@ -296,10 +301,12 @@ def create_project_server(db_session, config=None):
                 return redirect(url_for('connectivity_matrix'))
         
             elif as_team:
-                flash('Login unsuccessful. Please check username and password', 'danger')
+                as_log(f"Unsuccessful attempt for {form.asn.data} with password {form.password.data}")
+                flash('Login unsuccessful. Please check username and password', 'error')
         
             else:
-                flash('Login unsuccessful. Please check username and password', 'danger')
+                as_log(f"Unsuccessful attempt for {form.asn.data} with password {form.password.data}")
+                flash('Login unsuccessful. Please check username and password', 'error')
 
         return render_template('as_login.html', form=form)
     
@@ -309,13 +316,22 @@ def create_project_server(db_session, config=None):
         form = ChangePassForm()
         if form.is_submitted():
 
+            as_log("change pass request for AS " + str(logged_in) + " from address: " + str(request.remote_addr))
+            
+            # The following faulty pass cases are handled in frontend, i
+            # if orverriden dont react to change request and report to log file
+            if form.old_pass.data != db_session.query(db.AS_teams).filter(db.AS_teams.asn == logged_in).first().password:
+                as_log(f"given old pass !=  old pass ({form.old_pass.data} != {db_session.query(db.AS_teams).filter(db.AS_teams.asn == logged_in).first().password})")
             if form.confirm_pass.data != form.new_pass.data:
-                debug(f"{form.confirm_pass.data} != {form.new_pass.data}")
-                # This case is handled in frontend, if orverriden dont react to change request
-                pass
+                as_log(f"new pass != confirm pass ({form.confirm_pass.data} != {form.new_pass.data})")
+            elif form.new_pass.data == form.old_pass.data:
+                as_log(f"new pass == old pass ({form.new_pass.data} == {form.old_pass.data})")
+            elif len(form.new_pass.data) < 8:
+                as_log(f"new pass length < 8 ({form.new_pass.data})")
+            
             else:
                 password = form.new_pass.data
-                debug(f"Changing password for {logged_in} to '{password}'")
+                as_log(f"Changing password for {logged_in} to '{password}'")
 
                 # Change password in database
                 as_team = db_session.query(db.AS_teams).filter(db.AS_teams.asn == logged_in).first()
@@ -327,8 +343,7 @@ def create_project_server(db_session, config=None):
                     pipe.write(f"changepass {logged_in} {password}\n")
                     pipe.flush()
                     pipe.close()
-
-                
+               
                 flash('Password changed successfully.', 'success') 
 
         return render_template('change_pass.html',logged_in=logged_in, form=form)
@@ -344,6 +359,7 @@ def create_project_server(db_session, config=None):
         global logged_in 
         logged_in = False
         logout_user()
+        flash('Logged out successfully.', 'info')
         return redirect(url_for('connectivity_matrix'))
 
     # Start workers if configured.

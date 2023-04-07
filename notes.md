@@ -21,7 +21,8 @@
 
    - [X] Add AS login 
       - [X] Automate the account creation based on the AS passwords
-      - [ ] Password changing option
+      - [X] Password changing option
+         - Password storing and communicating between frontend and backend is not encrypted
 
    - Admin Server 
       - [X] Login page **(Example)[https://github.com/arpanneupane19/Python-Flask-Authentication-Tutorial]**

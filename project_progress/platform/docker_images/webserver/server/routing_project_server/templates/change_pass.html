@@ -5,25 +5,38 @@
 {{ super() }}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"> </script>
 <script>
-	
-	function testforconfirmation(){
-		newpass=$("#new_pass").val();
-		confirmpass=$("#confirm_pass").val();
 
-		if(confirmpass != newpass){
-			$("#error_msg").show();
-			$("#submit_btn").prop('disabled', true);
-			console.log("error");
+	function activate_submit(){
+		$("#error_msg").hide();
+		$("#submit_btn").prop('disabled', false);
+	}
+
+	function deactivate_submit(message){
+		$("#error_msg").show();
+		$("#error_msg").text(message);
+		$("#submit_btn").prop('disabled', true);
+	}
+
+	function validate_submit(){
+		oldpass		=$("#old_pass").val();
+		newpass		=$("#new_pass").val();
+		confirmpass	=$("#confirm_pass").val();
+
+		if(oldpass == ""){ // Check if old password is empty
+			deactivate_submit("Please enter your old password");
+		}else if(newpass.length < 8){ // Allow only 8-character long passwords
+			deactivate_submit("Password must be at least 8 characters long");
+		}else if(confirmpass != newpass){ // Check if passwords match
+			deactivate_submit("Passwords do not match");
 		}else{
-			$("#error_msg").hide();
-			$("#submit_btn").prop('disabled', false);
-			console.log("no error");
-		}
+			activate_submit();
+		}		
 	}
 
 	$(document).ready(function(){
 		$("#error_msg").hide();
-		$("#new_pass,#confirm_pass").on('input', function(){ testforconfirmation(); });
+		validate_submit();
+		$("#old_pass,#new_pass,#confirm_pass").on('input', function(){ validate_submit(); });
 	});
 
 </script>
@@ -40,11 +53,14 @@
 		<li>The ssh password of your proxy container</li>
 		<li>The login password to this website</li>
 	</ul>
+	<p class="tw-mb-2">
+		Your new password shoould contain at least 8 characters.
+	</p>
 	<div class="tw-flex tw-flex-col tw-border-white tw-border-l-amber-500 tw-border-2 tw-place-content-center tw-p-2 tw-pl-5">
 		<form method="POST" action="">
 			<div>
 				<p>Enter your old AS password:</p>
-				{{ form.old_pass(class_='form-control tw-mb-3 tw-border-2 tw-rounded-md tw-border-[#ff7e79] tw-drop-shadow-lg') }}
+				{{ form.old_pass(id_='old_pass', class_='form-control tw-mb-3 tw-border-2 tw-rounded-md tw-border-[#ff7e79] tw-drop-shadow-lg') }}
 			</div>
 			<div>
 				<p>Enter your new AS password:</p>
@@ -54,12 +70,12 @@
 				<p>Confirm your new AS password:</p>
 				{{ form.confirm_pass(id_='confirm_pass',class_='form-control tw-mb-3 tw-border-2 tw-rounded-md tw-border-[#ff7e79] tw-drop-shadow-lg') }}
 			</div>
-			<div class="tw-flex">
-				<div class="tw-w-3/5">
-					<p id="error_msg" class="tw-text-red-600">New password and it's confirmation is not matching</p>
-				</div>
+			<div class="tw-flex tw-items-center">
 				<div>
-					{{ form.submit(id_="submit_btn",class_='btn btn-primary btn-block mb-4', style='background-color:#3b71ca') }}
+					{{ form.submit(id_="submit_btn",class_='disabled:tw-bg-zinc-500 tw-rounded-md tw-px-2 tw-py-1 tw-bg-sky-500 hover:tw-bg-sky-600') }}
+				</div>
+				<div class="tw-w-3/5 tw-mx-2">
+					<p id="error_msg" class="tw-text-red-600"></p>
 				</div>
 			</div>
 		</form>

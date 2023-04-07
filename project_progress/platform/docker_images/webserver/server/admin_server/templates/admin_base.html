@@ -1,95 +1,139 @@
 {% set navigation_bar = {
     'dashboard': 'dashboard',
     'as_teams': 'as teams',
-    'teams_config': 'configure teams',
-    'logout': 'logout'
+    'teams_config': 'configure teams'
 } -%}
-    <!DOCTYPE html>
-    <html lang="en">
-    
-    <head>
-        {% block head %}
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
-        <link rel="icon" type="image/x-icon" href="{{url_for('static', filename='favicon.ico')}}">
-        <link rel="stylesheet" href={{url_for('static', filename='style.css' )}}>
-    
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"> </script>
-        
-        <title>Routing Project / admin - {{ navigation_bar.get(request.endpoint, request.endpoint)|replace('_', " ")|title }}
-        </title>
 
-        <script src="https://cdn.tailwindcss.com"></script>
-        <!-- Add a prefix to tailwind classes so they doesn't conflit with bootstrap's -->
-        <script type="text/javascript">
-            tailwind.config = {
-                prefix: "tw-"
-            }
-        </script>
-        {% endblock %}
-    </head>
+{% if (logged_in is not defined) %}
+    {% set logged_in = False %}
+{% endif %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% block head %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="{{url_for('static', filename='favicon.ico')}}">
+    <link rel="stylesheet" href={{url_for('static', filename='style.css' )}}>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"> </script>
     
-    <body class="tw-flex tw-flex-col tw-min-h-screen">
+    <title>Routing Project / admin - {{ navigation_bar.get(request.endpoint, request.endpoint)|replace('_', " ")|title }}
+    </title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add a prefix to tailwind classes so they doesn't conflit with bootstrap's -->
+    <script type="text/javascript">
+        tailwind.config = {
+            prefix: "tw-"
+        }
+    </script>
+    {% endblock %}
+</head>
+
+<body class="tw-flex tw-flex-col tw-min-h-screen">
         <!-- Flex and min-height allow the Krill iframe to fill the screen. -->
-        <!-- Menu bar background (full-width). -->
-        <div id="menu" class="tw-flex-none tw-w-full tw-bg-[#1c1c21] tw-text-white tw-font-mono">
-            <nav class="tw-max-w-6xl tw-mx-auto tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-p-4">
-                <!-- Logo -->
-                <div class="tw-flex tw-items-center tw-flex-shrink-0 tw-mr-6 tw-text-3xl tw-font-bold">
-                    <img class=" tw-h-16 tw-pr-4" alt="logo" src="{{url_for('static', filename='logo.svg')}}" />
-                    <!-- <span class="text-gray-400 pr-2">></span> -->
-                    <span>routing project / admin</span>
-                </div>
-                {% if logged_in %}
-                <!-- Menu -->
-                <div class="tw-w-full tw-block tw-flex-grow lg:tw-flex lg:tw-items-center lg:tw-w-auto"></div>
-                {% for endpoint, name in navigation_bar.items() %}
-                <div class="">
-                    <a class="tw-block tw-mt-4 lg:tw-inline-block lg:tw-mt-0 hover:tw-font-bold tw-mr-4 tw-text-lg" href="{{url_for(endpoint)}}"
-                        }}>
-                        <span class="tw-pr-2 tw-pl-2">
-                            <span class="tw-text-gray-400">[</span>{{'*' if endpoint == request.endpoint else ' '}}<span
-                                class="tw-text-gray-400">]</span></span>{{name}}
-                    </a>
-                </div>
-                {% endfor %}
+    <!-- Menu bar background (full-width). -->
+    <div class="tw-flex tw-justify-start tw-items-center tw-relative tw-h-100px tw-bg-[#1c1c21] tw-font-mono">
+        <div class="tw-max-w-fit tw-flex-auto tw-mr-auto tw-p-[10px] tw-pr-0 tw-text-white">
+            <div class="tw-flex tw-items-center tw-place-content-start flex-col">
+                {% if (logged_in is defined) and (logged_in != False) %}
+                    <span>Logged in as: {{logged_in}}</span>
+                    <div class="">
+                        <a class="tw-max-w-fit tw-block tw-mt-4 lg:tw-inline-block lg:tw-mt-0 hover:tw-font-bold tw-mr-4 tw-text-lg" href="{{url_for('logout')}}">
+                            <span class="tw-pr-2 tw-pl-2">
+                                <span class="tw-text-gray-400">[</span>{{'*' if request.endpoint == "logout" else ' '}}<span
+                                    class="tw-text-gray-400">]</span></span>logout
+                        </a>
+                    </div>
+                {% else %}
+                    <span>You are not logged in</span>
+                    <div class="">
+                        <a class="tw-max-w-fit tw-block tw-mt-4 lg:tw-inline-block lg:tw-mt-0 hover:tw-font-bold tw-mr-4 tw-text-lg" href="{{url_for('admin_login')}}">
+                            <span class="tw-pr-2 tw-pl-2">
+                                <span class="tw-text-gray-400">[</span>{{'*' if request.endpoint == "admin_login" else ' '}}<span
+                                    class="tw-text-gray-400">]</span></span>login
+                        </a>
+                    </div>
                 {% endif %}
-            </nav>
-        </div>
-
-        
-        {% block body %}{% endblock %}
-        
-        <!-- Display flashed messages -->
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div aria-live="polite" aria-atomic="true" style="margin: 5px; position: absolute; bottom: 0; right: 0px; min-height: 200px; max-width: 400px">
-            <!-- Position it -->
-            <div style="position: absolute; bottom: 0; right: 0;">
-          
-                <!-- Then put toasts within -->
-                {% for message in messages %}
-                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="opacity: 100;">
-                    <div class="toast-header">
-                    <!-- <img src="..." class="rounded mr-2" alt="..."> -->
-                    <!-- <strong class="mr-auto">Bootstrap</strong> -->
-                    <!-- <small class="text-muted">just now</small> -->
-                    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close" style="justify-content: flex-end;">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    </div>
-                    <div class="toast-body" style="width: max-content;">
-                        {{ message }}
-                    </div>
-                </div>
-                {% endfor %}          
-              
             </div>
         </div>
-        {% endif %}
-        {% endwith %}
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.6/dist/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.2.1/dist/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
-    </body>
+        <div class="tw-flex-auto tw-w-7/10">
+            <div id="menu" class="tw-flex-none tw-w-full tw-bg-[#1c1c21] tw-text-white tw-font-mono">
+                <nav class="tw-mx-auto tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-p-4">
+                    <!-- Logo -->
+                    <div class="tw-flex tw-items-center tw-flex-shrink-0 tw-mr-6 tw-text-3xl tw-font-bold">
+                        <img class=" tw-h-16 tw-pr-4" alt="logo" src="{{url_for('static', filename='logo.svg')}}" />
+                        <!-- <span class="text-gray-400 pr-2">></span> -->
+                        <span>routing project / admin</span>
+                    </div>
+                    {% if logged_in %}
+                    <!-- Menu -->
+                    <div class="tw-w-full tw-block tw-flex-grow lg:tw-flex lg:tw-items-center lg:tw-w-auto"></div>
+                    {% for endpoint, name in navigation_bar.items() %}
+                    <div class="">
+                        <a class="tw-block tw-mt-4 lg:tw-inline-block lg:tw-mt-0 hover:tw-font-bold tw-mr-4 tw-text-lg" href="{{url_for(endpoint)}}">
+                            <span class="tw-pr-2 tw-pl-2">
+                                <span class="tw-text-gray-400">[</span>{{'*' if endpoint == request.endpoint else ' '}}<span
+                                    class="tw-text-gray-400">]</span></span>{{name}}
+                        </a>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
     
-    </html>
+    {% block body %}{% endblock %}
+    
+    <!-- Display flashed messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% set index = 0 %}
+    <div class="tw-w-1/6 tw-absolute tw-bottom-0 tw-right-0 tw-m-3">
+
+        <!-- Throw each message in the div -->
+        {% for category, message in messages %}
+        
+        {% if category == 'error' %}
+        <div id="alert-{{ index }}" class="tw-flex tw-p-4 tw-mb-4 tw-text-red-800 tw-rounded-lg tw-bg-red-50 dark:tw-bg-gray-800 dark:tw-text-red-400" role="alert">
+            <svg aria-hidden="true" class="tw-flex-shrink-0 tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M15.898,4.045c-0.271-0.272-0.713-0.272-0.986,0l-4.71,4.711L5.493,4.045c-0.272-0.272-0.714-0.272-0.986,0s-0.272,0.714,0,0.986l4.709,4.711l-4.71,4.711c-0.272,0.271-0.272,0.713,0,0.986c0.136,0.136,0.314,0.203,0.492,0.203c0.179,0,0.357-0.067,0.493-0.203l4.711-4.711l4.71,4.711c0.137,0.136,0.314,0.203,0.494,0.203c0.178,0,0.355-0.067,0.492-0.203c0.273-0.273,0.273-0.715,0-0.986l-4.711-4.711l4.711-4.711C16.172,4.759,16.172,4.317,15.898,4.045z" clip-rule="evenodd"></path></svg>
+        {% elif category == 'success' %}
+        <div id="alert-{{ index }}" class="tw-flex tw-p-4 tw-mb-4 tw-text-green-800 tw-rounded-lg tw-bg-green-50 dark:tw-bg-gray-800 dark:tw-text-green-400" role="alert">
+            <svg aria-hidden="true" class="tw-flex-shrink-0 tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M7.629,14.566c0.125,0.125,0.291,0.188,0.456,0.188c0.164,0,0.329-0.062,0.456-0.188l8.219-8.221c0.252-0.252,0.252-0.659,0-0.911c-0.252-0.252-0.659-0.252-0.911,0l-7.764,7.763L4.152,9.267c-0.252-0.251-0.66-0.251-0.911,0c-0.252,0.252-0.252,0.66,0,0.911L7.629,14.566z" clip-rule="evenodd"></path></svg>
+        {% else %}
+        <div id="alert-{{ index }}" class="tw-flex tw-p-4 tw-mb-4 tw-text-blue-800 tw-rounded-lg tw-bg-blue-50 dark:tw-bg-gray-800 dark:tw-text-blue-400" role="alert">
+            <svg aria-hidden="true" class="tw-flex-shrink-0 tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+        {% endif %}
+            
+            <span class="tw-sr-only">Info</span>
+            <div class="tw-ml-3 tw-text-sm tw-font-medium">
+                {{ message }}
+            </div>
+            
+            {% if category == 'error' %}
+            <button type="button" class="tw-ml-auto tw--mx-1.5 tw--my-1.5 tw-bg-red-50 tw-text-red-500 tw-rounded-lg focus:tw-ring-2 focus:tw-ring-red-400 tw-p-1.5 hover:tw-bg-red-200 tw-inline-flex tw-h-8 tw-w-8 dark:tw-bg-gray-800 dark:tw-text-red-400 dark:hover:tw-bg-gray-700" data-dismiss-target="#alert-{{ index }}" aria-label="Close">
+            {% elif category == 'success' %}
+            <button type="button" class="tw-ml-auto tw--mx-1.5 tw--my-1.5 tw-bg-green-50 tw-text-green-500 tw-rounded-lg focus:tw-ring-2 focus:tw-ring-green-400 tw-p-1.5 hover:tw-bg-green-200 tw-inline-flex tw-h-8 tw-w-8 dark:tw-bg-gray-800 dark:tw-text-green-400 dark:hover:tw-bg-gray-700" data-dismiss-target="#alert-{{ index }}" aria-label="Close">
+            {% else %}
+            <button type="button" class="tw-ml-auto tw--mx-1.5 tw--my-1.5 tw-bg-blue-50 tw-text-blue-500 tw-rounded-lg focus:tw-ring-2 focus:tw-ring-blue-400 tw-p-1.5 hover:tw-bg-blue-200 tw-inline-flex tw-h-8 tw-w-8 dark:tw-bg-gray-800 dark:tw-text-blue-400 dark:hover:tw-bg-gray-700" data-dismiss-target="#alert-{{ index }}" aria-label="Close">
+            {% endif %}
+                <span class="tw-sr-only">Close</span>
+                <svg aria-hidden="true" class="tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+            </button>
+        </div>
+        {% set index = index + 1 %}
+        {% endfor %}          
+    </div>
+    {% endif %}
+    {% endwith %}    
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.6/dist/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.4/flowbite.min.js"></script>
+</body>
+
+</html>

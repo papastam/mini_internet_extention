@@ -47,6 +47,7 @@ class LoginForm(FlaskForm):
     password = PasswordField(validators=[InputRequired()], render_kw={"placeholder": "Password"})
     submit = SubmitField('Login')
     
+logged_in = False
 
 def debug(message):
     print("\033[35mDEBUG: " + message + "\033[0m")
@@ -54,7 +55,7 @@ def debug(message):
 def admin_log(message):
     """Log message to admin log."""
     time = strftime("%d-%m-%y %H:%M:%S", gmtime())
-    with open("/server/routing_project_server/admin_login.log", "a") as file:
+    with open("/server/admin_server/admin_login.log", "a") as file:
         file.write(time + ' | ' + message+'\n')
 
 def create_admin_server(db_session, config=None):
@@ -105,6 +106,7 @@ def create_admin_server(db_session, config=None):
 
     @app.route("/login", methods=['GET', 'POST'])
     def admin_login():
+        global logged_in
         form = LoginForm()
         if form.is_submitted():
             admin_log(f"LOGIN: User {form.username.data} requested login")
@@ -112,17 +114,18 @@ def create_admin_server(db_session, config=None):
             if admin_user and bcrypt.check_password_hash(admin_user.password, form.password.data):
                 admin_log(f"LOGIN: User {form.username.data} logged in sucesfully from {request.remote_addr}")
                 login_user(admin_user)
+                logged_in = admin_user.username
                 flash('Logged in successfully.', 'success')
                 return redirect(url_for('dashboard'))
             elif admin_user:
                 admin_log(f"LOGIN: User {form.username.data} tried to login with wrong password (from {request.remote_addr})")
-                flash('Login unsuccessful. Please check username and password', 'danger')
+                flash('Login unsuccessful. Please check username and password', 'error')
             else:
                 admin_log(f"LOGIN: Login attemt from invalid user: {form.username.data} (from {request.remote_addr})")
-                flash('Login unsuccessful. Please check username and password', 'danger')
+                flash('Login unsuccessful. Please check username and password', 'error')
 
 
-        return render_template('login.html', form=form)
+        return render_template('login.html', form=form, logged_in=False)
 
     @app.route("/dashboard", methods=["GET"])
     @login_required
@@ -155,24 +158,25 @@ def create_admin_server(db_session, config=None):
             debug(f"Returning {len(retarr)} measurements: {retarr}")
 
             return jsonify(retarr)
-        return render_template("dashboard.html")
+        return render_template("dashboard.html", logged_in=logged_in)
 
     @app.route("/as_teams")
     @login_required
     def as_teams():
-        pass
+        return render_template("as_teams.html", logged_in=logged_in)
 
     @app.route("/teams_config")
     @login_required
     def teams_config():
-        pass
+        return render_template("config_teams.html", logged_in=logged_in)
 
     @app.route("/logout")
     @login_required
     def logout():
         admin_log(f"LOGOUT: User {current_user.username} logged out")
         logout_user()
-        flash('Logged out successfully.', 'success')
+        logged_in = False
+        flash('Logged out successfully.', 'info')
         return redirect(url_for('admin_login'))
 
     # Start workers if configured.
