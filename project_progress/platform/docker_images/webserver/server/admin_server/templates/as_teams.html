@@ -5,8 +5,102 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+    console.log("got teams:")
+    teams=JSON.parse({{ teams|tojson|safe }})
+    console.log(teams)
+
+    function fillTable(){
+        table = $("#teamsTableBody")
+        console.log(teams.size)
+        for (asn in teams){
+            team = teams[asn]
+            console.log(team)
+            table.append(
+                '<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">\
+                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">\
+                        '+ asn +'\
+                    </th>\
+                    <td class="px-6 py-4">\
+                        '+ team.password +'\
+                    </td>\
+                    <td class="px-6 py-4">\
+                        '+ ((team.member1 != "None")? team.member1.name:"None") +'\
+                    </td>\
+                    <td class="px-6 py-4">\
+                        '+ ((team.member2 != "None")? team.member2.name:"None") +'\
+                    </td>\
+                    <td class="px-6 py-4">\
+                        '+ ((team.member3 != "None")? team.member3.name:"None") +'\
+                    </td>\
+                    <td class="px-6 py-4">\
+                        '+ ((team.member4 != "None")? team.member4.name:"None") +'\
+                    </td>\
+                </tr>'
+            )
+        }
+    }
+
+
+    $(document).ready(function(){
+        fillTable();
+    })
+
+</script>
 {% endblock %}
 
 {% block body %}
-<!-- do frontend when back online -->
+
+<div class="tw-m-[2px] tw-rounded-md">
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table id="teamsTable" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        AS#
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Password
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Member1
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Member2
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Member3
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Member4
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="teamsTableBody">
+                {# <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                        1
+                    </th>
+                    <td class="px-6 py-4">
+                        Silver
+                    </td>
+                    <td class="px-6 py-4">
+                        Chris Papastamos
+                    </td>
+                    <td class="px-6 py-4">
+                        Dimitris Bisias
+                    </td>
+                    <td class="px-6 py-4">
+                        Null
+                    </td>
+                    <td class="px-6 py-4">
+                        Null
+                    </td>
+                </tr> #}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 {% endblock %}

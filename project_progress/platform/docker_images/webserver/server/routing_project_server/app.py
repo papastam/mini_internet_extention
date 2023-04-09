@@ -285,7 +285,7 @@ def create_project_server(db_session, config=None):
         global logged_in
         form = LoginForm()
         next_url = request.form.get("next")
-
+        debug(f"Next url: {next_url}")
         if form.validate_on_submit():
             as_team = db_session.query(db.AS_teams).filter(db.AS_teams.asn == form.asn.data).first()
         

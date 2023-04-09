@@ -19,7 +19,6 @@ from datetime import datetime
 import database as db
 import psutil
 
-
 # CAUTION: These default values are overwritten by the config file.
 config_defaults = {
     'LOCATIONS': {
@@ -93,6 +92,9 @@ def create_admin_server(db_session, config=None):
         db_session.commit()
         admin_log("INIT: Added user: " + user)
 
+    #Init database
+    init_db_base(db_session)
+
     @app.route("/")
     @login_required
     def index():
@@ -163,7 +165,40 @@ def create_admin_server(db_session, config=None):
     @app.route("/as_teams")
     @login_required
     def as_teams():
-        return render_template("as_teams.html", logged_in=logged_in)
+        teams_dict = {}
+        for team in db_session.query(db.AS_teams).all():
+            teams_dict[str(team.asn)] = {}
+            teams_dict[str(team.asn)]["password"] = team.password
+            
+            if team.member1 is not None:
+                teams_dict[str(team.asn)]["member1"] = {}
+                teams_dict[str(team.asn)]["member1"]["id"] = team.member1
+                teams_dict[str(team.asn)]["member1"]["name"] = db_session.query(db.Students).get(team.member1).name
+            else:
+                teams_dict[str(team.asn)]["member1"] = 'None'
+
+            if team.member2 is not None:
+                teams_dict[str(team.asn)]["member2"] = {}
+                teams_dict[str(team.asn)]["member2"]["id"] = team.member2
+                teams_dict[str(team.asn)]["member2"]["name"] = db_session.query(db.Students).get(team.member2).name
+            else:
+                teams_dict[str(team.asn)]["member2"] = 'None'
+
+            if team.member3 is not None:
+                teams_dict[str(team.asn)]["member3"] = {}
+                teams_dict[str(team.asn)]["member3"]["id"] = team.member3
+                teams_dict[str(team.asn)]["member3"]["name"] = db_session.query(db.Students).get(team.member3).name
+            else:
+                teams_dict[str(team.asn)]["member3"] = 'None'
+
+            if team.member4 is not None:
+                teams_dict[team.asn]["member4"] = {}
+                teams_dict[team.asn]["member4"]["id"] = team.member4
+                teams_dict[team.asn]["member4"]["name"] = db_session.query(db.Students).get(team.member4).name
+            else:
+                teams_dict[str(team.asn)]["member4"] = 'None'
+
+        return render_template("as_teams.html", logged_in=logged_in, teams=str(teams_dict).replace("'", '"'))
 
     @app.route("/teams_config")
     @login_required
@@ -239,3 +274,32 @@ def measure_stats(config, app, db_session, worker=False):
         print("\033[93mMeasured stats \033[03m(%s)\033[00m" % str(time))
 
     return (time, cpu, memory, disk)
+
+def init_db_base(db_session):
+    """Create sample tables"""
+    # Create sample students from dict.
+    students = {1: {"name": "Chris Papastamos", "email": "csd4569@csd.uoc.gr", "team": 1}, 
+                2: {"name": "Dimitris Bisias", "email": "csd1111@csd.uoc.gr", "team": 1}, 
+                3: {"name": "Orestis Chiotakis", "email": "csd2222@csd.uoc.gr", "team": 2}, 
+                4: {"name": "Manousos Manouselis", "email": "csd3333@csd.uoc.gr", "team": 2}, 
+                5: {"name": "Gay Pousths" , "email": "zwstompourdelo@poutsa.ston.kwlo", "team": 2},
+                }
+
+    for student_id, info in students.items():
+        new_student = db.Students(id=student_id, name=info["name"], email=info["email"], team=info["team"])
+        db_session.add(new_student)
+        db_session.commit()
+    
+    team1 = db_session.query(db.AS_teams).get(1)
+    team1.member1 = 1
+    team1.member2 = 2
+    db_session.add(team1)
+    
+    team2 = db_session.query(db.AS_teams).get(2)
+    team2.member1 = 3
+    team2.member2 = 4
+    team2.member3 = 5
+    db_session.add(team2)
+    
+
+    db_session.commit()

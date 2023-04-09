@@ -5,7 +5,6 @@
 
 <script>
 let updateIntervalId = -1; // -1 means not running
-latest_stats=false;
 
 function addData(chart, label, data) {
     chart.data.labels.push(label);
@@ -48,6 +47,7 @@ function startCheckingForStats(){
 }
 
 function get_stats(start, end){
+    console.log("DEBUG: get_stats called with start: " + start + " end: " + end);
     var xhr = new XMLHttpRequest();
     xhr.onload = function () {
         if (xhr.readyState == 4 && xhr.status == 200) {
@@ -89,15 +89,16 @@ $(document).ready(function() {
     
     $("#refreshSwitch").change(function() {
         console.log("refreshSwitch changed")
-        if ((this.checked==true) && (latest_stats==true)){
+        if ((this.checked==true)){
             startCheckingForStats();
+            $("#stats_end").prop("disabled", true);
         } else {
             stopCheckingForStats();
+            $("#stats_end").prop("disabled", false);
         }
     });
 
     $("#pull_btn").click(function(){
-        latest_stats=false;
         stopCheckingForStats();
         console.log("DEBUG: Pulling stats")
         
@@ -105,10 +106,10 @@ $(document).ready(function() {
         end = $("#stats_end").val();
         if ($("#refreshSwitch").prop("checked")){
             end = 0;
-            latest_stats = true;
             startCheckingForStats();
         }
 
+        console.log("DEBUG: start: " + start + " end: " + end);
         get_stats(start, end);
 
     });
@@ -118,83 +119,45 @@ $(document).ready(function() {
 
 </script>
 
-<style>
-    .maincontainer {
-        padding: 2px 50px;
-    }
 
-    .chartbox {
-        /*width: 400px;
-        height: auto;*/
-        box-shadow: 0 4px 8px 0 rgb(0 0 0 / 20%), 0 6px 20px 0 rgb(0 0 0 / 19%);
-        margin: 10px;
-        padding: 5px;
-    }
-
-    .controll_bar {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: space-around;
-        align-items: flex-start;
-        align-content: flex-start;
-        padding: 5px 20px;
-        margin: 2px;
-        border: #1c1c21;
-        border-style: solid;
-        border-width: 2px;
-        border-radius: 5px;
-        box-shadow: 0 4px 6px 2px rgb(0 0 0 / 20%);
-    }
-
-    .refresh_stats {
-        border-bottom: 1px;
-        border-style: solid;
-    }
-
-    .date_selectionst{    
-        border-bottom: 1px;
-        border-style: solid;
-    }
-
-    .date_selctionend{
-        border-bottom: 1px;
-        border-style: solid;
-    }
-
-</style>
+<!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" /> -->
 
 {% endblock %}
 
 {% block body %}
+<div class="tw-drop-shadow-xl">
 
-<div class="controll_bar">
-    <div class="date_selectionst">
-        <label for="stats_start">Start Date/Time: </label>
-        <input class="datepicker" id="stats_start" name="start_date" type="datetime-local">
+    <div class="tw-bg-green-200 tw-justify-start tw-flex tw-items-start tw-px-[5px] tw-py-[20px] tw-my-[10px] tw-mx-[2px] tw-border-green-800 tw-border-solid tw-border-l-[10px] tw-rounded-md">
+        <div class="tw-flex tw-flex-col tw-items-center tw-mx-[10px]">
+            <label for="stats_start">Start Date/Time: </label>
+            <input class="" id="stats_start" name="start_date" type="datetime-local">
+        </div>
+        <div class="tw-mx-[10px] tw-flex tw-flex-col tw-items-center">
+            <label for="stats_end">End Date/Time: </label>
+            <input class="" id="stats_end" name="end_date" type="datetime-local">
+            <div class="tw-border-solid tw-border-b-1 hover:tw-font-bold">
+                <input type="checkbox" class="" id="refreshSwitch">
+                <label class="" for="refreshSwitch">Pull latest statistics</label>
+            </div>
+        </div>
+        <div class="tw-w-full tw-block tw-flex-grow lg:tw-flex lg:tw-items-center lg:tw-w-auto"></div>
+        <div class="tw-mx-[20px] tw-self-center tw-justify-self-end">
+            <button id="pull_btn" type="button" class="tw-py-[5px] tw-px-[10px] tw-rounded-md tw-text-white hover:tw-bg-emerald-800 tw-bg-emerald-700">Show statistics</button>
+        </div>
     </div>
-    <div class="date_selctionend">
-        <label for="stats_end">End Date/Time: </label>
-        <input class="datepicker" id="stats_end" name="end_date" type="datetime-local">
-    </div>
-    <div>
-        <button id="pull_btn" type="button" class="btn btn-secondary" style="background-color: #6c757d;">Pull statistics</button>
-    </div>
-    <div class="refresh_stats custom-switch">
-        <input type="checkbox" class="custom-control-input" id="refreshSwitch">
-        <label class="custom-control-label" for="refreshSwitch">Pull latest statistics</label>
+
+    <div class="tw-bg-white tw-p-[5px] tw-my-[50px] tw-mx-[5px] tw-drop-shadow-2xl">
+        <div class="tw-m-[10px] tw-p-[5px]">
+
+        {% set datasets={"CPU": "cpu", "Memory": "memory", "Disk": "disk"} %}
+        {% set label="Server Resources" %}
+        {% set name="server_res" %}
+        {% include "resource_chart.html" %}
+        </div>
     </div>
 </div>
-
-<div class="maincontainer">
-    <div class="chartbox">
-
-    {% set datasets={"CPU": "cpu", "Memory": "memory", "Disk": "disk"} %}
-    {% set label="Server Resources" %}
-    {% set name="server_res" %}
-    {% include "resource_chart.html" %}
-    </div>
-</div>
-
 
 {% endblock %}

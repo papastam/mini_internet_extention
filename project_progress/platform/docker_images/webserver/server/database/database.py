@@ -66,24 +66,23 @@ class Students(Base):
     id      = db.Column(db.Integer, primary_key=True)
     name    = db.Column(db.String(50), nullable=False)
     email   = db.Column(db.String(50), nullable=False)
-    password= db.Column(db.String(80), nullable=False)
     team    = db.Column(db.Integer, nullable=False)
     # Grades
-    P1Q1    = db.Column(db.Float, nullable=True)
-    P1Q2    = db.Column(db.Float, nullable=True)
-    P1Q3    = db.Column(db.Float, nullable=True)
-    P1Q4    = db.Column(db.Float, nullable=True)
-    P1Q5    = db.Column(db.Float, nullable=True)
+    P1Q1    = db.Column(db.Float, nullable=True, default=None)
+    P1Q2    = db.Column(db.Float, nullable=True, default=None)
+    P1Q3    = db.Column(db.Float, nullable=True, default=None)
+    P1Q4    = db.Column(db.Float, nullable=True, default=None)
+    P1Q5    = db.Column(db.Float, nullable=True, default=None)
     
-    mideterm1   = db.Column(db.Float, nullable=True)
+    mideterm1   = db.Column(db.Float, nullable=True, default=None)
 
-    P2Q1    = db.Column(db.Float, nullable=True)
-    P2Q2    = db.Column(db.Float, nullable=True)
-    P2Q3    = db.Column(db.Float, nullable=True)
-    P2Q4    = db.Column(db.Float, nullable=True)
-    P2Q5    = db.Column(db.Float, nullable=True)
+    P2Q1    = db.Column(db.Float, nullable=True, default=None)
+    P2Q2    = db.Column(db.Float, nullable=True, default=None)
+    P2Q3    = db.Column(db.Float, nullable=True, default=None)
+    P2Q4    = db.Column(db.Float, nullable=True, default=None)
+    P2Q5    = db.Column(db.Float, nullable=True, default=None)
 
-    mideterm2   = db.Column(db.Float, nullable=True)
+    mideterm2   = db.Column(db.Float, nullable=True, default=None)
 
 def init_db():
     # Create the database

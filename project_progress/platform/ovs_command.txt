@@ -1,0 +1,1 @@
+ovs-vsctl -- --if-exists del-br 1-host -- --if-exists del-br 2-host -- --if-exists del-br l2-1 -- --if-exists del-br l2-2 
