@@ -200,10 +200,25 @@ def create_admin_server(db_session, config=None):
 
         return render_template("as_teams.html", logged_in=logged_in, teams=str(teams_dict).replace("'", '"'))
 
-    @app.route("/teams_config")
+    @app.route("/config")
     @login_required
-    def teams_config():
-        return render_template("config_teams.html", logged_in=logged_in)
+    def config():
+        return render_template("config.html", logged_in=logged_in)
+
+    @app.route("/config/teams", methods=["GET", "POST"])
+    @login_required
+    def config_teams():
+        return render_template("config_teams.html",logged_in=logged_in)
+
+    @app.route("/config/students", methods=["GET", "POST"])
+    @login_required
+    def config_students():
+        return render_template("config_students.html",logged_in=logged_in)
+
+    @app.route("/config/grades", methods=["GET", "POST"])
+    @login_required
+    def config_grades():
+        return render_template("config_grades.html",logged_in=logged_in)
 
     @app.route("/logout")
     @login_required
@@ -278,15 +293,15 @@ def measure_stats(config, app, db_session, worker=False):
 def init_db_base(db_session):
     """Create sample tables"""
     # Create sample students from dict.
-    students = {1: {"name": "Chris Papastamos", "email": "csd4569@csd.uoc.gr", "team": 1}, 
-                2: {"name": "Dimitris Bisias", "email": "csd1111@csd.uoc.gr", "team": 1}, 
-                3: {"name": "Orestis Chiotakis", "email": "csd2222@csd.uoc.gr", "team": 2}, 
-                4: {"name": "Manousos Manouselis", "email": "csd3333@csd.uoc.gr", "team": 2}, 
-                5: {"name": "Gay Pousths" , "email": "zwstompourdelo@poutsa.ston.kwlo", "team": 2},
+    students = {1: {"name": "Chris Papastamos", "email": "csd4569@csd.uoc.gr"}, 
+                2: {"name": "Dimitris Bisias", "email": "csd1111@csd.uoc.gr"}, 
+                3: {"name": "Orestis Chiotakis", "email": "csd2222@csd.uoc.gr"}, 
+                4: {"name": "Manousos Manouselis", "email": "csd3333@csd.uoc.gr"}, 
+                5: {"name": "Gay Pousths" , "email": "zwstompourdelo@poutsa.ston.kwlo"},
                 }
 
     for student_id, info in students.items():
-        new_student = db.Students(id=student_id, name=info["name"], email=info["email"], team=info["team"])
+        new_student = db.Students(id=student_id, name=info["name"], email=info["email"])
         db_session.add(new_student)
         db_session.commit()
     

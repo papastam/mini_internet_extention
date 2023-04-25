@@ -1,8 +1,8 @@
 {% set navigation_bar = {
     'dashboard': 'dashboard',
     'as_teams': 'as teams',
-    'teams_config': 'configure teams'
-} -%}
+    'config': 'configuration'
+} %}
 
 {% if (logged_in is not defined) %}
     {% set logged_in = False %}
@@ -36,7 +36,7 @@
 <body class="tw-flex tw-flex-col tw-min-h-screen tw-font-mono">
     <!-- Flex and min-height allow the Krill iframe to fill the screen. -->
     <!-- Menu bar background (full-width). -->
-    <div class="tw-flex tw-justify-start tw-items-center tw-relative tw-h-100px tw-bg-[#1c1c21] tw-font-mono">
+    <div class="tw-drop-shadow-xl tw-flex tw-justify-start tw-items-center tw-relative tw-h-100px tw-bg-[#1c1c21] tw-font-mono">
         <div class="tw-max-w-fit tw-flex-auto tw-mr-auto tw-p-[10px] tw-pr-0 tw-text-white">
             <div class="tw-flex tw-items-center tw-place-content-start flex-col">
                 {% if (logged_in is defined) and (logged_in != False) %}
@@ -87,13 +87,15 @@
         </div>
     </div>
     
+    <div>
     {% block body %}{% endblock %}
+    </div>
     
     <!-- Display flashed messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% set index = 0 %}
-    <div class="tw-w-1/6 tw-absolute tw-bottom-0 tw-right-0 tw-m-3">
+    <div class="sticky tw-w-1/6 tw-absolute tw-bottom-0 tw-right-0 tw-m-3">
 
         <!-- Throw each message in the div -->
         {% for category, message in messages %}

@@ -65,8 +65,8 @@ class Students(Base):
  
     id      = db.Column(db.Integer, primary_key=True)
     name    = db.Column(db.String(50), nullable=False)
-    email   = db.Column(db.String(50), nullable=False)
-    team    = db.Column(db.Integer, nullable=False)
+    email   = db.Column(db.String(50), nullable=True)
+    # team    = db.Column(db.Integer, nullable=False)
     # Grades
     P1Q1    = db.Column(db.Float, nullable=True, default=None)
     P1Q2    = db.Column(db.Float, nullable=True, default=None)
