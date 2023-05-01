@@ -39,7 +39,6 @@ admin_users= {
     "papastam": "admin"
 }   
 
-# db = SQLAlchemy()
 
 class LoginForm(FlaskForm):
     username = StringField(validators=[InputRequired(),], render_kw={"placeholder": "Username"}, )
@@ -208,7 +207,28 @@ def create_admin_server(db_session, config=None):
     @app.route("/config/teams", methods=["GET", "POST"])
     @login_required
     def config_teams():
-        return render_template("config_teams.html",logged_in=logged_in)
+        if request.method == "GET":
+            configdict = {"teams":[], "students":[]}
+            for team in db_session.query(db.AS_teams).all():
+                configdict["teams"].append({
+                    "asn": team.asn,
+                    "password": team.password,
+                    "active_as": "true" if team.active_as else "false",
+                    "member1": team.member1 if team.member1!=None else "undefined",
+                    "member2": team.member2 if team.member2!=None else "undefined",
+                    "member3": team.member3 if team.member3!=None else "undefined",
+                    "member4": team.member4 if team.member4!=None else "undefined"
+                })
+
+            for student in db_session.query(db.Students).all():
+                configdict["students"].append({
+                    "id": student.id,
+                    "name": student.name,
+                    "email": student.email,
+                    "team": student.team if student.team!=None else "undefined"
+                })
+
+        return render_template("config_teams.html",logged_in=logged_in, configdict=str(configdict).replace("'", '"'))
 
     @app.route("/config/students", methods=["GET", "POST"])
     @login_required
@@ -308,6 +328,7 @@ def init_db_base(db_session):
     team1 = db_session.query(db.AS_teams).get(1)
     team1.member1 = 1
     team1.member2 = 2
+    team1.active_as = True
     db_session.add(team1)
     
     team2 = db_session.query(db.AS_teams).get(2)
