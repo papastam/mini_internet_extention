@@ -1,0 +1,11 @@
+{% macro get_student(s_student,configdict) %}
+{% if s_student == -1 %}
+    None
+{% else %}
+    {% for student in configdict.students %}
+        {% if student.id == s_student %}
+            {{ student.name }}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+{% endmacro %}

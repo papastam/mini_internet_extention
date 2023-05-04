@@ -214,10 +214,11 @@ def create_admin_server(db_session, config=None):
                     "asn": team.asn,
                     "password": team.password,
                     "active_as": "true" if team.active_as else "false",
-                    "member1": team.member1 if team.member1!=None else "undefined",
-                    "member2": team.member2 if team.member2!=None else "undefined",
-                    "member3": team.member3 if team.member3!=None else "undefined",
-                    "member4": team.member4 if team.member4!=None else "undefined"
+                    "members": [team.member1 if team.member1!=None else -1, 
+                                team.member2 if team.member2!=None else -1, 
+                                team.member3 if team.member3!=None else -1, 
+                                team.member4 if team.member4!=None else -1
+                                ]
                 })
 
             for student in db_session.query(db.Students).all():
@@ -225,10 +226,10 @@ def create_admin_server(db_session, config=None):
                     "id": student.id,
                     "name": student.name,
                     "email": student.email,
-                    "team": student.team if student.team!=None else "undefined"
+                    "team": student.team if student.team!=None else -1
                 })
 
-        return render_template("config_teams.html",logged_in=logged_in, configdict=str(configdict).replace("'", '"'))
+        return render_template("config_teams.html",logged_in=logged_in, configdict=configdict)
 
     @app.route("/config/students", methods=["GET", "POST"])
     @login_required
@@ -313,15 +314,16 @@ def measure_stats(config, app, db_session, worker=False):
 def init_db_base(db_session):
     """Create sample tables"""
     # Create sample students from dict.
-    students = {1: {"name": "Chris Papastamos", "email": "csd4569@csd.uoc.gr"}, 
-                2: {"name": "Dimitris Bisias", "email": "csd1111@csd.uoc.gr"}, 
-                3: {"name": "Orestis Chiotakis", "email": "csd2222@csd.uoc.gr"}, 
-                4: {"name": "Manousos Manouselis", "email": "csd3333@csd.uoc.gr"}, 
-                5: {"name": "Test Student" , "email": "teststudent@provider.com"},
+    students = {1: {"name": "Chris Papastamos", "email": "csd4569@csd.uoc.gr", "team": 1}, 
+                2: {"name": "Dimitris Bisias", "email": "csd1111@csd.uoc.gr", "team": 1}, 
+                3: {"name": "Orestis Chiotakis", "email": "csd2222@csd.uoc.gr", "team": 2}, 
+                4: {"name": "Manousos Manouselis", "email": "csd3333@csd.uoc.gr", "team": 2}, 
+                5: {"name": "Test Student" , "email": "teststudent@provider.com", "team": 2},
+                6: {"name": "Unassigned Student" , "email": "unassigned@provider.com"},
                 }
 
     for student_id, info in students.items():
-        new_student = db.Students(id=student_id, name=info["name"], email=info["email"])
+        new_student = db.Students(id=student_id, name=info["name"], email=info["email"], team=info["team"] if "team" in info else None)
         db_session.add(new_student)
         db_session.commit()
     

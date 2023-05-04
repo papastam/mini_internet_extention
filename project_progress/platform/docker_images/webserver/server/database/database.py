@@ -48,10 +48,10 @@ class AS_teams(Base):
     password    = db.Column(db.String(20), nullable=False)
     active_as   = db.Column(db.Boolean, nullable=False, default=False)
     # Members are addressed by their unique ID
-    member1     = db.Column(db.Integer, nullable=True)
-    member2     = db.Column(db.Integer, nullable=True)
-    member3     = db.Column(db.Integer, nullable=True)
-    member4     = db.Column(db.Integer, nullable=True)
+    member1     = db.Column(db.Integer, nullable=True, default=None)
+    member2     = db.Column(db.Integer, nullable=True, default=None)
+    member3     = db.Column(db.Integer, nullable=True, default=None)
+    member4     = db.Column(db.Integer, nullable=True, default=None)
 
     # Needed to be a User class for Flask-Login
     is_authenticated    = db.Column(db.Boolean, nullable=False, default=True)
@@ -67,7 +67,7 @@ class Students(Base):
     id      = db.Column(db.Integer, primary_key=True)
     name    = db.Column(db.String(50), nullable=False)
     email   = db.Column(db.String(50), nullable=True)
-    team    = db.Column(db.Integer, nullable=True)
+    team    = db.Column(db.Integer, nullable=True, default=None)
     # Grades
     P1Q1    = db.Column(db.Float, nullable=True, default=None)
     P1Q2    = db.Column(db.Float, nullable=True, default=None)
