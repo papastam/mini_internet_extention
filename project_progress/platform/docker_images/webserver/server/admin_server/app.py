@@ -297,7 +297,7 @@ def init_db_base(db_session):
                 2: {"name": "Dimitris Bisias", "email": "csd1111@csd.uoc.gr"}, 
                 3: {"name": "Orestis Chiotakis", "email": "csd2222@csd.uoc.gr"}, 
                 4: {"name": "Manousos Manouselis", "email": "csd3333@csd.uoc.gr"}, 
-                5: {"name": "Gay Pousths" , "email": "zwstompourdelo@poutsa.ston.kwlo"},
+                5: {"name": "Test Student" , "email": "teststudent@provider.com"},
                 }
 
     for student_id, info in students.items():
