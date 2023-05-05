@@ -1,0 +1,90 @@
+{% extends "config.html" %}
+
+{% block content_header %}
+
+{% endblock %}
+
+{% block content %}
+<div class="tw-flex tw-flex-row tw-items-center tw-p-2 tw-m-2 tw-rounded-md tw-bg-red tw-shadow-md tw-gap-3">
+    <div class="tw-min-w-[150px]">
+        <button data-modal-target="new-rendezvous-modal" data-modal-toggle="new-rendezvous-modal" class="tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center tw-inline-flex tw-items-center tw-mr-2 dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800" type="button">
+            <svg class="tw-w-5 tw-h-5 tw-mr-2 tw--ml-1" fill="currentColor"><path d="M5 13h6v6c0 0.552 0.448 1 1 1s1-0.448 1-1v-6h6c0.552 0 1-0.448 1-1s-0.448-1-1-1h-6v-6c0-0.552-0.448-1-1-1s-1 0.448-1 1v6h-6c-0.552 0-1 0.448-1 1s0.448 1 1 1z"></path></svg>
+            New Rendezvous
+        </button>
+    </div>
+    <div class="tw-min-w-[150px]">
+        <button data-modal-target="new-rendezvous-range-modal" data-modal-toggle="new-rendezvous-range-modal" class="tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center tw-inline-flex tw-items-center tw-mr-2 dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800" type="button">
+            <svg class="tw-w-5 tw-h-5 tw-mr-2 tw--ml-1" fill="currentColor"><path d="M5 13h6v6c0 0.552 0.448 1 1 1s1-0.448 1-1v-6h6c0.552 0 1-0.448 1-1s-0.448-1-1-1h-6v-6c0-0.552-0.448-1-1-1s-1 0.448-1 1v6h-6c-0.552 0-1 0.448-1 1s0.448 1 1 1z"></path></svg>
+            New Rendezvous range
+        </button>
+    </div>
+</div>
+
+<!-- Popups -->
+<!-- New Rendezvous -->
+<div id="new-rendezvous-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
+    <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
+        <!-- Modal content -->
+        <div class="tw-relative tw-bg-white tw-rounded-lg tw-shadow dark:tw-bg-gray-700">
+            <button type="button" class="tw-absolute tw-top-3 tw-right-2.5 tw-text-gray-400 tw-bg-transparent hover:tw-bg-gray-200 hover:tw-text-gray-900 tw-rounded-lg tw-text-sm tw-p-1.5 tw-ml-auto tw-inline-flex tw-items-center dark:hover:tw-bg-gray-800 dark:hover:tw-text-white" data-modal-hide="new-rendezvous-modal">
+                <svg aria-hidden="true" class="tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                <span class="tw-sr-only">Close Popup</span>
+            </button>
+            <div class="tw-px-6 tw-py-6 lg:tw-px-8">
+                <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">New rendezvous</h3>
+                <form class="tw-space-y-6" action="#" method="POST">
+                    <div>
+                        <label for="start" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select Rendezvous starting date/time</label>
+                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-start" name="start" type="datetime-local">
+                    </div>
+                    <div>
+                        <label for="duration" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select Rendezvous duration (minutes)</label>
+                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-duration" name="duration" type="text">
+                    </div>
+                    <div>
+                        <label for="period" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select Rendezvous period</label>
+                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-period" name="period" type="text">
+                    </div>
+                    <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Add rendezvous</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<!-- New Ranezvous range -->
+<div id="new-rendezvous-range-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
+    <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
+        <!-- Modal content -->
+        <div class="tw-relative tw-bg-white tw-rounded-lg tw-shadow dark:tw-bg-gray-700">
+            <button type="button" class="tw-absolute tw-top-3 tw-right-2.5 tw-text-gray-400 tw-bg-transparent hover:tw-bg-gray-200 hover:tw-text-gray-900 tw-rounded-lg tw-text-sm tw-p-1.5 tw-ml-auto tw-inline-flex tw-items-center dark:hover:tw-bg-gray-800 dark:hover:tw-text-white" data-modal-hide="new-rendezvous-range-modal">
+                <svg aria-hidden="true" class="tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                <span class="tw-sr-only">Close Popup</span>
+            </button>
+            <div class="tw-px-6 tw-py-6 lg:tw-px-8">
+                <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">New rendezvous range</h3>
+                <form class="tw-space-y-6" action="#" method="POST">
+                    <div>
+                        <label for="start" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select Rendezvous range starting date/time</label>
+                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-range-start" name="start" type="datetime-local">
+                    </div>
+                    <div>
+                        <label for="start" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select Rendezvous range ending date/time</label>
+                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-range-start" name="end" type="datetime-local">
+                    </div>
+                    <div>
+                        <label for="duration" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select Rendezvous duration (minutes)</label>
+                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-range-duration" name="duration" type="text">
+                    </div>
+                    <div>
+                        <label for="period" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select Rendezvous period</label>
+                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-range-period" name="period" type="text">
+                    </div>
+                    <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Generate Rendezvous</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> 
+
+{% endblock %}

@@ -339,10 +339,10 @@ def create_admin_server(db_session, config=None):
 
         return render_template("config_students.html",logged_in=logged_in, configdict=configdict)
 
-    @app.route("/config/grades", methods=["GET", "POST"])
+    @app.route("/config/rendezvous", methods=["GET", "POST"])
     @login_required
-    def config_grades():
-        return render_template("config_grades.html",logged_in=logged_in)
+    def config_rendezvous():
+        return render_template("config_rendezvous.html",logged_in=logged_in)
 
     @app.route("/logout")
     @login_required

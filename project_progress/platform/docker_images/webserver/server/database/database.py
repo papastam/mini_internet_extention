@@ -85,6 +85,15 @@ class Students(Base):
 
     midterm2   = db.Column(db.Float, nullable=True, default=None)
 
+class Rendezvous(Base):
+    __tablename__ = "rendezvous"
+ 
+    id          = db.Column(db.Integer, primary_key=True)
+    period      = db.Column(db.Integer, nullable=False)
+    datetime    = db.Column(db.DateTime(timezone=True), server_default=func.now(), nullable=False)
+    asn         = db.Column(db.Integer, ForeignKey('as_teams.asn'), nullable=False)
+    
+
 def init_db():
     # Create the database
     Base.metadata.create_all(engine)

@@ -348,6 +348,11 @@ def create_project_server(db_session, config=None):
 
         return render_template('change_pass.html',logged_in=logged_in, form=form)
 
+    @app.route("/rendezvous")
+    @login_required
+    def rendezvous():
+        return render_template('rendezvous.html',logged_in=logged_in)
+
     @app.route("/traceroute")
     @login_required
     def traceroute():
