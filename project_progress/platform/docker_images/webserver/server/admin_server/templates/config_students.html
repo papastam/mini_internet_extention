@@ -1,1 +1,278 @@
 {% extends "config.html" %}
+{% from 'macros.html' import get_student %}
+{% block content_header %}
+
+<script>
+    configdict = {{ configdict|safe|replace("None", "-1") }}
+    console.log(configdict)
+    var inactive = false;
+
+    function search_and_display(input){
+        $(".table_row").hide();
+
+        if(input == ""){
+            for (student in configdict.students){
+                if(inactive || configdict.students[student].team != -1){
+                    $(".student"+configdict.students[student].id+"_row").show();
+                }
+            }
+            return;
+        }
+        
+        if (isNaN(input)) {
+            filter = input.toUpperCase();
+            for (studen in configdict.students){
+                if (configdict.students[studen].name.toUpperCase().includes(filter) || configdict.students[studen].email.toUpperCase().includes(filter)){
+                    if(inactive || configdict.students[studen].team != -1){
+                        $(".student"+configdict.students[studen].id+"_row").show();
+                    }
+                }
+            }
+        } else {
+            //if a number is given sort by asn
+            filter = input;
+            for (student in configdict.students){
+                if (filter == configdict.students[student].team){
+                    if(inactive || configdict.students[student].team != -1){
+                        $(".student"+configdict.students[student].id+"_row").show();
+                    }
+                }
+            }
+        }
+    }
+
+
+    $(document).ready(function(){
+        console.log(configdict);
+        $(".inactive_student").hide();
+
+        $("#students-search-bar").on("keyup", function() {
+            search_and_display($("#students-search-bar").val());
+        });
+
+        $("#inactive_switch").change(function() {
+            if (this.checked) {
+                inactive=true;
+                search_and_display($("#students-search-bar").val());
+            } else {
+                inactive=false;
+                search_and_display($("#students-search-bar").val());
+            }
+        });
+        
+    })
+
+</script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/flowbite.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block content %}
+<div class="tw-flex tw-flex-row tw-items-center tw-w-full tw-p-2 tw-m-2 tw-rounded-md tw-bg-red tw-shadow-md tw-gap-3">
+    <div class="tw-w-full tw-relative">
+        <div class="tw-absolute tw-inset-y-0 tw-left-0 tw-flex tw-items-center tw-pl-3 tw-pointer-events-none">
+            <svg aria-hidden="true" class="tw-w-5 tw-h-5 tw-text-gray-500 dark:tw-text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+        <input type="search" id="students-search-bar" class="tw-w-full tw-block tw-p-4 tw-pl-10 tw-text-sm tw-text-gray-900 tw-border tw-border-gray-300 tw-rounded-lg tw-bg-gray-50 focus:tw-ring-blue-500 focus:tw-border-blue-500 dark:tw-bg-gray-700 dark:tw-border-gray-600 dark:tw-placeholder-gray-400 dark:tw-text-white dark:focus:tw-ring-blue-500 dark:focus:tw-border-blue-500" placeholder="Search Student name, Team, E-mail..">
+    </div>
+
+    <div class="tw-h-[20px] tw-min-w-[250px]">
+        <label class="tw-relative tw-inline-flex tw-items-center tw-cursor-pointer ">
+            <input id="inactive_switch" type="checkbox" value="" class="tw-sr-only tw-peer">
+            <div class="tw-w-9 tw-h-5 tw-bg-gray-200 peer-focus:tw-outline-none peer-focus:tw-ring-4 peer-focus:tw-ring-blue-300 dark:tw-peer-focus:tw-ring-blue-800 tw-rounded-full tw-peer dark:tw-bg-gray-700 peer-checked:after:tw-translate-x-full peer-checked:after:tw-border-white after:tw-content-[''] after:tw-absolute after:tw-top-[2px] after:tw-left-[2px] after:tw-bg-white after:tw-border-gray-300 after:tw-border after:tw-rounded-full after:tw-h-4 after:tw-w-4 after:tw-transition-all dark:tw-border-gray-600 peer-checked:tw-bg-blue-600"></div>
+            <span class="tw-ml-3 tw-text-sm tw-font-medium">Show Unassigned Students</span>
+        </label>
+    </div>
+
+    <div class="tw-min-w-[150px]">
+        {# <button type="button" class="tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center inline-flex tw-items-center tw-mr-2 dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800"> #}
+        <button data-modal-target="new-student-modal" data-modal-toggle="new-student-modal" class="tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center inline-flex tw-items-center tw-mr-2 dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800" type="button">
+            <svg class="tw-w-5 tw-h-5 tw-mr-2 tw--ml-1" fill="currentColor"><path d="M5 13h6v6c0 0.552 0.448 1 1 1s1-0.448 1-1v-6h6c0.552 0 1-0.448 1-1s-0.448-1-1-1h-6v-6c0-0.552-0.448-1-1-1s-1 0.448-1 1v6h-6c-0.552 0-1 0.448-1 1s0.448 1 1 1z"></path></svg>
+            New Student
+        </button>
+    </div>
+
+</div>
+<div class="tw-rounded-md tw-shadow-md tw-p-[5px] tw-m-[10px] tw-relative tw-overflow-x-auto tw-shadow-md sm:tw-rounded-lg">
+    <table id="studentTable" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+                <th scope="col" class="px-6 py-3">
+                    Name
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    E-mail
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Team
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    P1Q1
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    P1Q2
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    P1Q3
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    P1Q4
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    P1Q5
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Midterm1
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    P2Q1
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    P2Q2
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    P2Q3
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    P2Q4
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    P2Q5
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Midterm2
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Action
+                </th>
+            </tr>
+        </thead>
+        <tbody id="studentsTableBody">
+            {% for student in configdict.students %}
+                <tr class="table_row student{{student.id}}_row {{'inactive_student tw-text-black tw-bg-red-400 hover:tw-bg-red-300' if student.team == -1 else 'tw-bg-white hover:tw-bg-gray-50 tw-text-gray-900'}} tw-border-b">
+                    <td scope="row" class="tw-px-6 tw-py-4 tw-font-medium tw-whitespace-nowrap">
+                        {{student.name}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.email}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.team if student.team != -1 else 'None'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.p1q1 if student.grades.p1q1 != None else '-'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.p1q2 if student.grades.p1q2 != None else '-'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.p1q3 if student.grades.p1q3 != None else '-'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.p1q4 if student.grades.p1q4 != None else '-'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.p1q5 if student.grades.p1q5 != None else '-'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.midterm1 if student.grades.midterm1 != None else '-'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.p2q1 if student.grades.p2q1 != None else '-'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.p2q2 if student.grades.p2q2 != None else '-'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.p2q3 if student.grades.p2q3 != None else '-'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.p2q4 if student.grades.p2q4 != None else '-'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.p2q5 if student.grades.p2q5 != None else '-'}}
+                    </td>
+                    <td class="tw-px-6 tw-py-4">
+                        {{student.grades.midterm2 if student.grades.midterm2 != None else '-'}}
+                    </td>                    
+                    <td class="tw-px-6 tw-py-4">
+                        <button data-modal-target="edit-student-{{student.id}}-modal" data-modal-toggle="edit-student-{{student.id}}-modal" class="tw-block tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800" type="button">
+                        Edit student
+                        </button>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/flowbite.min.js"></script>
+
+<!-- Popups -->
+    <div id="new-student-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
+        <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
+            <!-- Modal content -->
+            <div class="tw-relative tw-bg-white tw-rounded-lg tw-shadow dark:tw-bg-gray-700">
+                <button type="button" class="tw-absolute tw-top-3 tw-right-2.5 tw-text-gray-400 tw-bg-transparent hover:tw-bg-gray-200 hover:tw-text-gray-900 tw-rounded-lg tw-text-sm tw-p-1.5 tw-ml-auto tw-inline-flex tw-items-center dark:hover:tw-bg-gray-800 dark:hover:tw-text-white" data-modal-hide="new-student-modal">
+                    <svg aria-hidden="true" class="tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    <span class="tw-sr-only">Close Popup</span>
+                </button>
+                <div class="tw-px-6 tw-py-6 lg:tw-px-8">
+                    <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">New Student</h3>
+                    <form class="tw-space-y-6" action="#" method="POST">
+                        <div>
+                            <label for="name" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">New student's name</label>
+                            <input type="text" name="name" id="new_student_name" placeholder="Student name" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" required>
+                        </div>
+                        <div>
+                            <label for="email" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Student's E-mail</label>
+                            <input type="email" name="email" id="new_student_email" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" placeholder="student@example.com">
+                        </div>
+                        <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Add Student</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    {% for student in configdict.students %}
+    <div id="edit-student-{{student.id}}-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
+        <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
+            <!-- Modal content -->
+            <div class="tw-relative tw-bg-white tw-rounded-lg tw-shadow dark:tw-bg-gray-700">
+                <button type="button" class="tw-absolute tw-top-3 tw-right-2.5 tw-text-gray-400 tw-bg-transparent hover:tw-bg-gray-200 hover:tw-text-gray-900 tw-rounded-lg tw-text-sm tw-p-1.5 tw-ml-auto tw-inline-flex tw-items-center dark:hover:tw-bg-gray-800 dark:hover:tw-text-white" data-modal-hide="edit-student-{{student.id}}-modal">
+                    <svg aria-hidden="true" class="tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    <span class="tw-sr-only">Close Popup</span>
+                </button>
+                <div class="tw-px-6 tw-py-6 lg:tw-px-8">
+                    <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">Edit {{student.name}}</h3>
+                    <form class="tw-space-y-6" action="#" method="POST">
+                        <input type="hidden" name="id" value="{{student.id}}">
+                        <div>
+                            <label for="name" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Student's name</label>
+                            <input type="text" name="name" id="student_{{student.id}}_name" placeholder="Student's name" value="{{student.name}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" required>
+                        </div>
+                        <div>
+                            <label for="email" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Student's E-mail</label>
+                            <input type="email" name="email" id="student_{{student.id}}_email" value="{{student.email}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" placeholder="student@example.com">
+                        </div>
+                        {% for phaseindex in range(1,3) %}
+                        <label class="tw-font-bold tw-block tw-mb-2 tw-text-sm tw-text-gray-900 dark:tw-text-white">Phase {{phaseindex}}</label>
+                        <div id="student_{{student.id}}_P{{phaseindex}}grades" class="tw-flex tw-gap-2 tw-flex-inline">
+                            {% for questionindex in range(1,6) %}
+                            <div class="tw-w-[50px]">
+                                <label for="student_{{student.id}}_P{{phaseindex}}Q{{questionindex}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Q{{questionindex}}</label>
+                                <input type="text" name="p{{phaseindex}}q{{questionindex}}" id="student_{{student.id}}_P{{phaseindex}}Q{{questionindex}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" placeholder="/10">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="tw-w-[100px]">
+                            <label for="student{{student.id}}_midterm{{phaseindex}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Midterm {{phaseindex}}</label>
+                            <input type="text" name="midterm{{phaseindex}}" id="student{{student.id}}_midterm{{phaseindex}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" placeholder="/10">
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Add Student</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div> 
+    {% endfor %}
+{% endblock %}

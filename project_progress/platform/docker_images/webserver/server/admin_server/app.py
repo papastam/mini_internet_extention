@@ -276,7 +276,68 @@ def create_admin_server(db_session, config=None):
     @app.route("/config/students", methods=["GET", "POST"])
     @login_required
     def config_students():
-        return render_template("config_students.html",logged_in=logged_in)
+        if request.method == "POST" and ("name" in dict(request.form) and "email" in dict(request.form)):
+            request_args = dict(request.form)
+            debug(f"POST request received: {request_args}")
+        
+            if "id" in request_args:
+                '''Update existing student'''
+                student = db_session.query(db.Students).get(request_args["id"])
+                student.name    = request_args["name"]
+                student.email   = request_args["email"]
+
+                student.P1Q1        = request_args["p1q1"] if "p1q1" in request_args else None
+                student.P1Q2        = request_args["p1q2"] if "p1q2" in request_args else None
+                student.P1Q3        = request_args["p1q3"] if "p1q3" in request_args else None
+                student.P1Q4        = request_args["p1q4"] if "p1q4" in request_args else None
+                student.P1Q5        = request_args["p1q5"] if "p1q5" in request_args else None
+                student.midterm1    = request_args["midterm1"] if "midterm1" in request_args else None
+
+                student.P2Q1        = request_args["p2q1"] if "p2q1" in request_args else None
+                student.P2Q2        = request_args["p2q2"] if "p2q2" in request_args else None
+                student.P2Q3        = request_args["p2q3"] if "p2q3" in request_args else None
+                student.P2Q4        = request_args["p2q4"] if "p2q4" in request_args else None
+                student.P2Q5        = request_args["p2q5"] if "p2q5" in request_args else None
+                student.midterm2    = request_args["midterm2"] if "midterm2" in request_args else None
+
+                db_session.add(student)
+                db_session.commit()
+                flash(f"Student {request_args['name']} updated successfully.", "success")
+
+            else:
+                '''Add new student'''
+                
+                # TODO: Check for duplicate students
+                student = db.Students(name=request_args["name"], email=request_args["email"])
+                db_session.add(student)
+                db_session.commit()
+                flash(f"Student {request_args['name']} added successfully.", "success")
+                    
+        configdict = {"teams":[], "students":[]}
+        
+        for student in db_session.query(db.Students).all():
+            configdict["students"].append({
+                "id": student.id,
+                "name": student.name,
+                "email": student.email,
+                "team": student.team if student.team!=None else -1,
+                "grades": {
+                    "p1q1": student.P1Q1,
+                    "p1q2": student.P1Q2,
+                    "p1q3": student.P1Q3,
+                    "p1q4": student.P1Q4,
+                    "p1q5": student.P1Q5,
+                    "midterm1": student.midterm1,
+                    "p2q1": student.P2Q1,
+                    "p2q2": student.P2Q2,
+                    "p2q3": student.P2Q3,
+                    "p2q4": student.P2Q4,
+                    "p2q5": student.P2Q5,
+                    "midterm2": student.midterm2,
+                }
+            })
+
+        return render_template("config_students.html",logged_in=logged_in, configdict=configdict)
 
     @app.route("/config/grades", methods=["GET", "POST"])
     @login_required

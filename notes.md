@@ -17,8 +17,6 @@
    - [ ] Admin page on the webserver containing auto grading and auto debuging tools for TA use
 
 ## 5. Improvements on the website
-   
-
    - [X] Add AS login 
       - [X] Automate the account creation based on the AS passwords
       - [X] Password changing option
@@ -28,8 +26,8 @@
       - [X] Login page **(Example)[https://github.com/arpanneupane19/Python-Flask-Authentication-Tutorial]**
       - [ ] Auto grading/debugnihg tools
       - [X] Resource usage monitoring
-      - [ ] AS teams table (info of each student included)
-      - [ ] Creation of teams (Admin TA can assign Students to teams)
+      - [X] AS teams table (info of each student included)
+      - [X] Creation of teams (Admin TA can assign Students to teams)
       - [ ] BGP updates monitoring
       - [ ] Inpact on performance (periodical ping between hosts)
 

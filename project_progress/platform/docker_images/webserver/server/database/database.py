@@ -75,7 +75,7 @@ class Students(Base):
     P1Q4    = db.Column(db.Float, nullable=True, default=None)
     P1Q5    = db.Column(db.Float, nullable=True, default=None)
     
-    mideterm1   = db.Column(db.Float, nullable=True, default=None)
+    midterm1   = db.Column(db.Float, nullable=True, default=None)
 
     P2Q1    = db.Column(db.Float, nullable=True, default=None)
     P2Q2    = db.Column(db.Float, nullable=True, default=None)
@@ -83,7 +83,7 @@ class Students(Base):
     P2Q4    = db.Column(db.Float, nullable=True, default=None)
     P2Q5    = db.Column(db.Float, nullable=True, default=None)
 
-    mideterm2   = db.Column(db.Float, nullable=True, default=None)
+    midterm2   = db.Column(db.Float, nullable=True, default=None)
 
 def init_db():
     # Create the database

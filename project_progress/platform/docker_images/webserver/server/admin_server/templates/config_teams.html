@@ -2,12 +2,6 @@
 {% from 'macros.html' import get_student %}
 {% block content_header %}
 
-{#  TODO:
-    1. when adding a team, and select a student that student shouldnt be available for the other student selections
-    2. handle backend requests editing a team
-    
- #}
-
 <script>
     configdict = {{ configdict|safe }}
     var inactive = false;
@@ -28,7 +22,6 @@
             filter = input.toUpperCase();
             for (studen in configdict.students){
                 if (configdict.students[studen].name.toUpperCase().includes(filter)){
-                    console.log(configdict.teams[configdict.students[studen].team-1])
                     if(inactive || configdict.teams[configdict.students[studen].team-1].active_as=="true"){
                         $(".as"+configdict.students[studen].team+"_row").show();
                     }
@@ -49,7 +42,6 @@
 
 
     $(document).ready(function(){
-        console.log(configdict);
         $(".inactive_as").hide();
 
         $("#teams-search-bar").on("keyup", function() {
@@ -60,11 +52,9 @@
             if (this.checked) {
                 inactive=true;
                 search_and_display($("#teams-search-bar").val());
-                {# $(".inactive_as").show(); #}
             } else {
                 inactive=false;
                 search_and_display($("#teams-search-bar").val());
-                {# $(".inactive_as").hide(); #}
             }
         });
         
@@ -204,7 +194,7 @@
                                 Warrning! this will overwrite any previous configuration of the team info
                             </p>
                         </div>
-                        <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Update team</button>
+                        <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Add team</button>
                     </form>
                 </div>
             </div>
