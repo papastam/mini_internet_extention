@@ -1,4 +1,4 @@
-# Objectiveves
+# Objectives
 ## 1. Restore mechanism from configuration file for Hosts, Switches, Routers
    - [ ] [./restore_configs.sh](https://github.com/nsg-ethz/mini_internet_project/pull/19) Pull Request
 
