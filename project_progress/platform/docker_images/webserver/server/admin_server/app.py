@@ -207,27 +207,69 @@ def create_admin_server(db_session, config=None):
     @app.route("/config/teams", methods=["GET", "POST"])
     @login_required
     def config_teams():
-        if request.method == "GET":
-            configdict = {"teams":[], "students":[]}
-            for team in db_session.query(db.AS_teams).all():
-                configdict["teams"].append({
-                    "asn": team.asn,
-                    "password": team.password,
-                    "active_as": "true" if team.active_as else "false",
-                    "members": [team.member1 if team.member1!=None else -1, 
-                                team.member2 if team.member2!=None else -1, 
-                                team.member3 if team.member3!=None else -1, 
-                                team.member4 if team.member4!=None else -1
-                                ]
-                })
+        if request.method == "POST":
+            form_args = dict(request.form)
+            debug(f"POST request received: {form_args}")
 
-            for student in db_session.query(db.Students).all():
-                configdict["students"].append({
-                    "id": student.id,
-                    "name": student.name,
-                    "email": student.email,
-                    "team": student.team if student.team!=None else -1
-                })
+            if "asn" in form_args:
+                team = db_session.query(db.AS_teams).get(form_args["asn"])
+
+                if check_for_dupes(form_args["member1"], form_args["member2"], form_args["member3"], form_args["member4"]):
+                    update_students(db_session, team.asn, form_args["member1"], form_args["member2"], form_args["member3"], form_args["member4"])
+
+                    if "password" not in form_args:
+                        '''No password change'''
+                    elif  form_args["password"] == team.password:
+                        '''No need to change password'''
+                        pass
+                    elif len(form_args["password"]) < 8:
+                        '''Password too short'''
+                        flash("Password must be at least 8 characters long. Password not updated", "info")
+                    else:
+                        # Change password in database
+                        team.password = form_args["password"]
+                        
+                        # Change password in docker
+                        with open(app.config['LOCATIONS']['docker_pipe'], 'w') as pipe:
+                            pipe.write(f"changepass {team.asn} {form_args['password']}\n")
+                            pipe.flush()
+                            pipe.close()
+
+                    team.member1 = form_args["member1"] if form_args["member1"]!="-1" else None
+                    team.member2 = form_args["member2"] if form_args["member2"]!="-1" else None
+                    team.member3 = form_args["member3"] if form_args["member3"]!="-1" else None
+                    team.member4 = form_args["member4"] if form_args["member4"]!="-1" else None
+                    team.active_as = True if form_args["active_as"]=="1" else False
+
+                    db_session.add(team)
+                    db_session.commit()
+
+                    flash(f"Team {team.asn} updated successfully.", "success")
+                else:
+                    flash("Duplicate student detected. Please check your input.", "error")
+
+        configdict = {"teams":[], "students":[]}
+        for team in db_session.query(db.AS_teams).all():
+            configdict["teams"].append({
+                "asn": team.asn,
+                "password": team.password,
+                "active_as": "true" if team.active_as else "false",
+                "members": [team.member1 if team.member1!=None else -1, 
+                            team.member2 if team.member2!=None else -1, 
+                            team.member3 if team.member3!=None else -1, 
+                            team.member4 if team.member4!=None else -1
+                            ]
+            })
+
+        for student in db_session.query(db.Students).all():
+            configdict["students"].append({
+                "id": student.id,
+                "name": student.name,
+                "email": student.email,
+                "team": student.team if student.team!=None else -1
+            })
+
+
 
         return render_template("config_teams.html",logged_in=logged_in, configdict=configdict)
 
@@ -311,6 +353,48 @@ def measure_stats(config, app, db_session, worker=False):
 
     return (time, cpu, memory, disk)
 
+def check_for_dupes(member1, member2, member3, member4):
+    """Check for duplicate students"""
+    if member1 != "-1":
+        if member1 == member2 or member1 == member3 or member1 == member4:
+            return False
+    if member2 != "-1":
+        if member2 == member3 or member2 == member4:
+            return False
+    if member3 != "-1":
+        if member3 == member4:
+            return False
+    return True
+
+def update_students(db_session, team, member1, member2, member3, member4):
+    """First up, remove all students from the team"""
+    for student in db_session.query(db.Students).filter(db.Students.team == team).all():
+        student.team = None
+        db_session.add(student)
+        db_session.commit()
+
+    """Then, add the new ones"""
+    if member1 != "-1":
+        student = db_session.query(db.Students).filter(db.Students.id == member1).first()
+        student.team = team
+        db_session.add(student)
+        db_session.commit()
+    if member2 != "-1":
+        student = db_session.query(db.Students).filter(db.Students.id == member2).first()
+        student.team = team
+        db_session.add(student)
+        db_session.commit()
+    if member3 != "-1":
+        student = db_session.query(db.Students).filter(db.Students.id == member3).first()
+        student.team = team
+        db_session.add(student)
+        db_session.commit()
+    if member4 != "-1":
+        student = db_session.query(db.Students).filter(db.Students.id == member4).first()
+        student.team = team
+        db_session.add(student)
+        db_session.commit()
+
 def init_db_base(db_session):
     """Create sample tables"""
     # Create sample students from dict.
@@ -319,7 +403,7 @@ def init_db_base(db_session):
                 3: {"name": "Orestis Chiotakis", "email": "csd2222@csd.uoc.gr", "team": 2}, 
                 4: {"name": "Manousos Manouselis", "email": "csd3333@csd.uoc.gr", "team": 2}, 
                 5: {"name": "Test Student" , "email": "teststudent@provider.com", "team": 2},
-                6: {"name": "Unassigned Student" , "email": "unassigned@provider.com"},
+                6: {"name": "Unassigned Student" , "email": "unassigned@provider.com", "team": None},
                 }
 
     for student_id, info in students.items():

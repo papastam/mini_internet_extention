@@ -116,6 +116,7 @@ LOCATIONS = {
     "as_connections_public": "${CONFIGDIR_SERVER}/aslevel_links_students.txt",
     "as_connections": "${CONFIGDIR_SERVER}/aslevel_links.txt",
     'groups': '${DATADIR_SERVER}',
+    "docker_pipe": "${SERVER_DIR}/docker_pipe"
 }
 BASIC_AUTH_USERNAME = 'admin'
 BASIC_AUTH_PASSWORD = 'admin'

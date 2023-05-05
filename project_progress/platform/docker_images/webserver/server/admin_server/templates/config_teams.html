@@ -10,22 +10,28 @@
 
 <script>
     configdict = {{ configdict|safe }}
+    var inactive = false;
 
     function search_and_display(input){
+        $(".table_row").hide();
+
         if(input == ""){
-            $(".table_row").show();
+            for (team in configdict.teams){
+                if(inactive || configdict.teams[team].active_as=="true"){
+                    $(".as"+configdict.teams[team].asn+"_row").show();
+                }
+            }
             return;
         }
         
-        $(".table_row").hide();
-
         if (isNaN(input)) {
             filter = input.toUpperCase();
             for (studen in configdict.students){
                 if (configdict.students[studen].name.toUpperCase().includes(filter)){
-                    console.log("found student: "+configdict.students[studen].name)
-                    console.log("showing row: .as"+configdict.students[studen].asn+"_row")
-                    $(".as"+configdict.students[studen].team+"_row").show();
+                    console.log(configdict.teams[configdict.students[studen].team-1])
+                    if(inactive || configdict.teams[configdict.students[studen].team-1].active_as=="true"){
+                        $(".as"+configdict.students[studen].team+"_row").show();
+                    }
                 }
             }
         } else {
@@ -33,7 +39,9 @@
             filter = input;
             for (team in configdict.teams){
                 if (filter == configdict.teams[team].asn){
-                    $(".as"+filter+"_row").show();
+                    if(inactive || configdict.teams[team].active_as){
+                        $(".as"+filter+"_row").show();
+                    }
                 }
             }
         }
@@ -50,9 +58,13 @@
 
         $("#inactive_switch").change(function() {
             if (this.checked) {
-                $(".inactive_as").show();
+                inactive=true;
+                search_and_display($("#teams-search-bar").val());
+                {# $(".inactive_as").show(); #}
             } else {
-                $(".inactive_as").hide();
+                inactive=false;
+                search_and_display($("#teams-search-bar").val());
+                {# $(".inactive_as").hide(); #}
             }
         });
         
@@ -158,7 +170,7 @@
                 </button>
                 <div class="tw-px-6 tw-py-6 lg:tw-px-8">
                     <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">New team</h3>
-                    <form class="tw-space-y-6" action="#">
+                    <form class="tw-space-y-6" action="#" method="POST">
                         <div>
                             <label for="asn" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select new team's as number</label>
                             <select name="asn" id="new_team_asn" placeholder="new asn" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" required>
@@ -175,17 +187,23 @@
                         </div>
                         {% for i in range(4) %}
                             <div>
-                                <label for="member{{i}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Member {{i}}</label>
-                                <select name="member{{i}}" id="newteam_member{{i}}" placeholder="Select team member {{i}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
+                                <label for="member{{i+1}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Member {{i+1}}</label>
+                                <select name="member{{i+1}}" id="newteam_member{{i+1}}" placeholder="Select team member {{i}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
                                     {% for student in configdict.students %}
                                         {% if student.team == -1 %}
                                             <option value="{{student.id}}">{{student.name}}</option>
                                         {% endif %}
                                     {% endfor %}
-                                    <option value='-1'>None</option>
+                                    <option value='-1' selected>None</option>
                                 </select>
                             </div>
                         {% endfor %}
+                        <input id="new_team_active_hidden" type="hidden" name="active_as" type="checkbox" value="1" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800">
+                        <div class="tw-text-red-500">
+                            <p>
+                                Warrning! this will overwrite any previous configuration of the team info
+                            </p>
+                        </div>
                         <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Update team</button>
                     </form>
                 </div>
@@ -204,15 +222,16 @@
                 </button>
                 <div class="tw-px-6 tw-py-6 lg:tw-px-8">
                     <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">Edit team {{team.asn}}</h3>
-                    <form class="tw-space-y-6" action="#">
+                    <form class="tw-space-y-6" action="#" method="POST">
+                        <input type="hidden" id="asn" name="asn" value="{{team.asn}}">
                         <div>
                             <label for="password" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Team password</label>
                             <input type="text" name="password" id="password" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" placeholder="{{team.password}}">
                         </div>
                         {% for i in range(team.members|length) %}
                             <div>
-                                <label for="member{{i}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Member {{i}}</label>
-                                <select name="member{{i}}" id="team{{team.asn}}_member{{i}}" placeholder="Select team member {{i}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
+                                <label for="member{{i+1}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Member {{i}}</label>
+                                <select name="member{{i+1}}" id="team{{team.asn}}_member{{i+1}}" placeholder="Select team member {{i+1}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
                                     {% for student in configdict.students %}
                                         {% if student.team == -1 or team.members[i] == student.id %}
                                         <option value="{{student.id}}" {{'selected="selected"' if team.members[i] == student.id else '' }}>{{student.name}}</option>
@@ -225,7 +244,8 @@
                         <div class="tw-flex tw-justify-between">
                             <div class="tw-flex tw-items-start">
                                 <div class="tw-flex tw-items-center tw-h-5">
-                                    <input id="{{team.asn}}_active" type="checkbox" value="" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800" {{"checked" if team.active_as == "true"}}>
+                                    <input id="{{team.asn}}_active" name="active_as" type="checkbox" value="1" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800" {{"checked" if team.active_as == "true"}}>
+                                    <input id="{{team.asn}}_active_hidden" type="hidden" name="active_as" type="checkbox" value="0" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800" checked>
                                 </div>
                                 <label for="remember" class="tw-ml-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-gray-300">Active Team</label>
                             </div>
