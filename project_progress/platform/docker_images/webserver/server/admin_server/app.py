@@ -56,6 +56,7 @@ def admin_log(message):
 
 def create_admin_server(db_session, config=None):
     """Create and configure the app."""
+    debug("Creating admin server. with name "+str(__name__))
     app = Flask(__name__)
     app.config.from_mapping(config_defaults)
     app.jinja_env.undefined = StrictUndefined
@@ -69,10 +70,9 @@ def create_admin_server(db_session, config=None):
         app.config.from_pyfile(config)
 
     #Admin login init
-    login_manager = LoginManager()
+    login_manager = LoginManager(app)
     login_manager.login_view = '/login'
     login_manager.session_protection = "strong"
-    login_manager.init_app(app)
     
     bcrypt = Bcrypt(app) 
 

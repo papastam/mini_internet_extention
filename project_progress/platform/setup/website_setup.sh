@@ -106,7 +106,7 @@ ANALYSIS_UPDATE_FREQUENCY = 300  # seconds
 HOST = '0.0.0.0'
 PORT = 8000
 SQLALCHEMY_DATABASE_URI = "sqlite:////server/routing_project_server/database.db"
-SECRET_KEY = "HY335_papastam"
+SECRET_KEY = "ifURQ7ozFy7zS3jAke1end8ntHkh0WzaPHBsID8U"
 EOM
 
 cat > "$ADMINCONFIGFILE" << EOM
@@ -126,7 +126,7 @@ HOST = '0.0.0.0'
 PORT = 8010
 STATS_UPDATE_FREQUENCY = 60
 SQLALCHEMY_DATABASE_URI = "sqlite:////server/admin_server/database.db"
-SECRET_KEY = "HY335_papastam"
+SECRET_KEY = "G5XSbqAtVQtS3rj3CwidDLeeBpf0oTczZcSvv400"
 EOM
 
 # First start the web container, adding labels for the traefik proxy.

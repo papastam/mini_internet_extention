@@ -95,6 +95,7 @@ def as_log(message):
 
 def create_project_server(db_session, config=None):
     """Create and configure the app."""
+    debug("Creating admin server. with name "+str(__name__))
     app = Flask(__name__)
     app.config.from_mapping(config_defaults)
     app.jinja_env.undefined = StrictUndefined
@@ -113,7 +114,7 @@ def create_project_server(db_session, config=None):
     #AS Login manager
     login_manager = LoginManager(app)
     login_manager.login_view = '/as_login'
-    login_manager.init_app(app)
+    login_manager.session_protection = "strong"
     
     @login_manager.user_loader
     def load_user(asn):
