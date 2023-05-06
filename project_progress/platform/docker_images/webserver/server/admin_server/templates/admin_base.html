@@ -4,10 +4,6 @@
     'config': 'configuration'
 } %}
 
-{% if (logged_in is not defined) %}
-    {% set logged_in = False %}
-{% endif %}
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -40,8 +36,8 @@
     <div class="tw-drop-shadow-xl tw-flex tw-justify-start tw-items-center tw-relative tw-h-100px tw-bg-[#1c1c21] tw-font-mono">
         <div class="tw-max-w-fit tw-flex-auto tw-mr-auto tw-p-[10px] tw-pr-0 tw-text-white">
             <div class="tw-flex tw-items-center tw-place-content-start flex-col">
-                {% if (logged_in is defined) and (logged_in != False) %}
-                    <span>Logged in as: {{logged_in}}</span>
+                {% if current_user.is_authenticated %}
+                    <span>Logged in as: {{current_user.username}}</span>
                     <div class="">
                         <a class="tw-max-w-fit tw-block tw-mt-4 lg:tw-inline-block lg:tw-mt-0 hover:tw-font-bold tw-mr-4 tw-text-lg" href="{{url_for('logout')}}">
                             <span class="tw-pr-2 tw-pl-2">
@@ -70,7 +66,7 @@
                         <!-- <span class="text-gray-400 pr-2">></span> -->
                         <span>routing project / admin</span>
                     </div>
-                    {% if logged_in %}
+                    {% if current_user.is_authenticated %}
                     <!-- Menu -->
                     <div class="tw-w-full tw-block tw-flex-grow lg:tw-flex lg:tw-items-center lg:tw-w-auto"></div>
                     {% for endpoint, name in navigation_bar.items() %}

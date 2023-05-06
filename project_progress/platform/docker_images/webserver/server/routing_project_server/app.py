@@ -68,7 +68,6 @@ config_defaults = {
 #AS Login Database
 # db = SQLAlchemy()
 bcrypt = Bcrypt() 
-logged_in = False
 login_choices = []
 
 class ChangePassForm(FlaskForm):
@@ -122,7 +121,7 @@ def create_project_server(db_session, config=None):
 
     bcrypt.init_app(app)
 
-    register_as_login(app, db_session)
+    create_as_accounts(app, db_session)
 
     @app.template_filter()
     def format_datetime(utcdatetime, format='%Y-%m-%d at %H:%M'):
@@ -183,8 +182,7 @@ def create_project_server(db_session, config=None):
             'matrix.html',
             connectivity=connectivity, validity=validity,
             valid=valid, invalid=invalid, failure=failure,
-            last_updated=updated, update_frequency=frequency,
-            logged_in=logged_in
+            last_updated=updated, update_frequency=frequency
         )
 
     #TODO: Move it to the admin side
@@ -195,8 +193,7 @@ def create_project_server(db_session, config=None):
         updated, freq, messages = prepare_bgp_analysis(app.config)
         return render_template(
             "bgp_analysis.html", messages=messages,
-            last_updated=updated, update_frequency=freq,
-            logged_in=logged_in
+            last_updated=updated, update_frequency=freq
         )
 
     @app.route("/looking-glass")
@@ -242,7 +239,7 @@ def create_project_server(db_session, config=None):
             bgp_hints=messages,
             group=group, router=router,
             dropdown_groups=dropdown_groups, dropdown_routers=dropdown_routers,
-            last_updated=updated, update_frequency=freq,logged_in=logged_in
+            last_updated=updated, update_frequency=freq
         )
 
     @app.route("/as-connections")
@@ -276,22 +273,18 @@ def create_project_server(db_session, config=None):
             # All ASes
             dropdown_groups=all_ases,
             # Only matching ASes for first one.
-            dropdown_others={conn[1]['asn'] for conn in selected_connections},
-            logged_in=logged_in
+            dropdown_others={conn[1]['asn'] for conn in selected_connections}
         )
     
     @app.route("/as_login", methods=['GET', 'POST'])
     def as_login():
-        global logged_in
         form = LoginForm()
         next_url = request.form.get("next")
-        debug(f"Next url: {next_url}")
         if form.validate_on_submit():
             as_team = db_session.query(db.AS_teams).filter(db.AS_teams.asn == form.asn.data).first()
         
             if as_team and (as_team.password==form.password.data):
                 as_log(f"Successful attempt for {form.asn.data} with password {form.password.data}")
-                logged_in = as_team.asn
                 login_user(as_team)
                 db_session.commit()
                 flash('Logged in successfully.', 'success')
@@ -316,12 +309,12 @@ def create_project_server(db_session, config=None):
         form = ChangePassForm()
         if form.is_submitted():
 
-            as_log("change pass request for AS " + str(logged_in) + " from address: " + str(request.remote_addr))
+            as_log("change pass request for AS " + current_user.asn + " from address: " + str(request.remote_addr))
             
             # The following faulty pass cases are handled in frontend, i
             # if orverriden dont react to change request and report to log file
-            if form.old_pass.data != db_session.query(db.AS_teams).filter(db.AS_teams.asn == logged_in).first().password:
-                as_log(f"given old pass !=  old pass ({form.old_pass.data} != {db_session.query(db.AS_teams).filter(db.AS_teams.asn == logged_in).first().password})")
+            if form.old_pass.data != db_session.query(db.AS_teams).filter(db.AS_teams.asn == current_user.asn).first().password:
+                as_log(f"given old pass !=  old pass ({form.old_pass.data} != {db_session.query(db.AS_teams).filter(db.AS_teams.asn == current_user.asn).first().password})")
             if form.confirm_pass.data != form.new_pass.data:
                 as_log(f"new pass != confirm pass ({form.confirm_pass.data} != {form.new_pass.data})")
             elif form.new_pass.data == form.old_pass.data:
@@ -331,38 +324,36 @@ def create_project_server(db_session, config=None):
             
             else:
                 password = form.new_pass.data
-                as_log(f"Changing password for {logged_in} to '{password}'")
+                as_log(f"Changing password for {current_user.asn} to '{password}'")
 
                 # Change password in database
-                as_team = db_session.query(db.AS_teams).filter(db.AS_teams.asn == logged_in).first()
+                as_team = db_session.query(db.AS_teams).filter(db.AS_teams.asn == current_user.asn).first()
                 as_team.password = password
                 db_session.commit()
                 
                 # Change password in docker
                 with open(app.config['LOCATIONS']['docker_pipe'], 'w') as pipe:
-                    pipe.write(f"changepass {logged_in} {password}\n")
+                    pipe.write(f"changepass {current_user.asn} {password}\n")
                     pipe.flush()
                     pipe.close()
                
                 flash('Password changed successfully.', 'success') 
 
-        return render_template('change_pass.html',logged_in=logged_in, form=form)
+        return render_template('change_pass.html', form=form)
 
     @app.route("/rendezvous")
     @login_required
     def rendezvous():
-        return render_template('rendezvous.html',logged_in=logged_in)
+        return render_template('rendezvous.html')
 
     @app.route("/traceroute")
     @login_required
     def traceroute():
-        return render_template('traceroute.html',logged_in=logged_in)
+        return render_template('traceroute.html')
 
     @app.route("/logout")
     @login_required
     def logout():
-        global logged_in 
-        logged_in = False
         logout_user()
         flash('Logged out successfully.', 'info')
         return redirect(url_for('connectivity_matrix'))
@@ -525,7 +516,7 @@ def prepare_bgp_analysis(config, asn=None, worker=False):
             as_data, connection_data, looking_glass_data)
     return last, freq, msgs
 
-def register_as_login(app, db_session):
+def create_as_accounts(app, db_session):
     global login_choices
 
     as_cridentials = parsers.parse_as_passwords(app.config['LOCATIONS']['as_passwords'])

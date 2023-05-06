@@ -10,7 +10,7 @@ from flask import Flask, jsonify, redirect, render_template, request, url_for, f
 from flask_basicauth import BasicAuth
 from jinja2 import StrictUndefined
 
-from flask_login import login_user, login_required, LoginManager, logout_user, current_user
+from flask_login import login_user, login_required, fresh_login_required, LoginManager, logout_user, current_user
 from wtforms.validators import InputRequired
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
@@ -45,8 +45,6 @@ class LoginForm(FlaskForm):
     password = PasswordField(validators=[InputRequired()], render_kw={"placeholder": "Password"})
     submit = SubmitField('Login')
     
-logged_in = False
-
 def debug(message):
     print("\033[35mDEBUG: " + message + "\033[0m")
 
@@ -70,13 +68,12 @@ def create_admin_server(db_session, config=None):
     elif config is not None:
         app.config.from_pyfile(config)
 
-    #Used for bgp analysis, to be removed
-    basic_auth = BasicAuth(app)
-
     #Admin login init
     login_manager = LoginManager()
     login_manager.login_view = '/login'
+    login_manager.session_protection = "strong"
     login_manager.init_app(app)
+    
     bcrypt = Bcrypt(app) 
 
     @login_manager.user_loader
@@ -95,41 +92,39 @@ def create_admin_server(db_session, config=None):
     init_db_base(db_session)
 
     @app.route("/")
-    @login_required
+    @fresh_login_required
     def index():
-        """Redict to matrix as starting page."""
+        """Redict to dashboard as starting page."""
         return redirect(url_for("dashboard"))
-
-
-    #############################################
-    ################ Admin side #################
-    #############################################
 
     @app.route("/login", methods=['GET', 'POST'])
     def admin_login():
-        global logged_in
         form = LoginForm()
         if form.is_submitted():
             admin_log(f"LOGIN: User {form.username.data} requested login")
             admin_user = db_session.query(db.Admin).filter(db.Admin.username==form.username.data).first()
+
             if admin_user and bcrypt.check_password_hash(admin_user.password, form.password.data):
-                admin_log(f"LOGIN: User {form.username.data} logged in sucesfully from {request.remote_addr}")
                 login_user(admin_user)
-                logged_in = admin_user.username
+            
+                admin_log(f"LOGIN: User {form.username.data} logged in sucesfully from {request.remote_addr}")
                 flash('Logged in successfully.', 'success')
+            
                 return redirect(url_for('dashboard'))
+            
             elif admin_user:
                 admin_log(f"LOGIN: User {form.username.data} tried to login with wrong password (from {request.remote_addr})")
                 flash('Login unsuccessful. Please check username and password', 'error')
+            
             else:
                 admin_log(f"LOGIN: Login attemt from invalid user: {form.username.data} (from {request.remote_addr})")
                 flash('Login unsuccessful. Please check username and password', 'error')
 
 
-        return render_template('login.html', form=form, logged_in=False)
+        return render_template('login.html', form=form)
 
     @app.route("/dashboard", methods=["GET"])
-    @login_required
+    @fresh_login_required
     def dashboard():
         if 'stats' in request.args:
             start = request.args.get('start', default=0)
@@ -159,10 +154,10 @@ def create_admin_server(db_session, config=None):
             debug(f"Returning {len(retarr)} measurements: {retarr}")
 
             return jsonify(retarr)
-        return render_template("dashboard.html", logged_in=logged_in)
+        return render_template("dashboard.html")
 
     @app.route("/as_teams")
-    @login_required
+    @fresh_login_required
     def as_teams():
         teams_dict = {}
         for team in db_session.query(db.AS_teams).all():
@@ -197,15 +192,15 @@ def create_admin_server(db_session, config=None):
             else:
                 teams_dict[str(team.asn)]["member4"] = 'None'
 
-        return render_template("as_teams.html", logged_in=logged_in, teams=str(teams_dict).replace("'", '"'))
+        return render_template("as_teams.html", teams=str(teams_dict).replace("'", '"'))
 
     @app.route("/config")
-    @login_required
+    @fresh_login_required
     def config():
-        return render_template("config.html", logged_in=logged_in)
+        return render_template("config.html")
 
     @app.route("/config/teams", methods=["GET", "POST"])
-    @login_required
+    @fresh_login_required
     def config_teams():
         if request.method == "POST":
             form_args = dict(request.form)
@@ -271,10 +266,10 @@ def create_admin_server(db_session, config=None):
 
 
 
-        return render_template("config_teams.html",logged_in=logged_in, configdict=configdict)
+        return render_template("config_teams.html", configdict=configdict)
 
     @app.route("/config/students", methods=["GET", "POST"])
-    @login_required
+    @fresh_login_required
     def config_students():
         if request.method == "POST" and ("name" in dict(request.form) and "email" in dict(request.form)):
             request_args = dict(request.form)
@@ -337,19 +332,18 @@ def create_admin_server(db_session, config=None):
                 }
             })
 
-        return render_template("config_students.html",logged_in=logged_in, configdict=configdict)
+        return render_template("config_students.html", configdict=configdict)
 
     @app.route("/config/rendezvous", methods=["GET", "POST"])
-    @login_required
+    @fresh_login_required
     def config_rendezvous():
-        return render_template("config_rendezvous.html",logged_in=logged_in)
+        return render_template("config_rendezvous.html")
 
     @app.route("/logout")
-    @login_required
+    @fresh_login_required
     def logout():
         admin_log(f"LOGOUT: User {current_user.username} logged out")
         logout_user()
-        logged_in = False
         flash('Logged out successfully.', 'info')
         return redirect(url_for('admin_login'))
 

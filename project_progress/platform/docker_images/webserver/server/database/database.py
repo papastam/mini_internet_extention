@@ -31,7 +31,7 @@ class Admin(Base):
     is_anonymous        = db.Column(db.Boolean, nullable=False, default=False)
 
     def get_id(self):
-        return self.id
+        return self.username
 
 class Measurement(Base):
     __tablename__ = "measurement"

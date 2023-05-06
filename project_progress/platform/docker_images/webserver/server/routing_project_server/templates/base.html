@@ -36,8 +36,8 @@
     <div class="tw-flex tw-justify-start tw-items-center tw-relative tw-h-100px tw-bg-[#1c1c21] tw-font-mono">
         <div class="tw-max-w-fit tw-flex-auto tw-mr-auto tw-p-[10px] tw-pr-0 tw-text-white">
             <div class="tw-flex tw-items-center tw-place-content-start flex-col">
-                {% if (logged_in is defined) and (logged_in != False) %}
-                    <span>Logged in as AS: {{logged_in}}</span>
+                {% if current_user.is_authenticated %}
+                    <span>Logged in as AS: {{current_user.asn}}</span>
                     <div class="">
                         <a class="tw-max-w-fit tw-block tw-mt-4 lg:tw-inline-block lg:tw-mt-0 hover:tw-font-bold tw-mr-4 tw-text-lg" href="{{url_for("logout")}}"
                             }}>
