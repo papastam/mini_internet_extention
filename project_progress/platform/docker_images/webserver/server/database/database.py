@@ -41,17 +41,17 @@ class Measurement(Base):
     memory  = db.Column(db.Float, nullable=False)
     disk    = db.Column(db.Float, nullable=False)
 
-class AS_teams(Base):
-    __tablename__ = "as_teams"
+class AS_team(Base):
+    __tablename__ = "as_team"
  
     asn         = db.Column(db.Integer, primary_key=True)
     password    = db.Column(db.String(20), nullable=False)
     active_as   = db.Column(db.Boolean, nullable=False, default=False)
     # Members are addressed by their unique ID
-    member1     = db.Column(db.Integer, nullable=True, default=None)
-    member2     = db.Column(db.Integer, nullable=True, default=None)
-    member3     = db.Column(db.Integer, nullable=True, default=None)
-    member4     = db.Column(db.Integer, nullable=True, default=None)
+    member1     = db.Column(db.Integer, ForeignKey("student.id"), nullable=True, default=None)
+    member2     = db.Column(db.Integer, ForeignKey("student.id"), nullable=True, default=None)
+    member3     = db.Column(db.Integer, ForeignKey("student.id"), nullable=True, default=None)
+    member4     = db.Column(db.Integer, ForeignKey("student.id"), nullable=True, default=None)
 
     # Needed to be a User class for Flask-Login
     is_authenticated    = db.Column(db.Boolean, nullable=False, default=True)
@@ -61,13 +61,13 @@ class AS_teams(Base):
     def get_id(self):
         return self.asn
 
-class Students(Base):
-    __tablename__ = "students"
+class Student(Base):
+    __tablename__ = "student"
  
     id      = db.Column(db.Integer, primary_key=True)
     name    = db.Column(db.String(50), nullable=False)
     email   = db.Column(db.String(50), nullable=True)
-    team    = db.Column(db.Integer, nullable=True, default=None)
+    team    = db.Column(db.Integer, ForeignKey("as_team.asn"), nullable=True, default=None)
     # Grades
     P1Q1    = db.Column(db.Float, nullable=True, default=None)
     P1Q2    = db.Column(db.Float, nullable=True, default=None)
@@ -89,9 +89,10 @@ class Rendezvous(Base):
     __tablename__ = "rendezvous"
  
     id          = db.Column(db.Integer, primary_key=True)
-    period      = db.Column(db.Integer, nullable=False)
+    period      = db.Column(db.String, nullable=False)
     datetime    = db.Column(db.DateTime(timezone=True), server_default=func.now(), nullable=False)
-    asn         = db.Column(db.Integer, ForeignKey('as_teams.asn'), nullable=False)
+    duration    = db.Column(db.Integer, nullable=False)
+    team        = db.Column(db.Integer, ForeignKey('as_team.asn'), nullable=True, default=None)
     
 
 def init_db():

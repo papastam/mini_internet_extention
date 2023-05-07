@@ -56,7 +56,6 @@ def admin_log(message):
 
 def create_admin_server(db_session, config=None):
     """Create and configure the app."""
-    debug("Creating admin server. with name "+str(__name__))
     app = Flask(__name__)
     app.config.from_mapping(config_defaults)
     app.jinja_env.undefined = StrictUndefined
@@ -89,7 +88,7 @@ def create_admin_server(db_session, config=None):
         admin_log("INIT: Added user: " + user)
 
     #Init database
-    init_db_base(db_session)
+    create_test_db_snapshot(db_session)
 
     @app.route("/")
     @fresh_login_required
@@ -160,35 +159,35 @@ def create_admin_server(db_session, config=None):
     @fresh_login_required
     def as_teams():
         teams_dict = {}
-        for team in db_session.query(db.AS_teams).all():
+        for team in db_session.query(db.AS_team).all():
             teams_dict[str(team.asn)] = {}
             teams_dict[str(team.asn)]["password"] = team.password
             
             if team.member1 is not None:
                 teams_dict[str(team.asn)]["member1"] = {}
                 teams_dict[str(team.asn)]["member1"]["id"] = team.member1
-                teams_dict[str(team.asn)]["member1"]["name"] = db_session.query(db.Students).get(team.member1).name
+                teams_dict[str(team.asn)]["member1"]["name"] = db_session.query(db.Student).get(team.member1).name
             else:
                 teams_dict[str(team.asn)]["member1"] = 'None'
 
             if team.member2 is not None:
                 teams_dict[str(team.asn)]["member2"] = {}
                 teams_dict[str(team.asn)]["member2"]["id"] = team.member2
-                teams_dict[str(team.asn)]["member2"]["name"] = db_session.query(db.Students).get(team.member2).name
+                teams_dict[str(team.asn)]["member2"]["name"] = db_session.query(db.Student).get(team.member2).name
             else:
                 teams_dict[str(team.asn)]["member2"] = 'None'
 
             if team.member3 is not None:
                 teams_dict[str(team.asn)]["member3"] = {}
                 teams_dict[str(team.asn)]["member3"]["id"] = team.member3
-                teams_dict[str(team.asn)]["member3"]["name"] = db_session.query(db.Students).get(team.member3).name
+                teams_dict[str(team.asn)]["member3"]["name"] = db_session.query(db.Student).get(team.member3).name
             else:
                 teams_dict[str(team.asn)]["member3"] = 'None'
 
             if team.member4 is not None:
                 teams_dict[team.asn]["member4"] = {}
                 teams_dict[team.asn]["member4"]["id"] = team.member4
-                teams_dict[team.asn]["member4"]["name"] = db_session.query(db.Students).get(team.member4).name
+                teams_dict[team.asn]["member4"]["name"] = db_session.query(db.Student).get(team.member4).name
             else:
                 teams_dict[str(team.asn)]["member4"] = 'None'
 
@@ -207,7 +206,7 @@ def create_admin_server(db_session, config=None):
             debug(f"POST request received: {form_args}")
 
             if "asn" in form_args:
-                team = db_session.query(db.AS_teams).get(form_args["asn"])
+                team = db_session.query(db.AS_team).get(form_args["asn"])
 
                 if check_for_dupes(form_args["member1"], form_args["member2"], form_args["member3"], form_args["member4"]):
                     update_students(db_session, team.asn, form_args["member1"], form_args["member2"], form_args["member3"], form_args["member4"])
@@ -244,7 +243,7 @@ def create_admin_server(db_session, config=None):
                     flash("Duplicate student detected. Please check your input.", "error")
 
         configdict = {"teams":[], "students":[]}
-        for team in db_session.query(db.AS_teams).all():
+        for team in db_session.query(db.AS_team).all():
             configdict["teams"].append({
                 "asn": team.asn,
                 "password": team.password,
@@ -256,15 +255,13 @@ def create_admin_server(db_session, config=None):
                             ]
             })
 
-        for student in db_session.query(db.Students).all():
+        for student in db_session.query(db.Student).all():
             configdict["students"].append({
                 "id": student.id,
                 "name": student.name,
                 "email": student.email,
                 "team": student.team if student.team!=None else -1
             })
-
-
 
         return render_template("config_teams.html", configdict=configdict)
 
@@ -277,7 +274,7 @@ def create_admin_server(db_session, config=None):
         
             if "id" in request_args:
                 '''Update existing student'''
-                student = db_session.query(db.Students).get(request_args["id"])
+                student = db_session.query(db.Student).get(request_args["id"])
                 student.name    = request_args["name"]
                 student.email   = request_args["email"]
 
@@ -303,14 +300,14 @@ def create_admin_server(db_session, config=None):
                 '''Add new student'''
                 
                 # TODO: Check for duplicate students
-                student = db.Students(name=request_args["name"], email=request_args["email"])
+                student = db.Student(name=request_args["name"], email=request_args["email"])
                 db_session.add(student)
                 db_session.commit()
                 flash(f"Student {request_args['name']} added successfully.", "success")
                     
-        configdict = {"teams":[], "students":[]}
+        configdict = {"students":[]}
         
-        for student in db_session.query(db.Students).all():
+        for student in db_session.query(db.Student).all():
             configdict["students"].append({
                 "id": student.id,
                 "name": student.name,
@@ -337,7 +334,24 @@ def create_admin_server(db_session, config=None):
     @app.route("/config/rendezvous", methods=["GET", "POST"])
     @fresh_login_required
     def config_rendezvous():
-        return render_template("config_rendezvous.html")
+        
+        configdict = {"teams":[], "students":[], "rendezvous":[], "periods":{}}
+
+        for rendezvous in db_session.query(db.Rendezvous).all():
+            if rendezvous.period not in configdict["periods"]:
+                configdict["periods"][rendezvous.period] = []
+                configdict["periods"][rendezvous.period].append(rendezvous.id)
+
+            configdict["rendezvous"].append({
+                "id"        : rendezvous.id,
+                "period"    : rendezvous.period,
+                "datetime"  : str(rendezvous.datetime),
+                "duration"  : rendezvous.duration,
+                "team"      : rendezvous.team if rendezvous.team!=None else -1
+            })
+
+
+        return render_template("config_rendezvous.html", configdict=configdict)
 
     @app.route("/logout")
     @fresh_login_required
@@ -423,34 +437,34 @@ def check_for_dupes(member1, member2, member3, member4):
 
 def update_students(db_session, team, member1, member2, member3, member4):
     """First up, remove all students from the team"""
-    for student in db_session.query(db.Students).filter(db.Students.team == team).all():
+    for student in db_session.query(db.Student).filter(db.Student.team == team).all():
         student.team = None
         db_session.add(student)
         db_session.commit()
 
     """Then, add the new ones"""
     if member1 != "-1":
-        student = db_session.query(db.Students).filter(db.Students.id == member1).first()
+        student = db_session.query(db.Student).filter(db.Student.id == member1).first()
         student.team = team
         db_session.add(student)
         db_session.commit()
     if member2 != "-1":
-        student = db_session.query(db.Students).filter(db.Students.id == member2).first()
+        student = db_session.query(db.Student).filter(db.Student.id == member2).first()
         student.team = team
         db_session.add(student)
         db_session.commit()
     if member3 != "-1":
-        student = db_session.query(db.Students).filter(db.Students.id == member3).first()
+        student = db_session.query(db.Student).filter(db.Student.id == member3).first()
         student.team = team
         db_session.add(student)
         db_session.commit()
     if member4 != "-1":
-        student = db_session.query(db.Students).filter(db.Students.id == member4).first()
+        student = db_session.query(db.Student).filter(db.Student.id == member4).first()
         student.team = team
         db_session.add(student)
         db_session.commit()
 
-def init_db_base(db_session):
+def create_test_db_snapshot(db_session):
     """Create sample tables"""
     # Create sample students from dict.
     students = {1: {"name": "Chris Papastamos", "email": "csd4569@csd.uoc.gr", "team": 1}, 
@@ -462,21 +476,36 @@ def init_db_base(db_session):
                 }
 
     for student_id, info in students.items():
-        new_student = db.Students(id=student_id, name=info["name"], email=info["email"], team=info["team"] if "team" in info else None)
+        new_student = db.Student(id=student_id, name=info["name"], email=info["email"], team=info["team"] if "team" in info else None)
         db_session.add(new_student)
         db_session.commit()
     
-    team1 = db_session.query(db.AS_teams).get(1)
+    team1 = db_session.query(db.AS_team).get(1)
     team1.member1 = 1
     team1.member2 = 2
     team1.active_as = True
     db_session.add(team1)
     
-    team2 = db_session.query(db.AS_teams).get(2)
+    team2 = db_session.query(db.AS_team).get(2)
     team2.member1 = 3
     team2.member2 = 4
     team2.member3 = 5
     db_session.add(team2)
-    
 
     db_session.commit()
+
+    rendezvous =    {1: {"id": 1, "datetime": datetime(year=2021,month=5,day=1,hour=12),"period": "Phase 1", "duration": 60, "team": 1},
+                    2: {"id": 2, "datetime": datetime(year=2021,month=5,day=1,hour=13),"period": "Phase 1", "duration": 60, "team": 2},
+                    3: {"id": 3, "datetime": datetime(year=2021,month=5,day=1,hour=14),"period": "Phase 1", "duration": 60},
+                    4: {"id": 4, "datetime": datetime(year=2021,month=5,day=1,hour=15),"period": "Phase 2", "duration": 60, "team": 2},
+                    5: {"id": 5, "datetime": datetime(year=2021,month=5,day=1,hour=16),"period": "Phase 2", "duration": 60, "team": 1},
+                    6: {"id": 6, "datetime": datetime(year=2021,month=5,day=1,hour=17),"period": "Phase 2", "duration": 60},
+                    7: {"id": 7, "datetime": datetime(year=2021,month=5,day=1,hour=18),"period": "Phase 3", "duration": 60, "team": 1},
+                    8: {"id": 8, "datetime": datetime(year=2021,month=5,day=1,hour=19),"period": "Phase 3", "duration": 60, "team": 2},
+                    9: {"id": 9, "datetime": datetime(year=2021,month=5,day=1,hour=20),"period": "Phase 3", "duration": 60},
+                    }
+
+    for rendezvous_id, info in rendezvous.items():
+        new_rendezvous = db.Rendezvous(id=rendezvous_id, datetime=info["datetime"], period=info["period"], duration=info["duration"], team=info["team"] if "team" in info else None)
+        db_session.add(new_rendezvous)
+        db_session.commit()    

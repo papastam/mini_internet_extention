@@ -2,6 +2,12 @@
 
 {% block content_header %}
 
+<script>
+configdict = {{configdict|safe}};
+console.log(configdict);
+
+</script>
+
 {% endblock %}
 
 {% block content %}
@@ -24,57 +30,32 @@
     <table id="studentTable" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
+                {% for period in configdict.periods %}
                 <th scope="col" class="px-6 py-3">
-                    Name
+                    {{ period }}
                 </th>
-                <th scope="col" class="px-6 py-3">
-                    E-mail
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    Team
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    P1Q1
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    P1Q2
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    P1Q3
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    P1Q4
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    P1Q5
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    Midterm1
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    P2Q1
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    P2Q2
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    P2Q3
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    P2Q4
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    P2Q5
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    Midterm2
-                </th>
-                <th scope="col" class="px-6 py-3">
-                    Action
-                </th>
+                {% endfor %}
             </tr>
         </thead>
         <tbody id="studentsTableBody">
+            <tr class="tw-bg-white hover:tw-bg-gray-50 tw-text-gray-900 tw-border-b">
+            {% for period in configdict.periods %}
+                <td class="tw-px-6 tw-py-4">
+                    <table>
+                        {% for rendezvous in configdict.rendezvous%}
+                        {% if rendezvous.period == period %}
+                            <tr>
+                                <td>{{rendezvous.datetime}}</td>
+                                <td>{{rendezvous.team}}</td>
+                            </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </table>
+                </td>
+                
+            {% endfor %}
+            </tr>
+
             {# {% for student in configdict.students %}
                 <tr class="table_row student{{student.id}}_row {{'inactive_student tw-text-black tw-bg-red-400 hover:tw-bg-red-300' if student.team == -1 else 'tw-bg-white hover:tw-bg-gray-50 tw-text-gray-900'}} tw-border-b">
                     <td scope="row" class="tw-px-6 tw-py-4 tw-font-medium tw-whitespace-nowrap">

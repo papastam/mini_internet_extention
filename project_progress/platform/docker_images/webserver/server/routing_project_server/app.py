@@ -95,7 +95,6 @@ def as_log(message):
 
 def create_project_server(db_session, config=None):
     """Create and configure the app."""
-    debug("Creating admin server. with name "+str(__name__))
     app = Flask(__name__)
     app.config.from_mapping(config_defaults)
     app.jinja_env.undefined = StrictUndefined
@@ -118,7 +117,7 @@ def create_project_server(db_session, config=None):
     
     @login_manager.user_loader
     def load_user(asn):
-        return db_session.query(db.AS_teams).get(int(asn))
+        return db_session.query(db.AS_team).get(int(asn))
 
     bcrypt.init_app(app)
 
@@ -282,7 +281,7 @@ def create_project_server(db_session, config=None):
         form = LoginForm()
         next_url = request.form.get("next")
         if form.validate_on_submit():
-            as_team = db_session.query(db.AS_teams).filter(db.AS_teams.asn == form.asn.data).first()
+            as_team = db_session.query(db.AS_team).filter(db.AS_team.asn == form.asn.data).first()
         
             if as_team and (as_team.password==form.password.data):
                 as_log(f"Successful attempt for {form.asn.data} with password {form.password.data}")
@@ -314,8 +313,8 @@ def create_project_server(db_session, config=None):
             
             # The following faulty pass cases are handled in frontend, i
             # if orverriden dont react to change request and report to log file
-            if form.old_pass.data != db_session.query(db.AS_teams).filter(db.AS_teams.asn == current_user.asn).first().password:
-                as_log(f"given old pass !=  old pass ({form.old_pass.data} != {db_session.query(db.AS_teams).filter(db.AS_teams.asn == current_user.asn).first().password})")
+            if form.old_pass.data != db_session.query(db.AS_team).filter(db.AS_team.asn == current_user.asn).first().password:
+                as_log(f"given old pass !=  old pass ({form.old_pass.data} != {db_session.query(db.AS_team).filter(db.AS_team.asn == current_user.asn).first().password})")
             if form.confirm_pass.data != form.new_pass.data:
                 as_log(f"new pass != confirm pass ({form.confirm_pass.data} != {form.new_pass.data})")
             elif form.new_pass.data == form.old_pass.data:
@@ -328,7 +327,7 @@ def create_project_server(db_session, config=None):
                 as_log(f"Changing password for {current_user.asn} to '{password}'")
 
                 # Change password in database
-                as_team = db_session.query(db.AS_teams).filter(db.AS_teams.asn == current_user.asn).first()
+                as_team = db_session.query(db.AS_team).filter(db.AS_team.asn == current_user.asn).first()
                 as_team.password = password
                 db_session.commit()
                 
@@ -528,6 +527,6 @@ def create_as_accounts(app, db_session):
     for asn, password in as_cridentials.items():
         login_choices.append((str(asn),str(asn)))
 
-        new_user = db.AS_teams(asn=asn, password=password)
+        new_user = db.AS_team(asn=asn, password=password)
         db_session.add(new_user)
     db_session.commit()
