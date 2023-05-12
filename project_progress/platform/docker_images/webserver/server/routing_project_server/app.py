@@ -341,10 +341,46 @@ def create_project_server(db_session, config=None):
 
         return render_template('change_pass.html', form=form)
 
-    @app.route("/rendezvous")
+    @app.route("/rendezvous", methods=['GET', 'POST'])
+    @app.route("/rendezvous/<int:period>", methods=['GET', 'POST'])
     @login_required
-    def rendezvous():
-        return render_template('rendezvous.html')
+    def rendezvous(period: Optional[int] = None):
+
+        configdict = {"rendezvous":[], "periods":[], "days":{}}
+        
+        if period is None:
+            rendlist = db_session.query(db.Rendezvous).all()
+        else:
+            rendlist = db_session.query(db.Rendezvous).filter(db.Rendezvous.period == period).all()
+        
+        for rendezvous in rendlist:
+            if str(rendezvous.datetime.date()) not in configdict["days"]:
+                configdict["days"][str(rendezvous.datetime.date())] = []
+            configdict["days"][str(rendezvous.datetime.date())].append({
+                                        "id":rendezvous.id,
+                                        "period":rendezvous.period, 
+                                        "datetime":str(rendezvous.datetime),
+                                        "available": 1 if rendezvous.team == None else 0,
+                                        "duration":rendezvous.duration,
+                                        })
+            
+            configdict["rendezvous"].append({
+                                        "id":rendezvous.id,
+                                        "period":rendezvous.period, 
+                                        "datetime":str(rendezvous.datetime),
+                                        "available": 1 if rendezvous.team == None else 0,
+                                        "duration":rendezvous.duration,
+                                        })
+            
+        for period in db_session.query(db.Period).all():
+            configdict["periods"].append({
+                                        "id":period.id,
+                                        "name":period.name, 
+                                        "start":str(period.start),
+                                        "end":str(period.end)
+                                        })
+
+        return render_template('rendezvous.html', configdict=configdict)
 
     @app.route("/traceroute")
     @login_required
@@ -361,7 +397,7 @@ def create_project_server(db_session, config=None):
     # Start workers if configured.
     if app.config["BACKGROUND_WORKERS"] and app.config['AUTO_START_WORKERS']:
         start_workers(app)
-        
+
     return app
 
 # ===================================================

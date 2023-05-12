@@ -89,11 +89,18 @@ class Rendezvous(Base):
     __tablename__ = "rendezvous"
  
     id          = db.Column(db.Integer, primary_key=True)
-    period      = db.Column(db.String, nullable=False)
+    period      = db.Column(db.Integer, ForeignKey('period.id'), nullable=False)
     datetime    = db.Column(db.DateTime(timezone=True), server_default=func.now(), nullable=False)
     duration    = db.Column(db.Integer, nullable=False)
     team        = db.Column(db.Integer, ForeignKey('as_team.asn'), nullable=True, default=None)
     
+class Period(Base):
+    __tablename__ = "period"
+ 
+    id          = db.Column(db.Integer, primary_key=True)
+    name        = db.Column(db.String, nullable=False)
+    start       = db.Column(db.DateTime(timezone=True), nullable=False)
+    end         = db.Column(db.DateTime(timezone=True), nullable=False)
 
 def init_db():
     # Create the database

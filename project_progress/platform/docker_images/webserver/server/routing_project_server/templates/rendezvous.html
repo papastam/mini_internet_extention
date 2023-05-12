@@ -1,1 +1,119 @@
-{% extends "base.html" %}
+{%  extends "base.html" %}
+{% from 'macros.html' import h1 %}
+
+{% block head %}
+{{ super() }}
+<script>
+configdict = {{configdict|safe}};
+
+function parseDates(configdict){
+    for (index in configdict.rendezvous){
+        rendezvous = configdict.rendezvous[index]
+        rendezvous.datetime = new Date(rendezvous.datetime)
+        if (rendezvous.datetime > new Date()){
+            rendezvous.status = "upcoming"
+        } else {
+            rendezvous.status = "past"
+        }
+
+    }
+}
+
+function generate_calendar_icon(rendezvous){
+    date_arr = rendezvous.datetime.toDateString().split(" ")
+    time_arr = ["00"+rendezvous.datetime.getHours(), "00"+rendezvous.datetime.getMinutes()]
+    time_arr[0] = time_arr[0].slice(-2)
+    time_arr[1] = time_arr[1].slice(-2)
+    return '<div class="tw-w-32 tw-flex-none tw-rounded-t lg:tw-rounded-t-none lg:tw-rounded-l tw-text-center tw-shadow-lg ">\
+                <div class="tw-block tw-rounded-t tw-overflow-hidden tw-text-center ">\
+                    <div class="'+ ((rendezvous.available==1)?'tw-bg-blue-950 ':'tw-bg-neutral-800 ') +' tw-text-white tw-py-1">\
+                    '+ date_arr[1] +'\
+                    </div>\
+                    <div class="tw-pt-1 tw-border-l tw-border-r tw-border-white tw-bg-white">\
+                    <span class="tw-text-5xl tw-font-bold tw-leading-tight">\
+                        '+ date_arr[2] +'\
+                    </span>\
+                    </div>\
+                    <div class="tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white tw--pt-2 tw--mb-1">\
+                    <span class="tw-text-sm">\
+                        '+ date_arr[0] +'\
+                    </span>\
+                    </div>\
+                    <div class="tw-pb-2 tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white">\
+                    <span class="tw-text-xs tw-leading-normal">\
+                        '+ time_arr[0]+':'+ time_arr[1] +'\
+                    </span>\
+                    </div>\
+                </div>\
+            </div>'
+}
+
+
+function load_rendezvous(configdict){
+    for (index in configdict.rendezvous){
+        rendezvous = configdict.rendezvous[index]
+        $("#rendezvous"+rendezvous.id).html(generate_calendar_icon(rendezvous))
+    }
+}
+
+$(document).ready(function() {
+    console.log(configdict)
+    
+    parseDates(configdict)
+    load_rendezvous(configdict)
+
+} );
+</script>
+
+{% endblock %}
+
+{% block body %}
+
+<div>
+    <aside id="default-sidebar" class="tw-drop-shadow-2xl tw-float-left tw-w-64 tw-h-screen tw-transition-transform tw--translate-x-full sm:tw-translate-x-0">
+        <div class="tw-h-full tw-px-3 tw-py-4 tw-overflow-y-auto tw-bg-[#290D00] tw-text-white">
+            <ul class="tw-space-y-2 tw-font-medium">
+                {% for period in configdict.periods %}
+                <li> 
+                    <a href="/rendezvous/{{period.id}}" class="tw-flex tw-items-center tw-p-2 tw-rounded-lg {{'tw-bg-[#3d1300]' if request.endpoint == 'config_teams' }} hover:tw-bg-[#521A00]">
+                        <svg class="tw-w-6 tw-h-6 tw-transition tw-duration-75 group-hover:tw-text-gray-900 "xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span class="tw-ml-3">{{period.name}}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
+
+
+    <div class="tw-flex tw-flex-col tw-justify-center">
+
+        <div class="tw-max-w-4xl tw-mx-auto tw-p-6">
+            {{ h1("Book Rendezvous for {{}}") }}
+            <p>
+                This list shows all inter-AS connections. For each connection, it shows both involved ASes, the edge-routers at
+                which their networks are connected, as well as their business relationship.
+            </p>
+            <p class="tw-mb-4">
+                Initially, the interfaces are not yet configured.
+                When setting them up, use the IP addresses provided below.
+            </p>
+        </div>
+
+        <div id="rendezvous-div" class=" tw-flex tw-flex-row">
+        {% for day in configdict.days %}
+            <div class="tw-m-5 rtw-rounded-md tw-shadow-md ">
+                {% for rendezvous in configdict.days[day] %}
+                    <div id="rendezvous{{rendezvous.id}}" class="tw-font-medium">
+
+                    </div>
+                {% endfor %}
+            </div>        
+        {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/flowbite.min.js"></script>
+
+{% endblock %}

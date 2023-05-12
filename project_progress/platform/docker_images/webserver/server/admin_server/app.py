@@ -335,13 +335,17 @@ def create_admin_server(db_session, config=None):
     @fresh_login_required
     def config_rendezvous():
         
-        configdict = {"teams":[], "students":[], "rendezvous":[], "periods":{}}
+        configdict = {"teams":[], "students":[], "rendezvous":[], "periods":[]}
+
+        for period in db_session.query(db.Period).all():
+            configdict["periods"].append({
+                "id": period.id,
+                "name": period.name,
+                "start": str(period.start),
+                "end": str(period.end)
+            })
 
         for rendezvous in db_session.query(db.Rendezvous).all():
-            if rendezvous.period not in configdict["periods"]:
-                configdict["periods"][rendezvous.period] = []
-                configdict["periods"][rendezvous.period].append(rendezvous.id)
-
             configdict["rendezvous"].append({
                 "id"        : rendezvous.id,
                 "period"    : rendezvous.period,
@@ -350,6 +354,23 @@ def create_admin_server(db_session, config=None):
                 "team"      : rendezvous.team if rendezvous.team!=None else -1
             })
 
+        for team in db_session.query(db.AS_team).all():
+            configdict["teams"].append({
+                "asn": team.asn,
+                "is_active": 1 if team.is_active else 0,
+                "member1": team.member1 if team.member1!=None else -1,
+                "member2": team.member2 if team.member2!=None else -1,
+                "member3": team.member3 if team.member3!=None else -1,
+                "member4": team.member4 if team.member4!=None else -1
+            })
+
+        for student in db_session.query(db.Student).all():
+            configdict["students"].append({
+                "id": student.id,
+                "name": student.name,
+                "email": student.email,
+                "team": student.team if student.team!=None else -1,
+            })
 
         return render_template("config_rendezvous.html", configdict=configdict)
 
@@ -443,31 +464,20 @@ def update_students(db_session, team, member1, member2, member3, member4):
         db_session.commit()
 
     """Then, add the new ones"""
-    if member1 != "-1":
-        student = db_session.query(db.Student).filter(db.Student.id == member1).first()
-        student.team = team
-        db_session.add(student)
-        db_session.commit()
-    if member2 != "-1":
-        student = db_session.query(db.Student).filter(db.Student.id == member2).first()
-        student.team = team
-        db_session.add(student)
-        db_session.commit()
-    if member3 != "-1":
-        student = db_session.query(db.Student).filter(db.Student.id == member3).first()
-        student.team = team
-        db_session.add(student)
-        db_session.commit()
-    if member4 != "-1":
-        student = db_session.query(db.Student).filter(db.Student.id == member4).first()
-        student.team = team
-        db_session.add(student)
-        db_session.commit()
+    membersarr=[member1, member2, member3, member4]
+    for member in membersarr:
+        if member != "-1":
+            student = db_session.query(db.Student).filter(db.Student.id == member).first()
+            student.team = team
+            db_session.add(student)
+    
+    db_session.commit()
 
 def create_test_db_snapshot(db_session):
     """Create sample tables"""
     # Create sample students from dict.
-    students = {1: {"name": "Chris Papastamos", "email": "csd4569@csd.uoc.gr", "team": 1}, 
+    students =  {
+                1: {"name": "Chris Papastamos", "email": "csd4569@csd.uoc.gr", "team": 1}, 
                 2: {"name": "Dimitris Bisias", "email": "csd1111@csd.uoc.gr", "team": 1}, 
                 3: {"name": "Orestis Chiotakis", "email": "csd2222@csd.uoc.gr", "team": 2}, 
                 4: {"name": "Manousos Manouselis", "email": "csd3333@csd.uoc.gr", "team": 2}, 
@@ -494,15 +504,27 @@ def create_test_db_snapshot(db_session):
 
     db_session.commit()
 
-    rendezvous =    {1: {"id": 1, "datetime": datetime(year=2021,month=5,day=1,hour=12),"period": "Phase 1", "duration": 60, "team": 1},
-                    2: {"id": 2, "datetime": datetime(year=2021,month=5,day=1,hour=13),"period": "Phase 1", "duration": 60, "team": 2},
-                    3: {"id": 3, "datetime": datetime(year=2021,month=5,day=1,hour=14),"period": "Phase 1", "duration": 60},
-                    4: {"id": 4, "datetime": datetime(year=2021,month=5,day=1,hour=15),"period": "Phase 2", "duration": 60, "team": 2},
-                    5: {"id": 5, "datetime": datetime(year=2021,month=5,day=1,hour=16),"period": "Phase 2", "duration": 60, "team": 1},
-                    6: {"id": 6, "datetime": datetime(year=2021,month=5,day=1,hour=17),"period": "Phase 2", "duration": 60},
-                    7: {"id": 7, "datetime": datetime(year=2021,month=5,day=1,hour=18),"period": "Phase 3", "duration": 60, "team": 1},
-                    8: {"id": 8, "datetime": datetime(year=2021,month=5,day=1,hour=19),"period": "Phase 3", "duration": 60, "team": 2},
-                    9: {"id": 9, "datetime": datetime(year=2021,month=5,day=1,hour=20),"period": "Phase 3", "duration": 60},
+    periods =   {
+                1: {"id": 1, "name": "Phase 1", "start": datetime(year=2021,month=5,day=1,hour=12), "end": datetime(year=2021,month=5,day=2,hour=12)},
+                2: {"id": 2, "name": "Phase 2", "start": datetime(year=2021,month=6,day=1,hour=12), "end": datetime(year=2021,month=6,day=15,hour=12)},
+                3: {"id": 3, "name": "Phase 3", "start": datetime(year=2021,month=7,day=1,hour=12), "end": datetime(year=2021,month=7,day=15,hour=12)},
+                }
+    
+    for period_id, info in periods.items():
+        new_period = db.Period(id=period_id, name=info["name"], start=info["start"], end=info["end"])
+        db_session.add(new_period)
+        db_session.commit()
+
+    rendezvous =    {
+                    1: {"id": 1, "datetime": datetime(year=2021,month=5,day=1,hour=12),"period": 1, "duration": 60, "team": 1},
+                    2: {"id": 2, "datetime": datetime(year=2021,month=5,day=2,hour=13),"period": 1, "duration": 60, "team": 2},
+                    3: {"id": 3, "datetime": datetime(year=2021,month=5,day=3,hour=14),"period": 1, "duration": 60},
+                    4: {"id": 4, "datetime": datetime(year=2021,month=6,day=4,hour=15),"period": 2, "duration": 60, "team": 2},
+                    5: {"id": 5, "datetime": datetime(year=2021,month=6,day=5,hour=16),"period": 2, "duration": 60, "team": 1},
+                    6: {"id": 6, "datetime": datetime(year=2021,month=6,day=6,hour=17),"period": 2, "duration": 60},
+                    7: {"id": 7, "datetime": datetime(year=2021,month=7,day=7,hour=18),"period": 3, "duration": 60, "team": 1},
+                    8: {"id": 8, "datetime": datetime(year=2021,month=7,day=8,hour=19),"period": 3, "duration": 60, "team": 2},
+                    9: {"id": 9, "datetime": datetime(year=2021,month=7,day=9,hour=20),"period": 3, "duration": 60},
                     }
 
     for rendezvous_id, info in rendezvous.items():
