@@ -282,7 +282,7 @@ def create_project_server(db_session, config=None):
         next_url = request.form.get("next")
         if form.validate_on_submit():
             as_team = db_session.query(db.AS_team).filter(db.AS_team.asn == form.asn.data).first()
-        
+
             if as_team and (as_team.password==form.password.data):
                 as_log(f"Successful attempt for {form.asn.data} with password {form.password.data}")
                 login_user(as_team)
@@ -342,44 +342,75 @@ def create_project_server(db_session, config=None):
         return render_template('change_pass.html', form=form)
 
     @app.route("/rendezvous", methods=['GET', 'POST'])
-    @app.route("/rendezvous/<int:period>", methods=['GET', 'POST'])
+    @app.route("/rendezvous/<int:selected_period>", methods=['GET', 'POST'])
     @login_required
-    def rendezvous(period: Optional[int] = None):
+    def rendezvous(selected_period: Optional[int] = None):
+       
+        #Period selection page    
+        if selected_period is None:
+            configdict = {"periods":[]}
+            for period in db_session.query(db.Period).all():
+                configdict["periods"].append({
+                    "id":period.id,
+                    "name":period.name, 
+                    "start":str(period.start),
+                    "end":str(period.end),
+                    })
 
-        configdict = {"rendezvous":[], "periods":[], "days":{}}
-        
-        if period is None:
-            rendlist = db_session.query(db.Rendezvous).all()
+            return render_template('rendezvous_basic.html', configdict=configdict)
+       
+        #Display the actual rendezvous page
+        booked_rendezvous = db_session.query(db.Rendezvous).filter(db.Rendezvous.period == selected_period).filter(db.Rendezvous.team == current_user.asn).first()
+        configdict = {"periods":[] }
+
+        if booked_rendezvous:
+            # If the user has already booked a rendezvous, display only that one
+            configdict["booked_rendezvous"] = {
+                "id":booked_rendezvous.id,
+                "period":booked_rendezvous.period,
+                "datetime": date_to_dict(booked_rendezvous.datetime),
+                "duration":booked_rendezvous.duration
+                }
+
         else:
-            rendlist = db_session.query(db.Rendezvous).filter(db.Rendezvous.period == period).all()
-        
-        for rendezvous in rendlist:
-            if str(rendezvous.datetime.date()) not in configdict["days"]:
-                configdict["days"][str(rendezvous.datetime.date())] = []
-            configdict["days"][str(rendezvous.datetime.date())].append({
-                                        "id":rendezvous.id,
-                                        "period":rendezvous.period, 
-                                        "datetime":str(rendezvous.datetime),
-                                        "available": 1 if rendezvous.team == None else 0,
-                                        "duration":rendezvous.duration,
-                                        })
+            configdict = {"rendezvous":[], "periods":[], "days":{}}
+
+            rendlist = db_session.query(db.Rendezvous).filter(db.Rendezvous.period == selected_period).all()
             
-            configdict["rendezvous"].append({
-                                        "id":rendezvous.id,
-                                        "period":rendezvous.period, 
-                                        "datetime":str(rendezvous.datetime),
-                                        "available": 1 if rendezvous.team == None else 0,
-                                        "duration":rendezvous.duration,
-                                        })
-            
+            for rendezvous in rendlist:
+                if str(rendezvous.datetime.date()) not in configdict["days"]:
+                    configdict["days"][str(rendezvous.datetime.date())] = []
+
+                configdict["days"][str(rendezvous.datetime.date())].append({
+                    "id":rendezvous.id,
+                    "period":rendezvous.period, 
+                    "datetime": date_to_dict(rendezvous.datetime),
+                    "available": 1 if rendezvous.team == None else 0,
+                    "duration":rendezvous.duration,
+                    })
+                
+                configdict["rendezvous"].append({
+                    "id":rendezvous.id,
+                    "period":rendezvous.period, 
+                    "datetime": date_to_dict(rendezvous.datetime),
+                    "available": 1 if rendezvous.team == None else 0,
+                    "duration":rendezvous.duration,
+                    })
+                
+
+
+        #In any case, display the period selection and the selected period        
         for period in db_session.query(db.Period).all():
             configdict["periods"].append({
-                                        "id":period.id,
-                                        "name":period.name, 
-                                        "start":str(period.start),
-                                        "end":str(period.end)
-                                        })
+                "id":period.id,
+                "name":period.name, 
+                "start":str(period.start),
+                "end":str(period.end),
+                })
 
+            configdict["selected"] = {} 
+            configdict["selected"]["name"] = db_session.query(db.Period).filter(db.Period.id == selected_period).first().name
+            
         return render_template('rendezvous.html', configdict=configdict)
 
     @app.route("/traceroute")
@@ -551,6 +582,23 @@ def prepare_bgp_analysis(config, asn=None, worker=False):
         last, msgs = bgp_policy_analyzer.bgp_report(
             as_data, connection_data, looking_glass_data)
     return last, freq, msgs
+
+# ===================================================
+# ================ Helper functions =================
+# ===================================================
+def date_to_dict(date):
+    """Convert datetime object to dict."""
+    return {
+        "year": date.strftime("%Y"),
+        "month": date.strftime("%b"),
+        "day": date.strftime("%d"),
+        "day_str": date.strftime("%a"),
+        "hour": date.strftime("%H"),
+        "minute": date.strftime("%M"),
+        "date": date.strftime("%Y-%m-%d"),
+        "time": date.strftime("%H:%M"),
+        "past": 1 if date < dt.utcnow() else 0,
+    }
 
 def create_as_accounts(app, db_session):
     global login_choices

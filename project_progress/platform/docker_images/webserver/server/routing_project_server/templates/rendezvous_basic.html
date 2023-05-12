@@ -1,0 +1,44 @@
+{%  extends "base.html" %}
+{% from 'macros.html' import h1 %}
+
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block body %}
+
+<div>
+    <aside id="default-sidebar" class="tw-drop-shadow-2xl tw-float-left tw-w-64 tw-h-screen tw-transition-transform tw--translate-x-full sm:tw-translate-x-0">
+        <div class="tw-h-full tw-px-3 tw-py-4 tw-overflow-y-auto tw-bg-[#290D00] tw-text-white">
+            <ul class="tw-space-y-2 tw-font-medium">
+                {% for period in configdict.periods %}
+                <li> 
+                    <a href="/rendezvous/{{period.id}}" class="tw-flex tw-items-center tw-p-2 tw-rounded-lg {{'tw-bg-[#3d1300]' if request.endpoint == 'config_teams' }} hover:tw-bg-[#521A00]">
+                        <svg class="tw-w-6 tw-h-6 tw-transition tw-duration-75 group-hover:tw-text-gray-900 "xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span class="tw-ml-3">{{period.name}}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </aside>
+
+
+    <div class="tw-flex tw-flex-col tw-justify-center">
+
+        <div class="tw-max-w-4xl tw-mx-auto tw-p-6">
+            {{ h1("Book an exam rendezvous ") }}
+            <p class="tw-mb-4">
+                In this page you can book a rendezvous for the oral exams of each period.
+            </p>
+            <p class="tw-mb-4">
+                To start Select a period from the available ones on the left.
+            </p>
+            <p class="tw-mb-4">
+                If you have already booked a rendezvous you can edit it by by selecting the period for which you have booked the rendezvous.
+            </p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

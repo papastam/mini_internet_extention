@@ -505,9 +505,9 @@ def create_test_db_snapshot(db_session):
     db_session.commit()
 
     periods =   {
-                1: {"id": 1, "name": "Phase 1", "start": datetime(year=2021,month=5,day=1,hour=12), "end": datetime(year=2021,month=5,day=2,hour=12)},
-                2: {"id": 2, "name": "Phase 2", "start": datetime(year=2021,month=6,day=1,hour=12), "end": datetime(year=2021,month=6,day=15,hour=12)},
-                3: {"id": 3, "name": "Phase 3", "start": datetime(year=2021,month=7,day=1,hour=12), "end": datetime(year=2021,month=7,day=15,hour=12)},
+                1: {"id": 1, "name": "Phase 1", "start": datetime(year=2023,month=2,day=1,hour=12), "end": datetime(year=2023,month=2,day=2,hour=12)},
+                2: {"id": 2, "name": "Phase 2", "start": datetime(year=2023,month=6,day=1,hour=12), "end": datetime(year=2023,month=6,day=15,hour=12)},
+                3: {"id": 3, "name": "Phase 3", "start": datetime(year=2023,month=7,day=1,hour=12), "end": datetime(year=2023,month=7,day=15,hour=12)},
                 }
     
     for period_id, info in periods.items():
@@ -516,15 +516,15 @@ def create_test_db_snapshot(db_session):
         db_session.commit()
 
     rendezvous =    {
-                    1: {"id": 1, "datetime": datetime(year=2021,month=5,day=1,hour=12),"period": 1, "duration": 60, "team": 1},
-                    2: {"id": 2, "datetime": datetime(year=2021,month=5,day=2,hour=13),"period": 1, "duration": 60, "team": 2},
-                    3: {"id": 3, "datetime": datetime(year=2021,month=5,day=3,hour=14),"period": 1, "duration": 60},
-                    4: {"id": 4, "datetime": datetime(year=2021,month=6,day=4,hour=15),"period": 2, "duration": 60, "team": 2},
-                    5: {"id": 5, "datetime": datetime(year=2021,month=6,day=5,hour=16),"period": 2, "duration": 60, "team": 1},
-                    6: {"id": 6, "datetime": datetime(year=2021,month=6,day=6,hour=17),"period": 2, "duration": 60},
-                    7: {"id": 7, "datetime": datetime(year=2021,month=7,day=7,hour=18),"period": 3, "duration": 60, "team": 1},
-                    8: {"id": 8, "datetime": datetime(year=2021,month=7,day=8,hour=19),"period": 3, "duration": 60, "team": 2},
-                    9: {"id": 9, "datetime": datetime(year=2021,month=7,day=9,hour=20),"period": 3, "duration": 60},
+                    1: {"id": 1, "datetime": datetime(year=2023,month=5,day=1,hour=12),"period": 1, "duration": 60, "team": 1},
+                    2: {"id": 2, "datetime": datetime(year=2023,month=5,day=2,hour=13),"period": 1, "duration": 60, "team": 2},
+                    3: {"id": 3, "datetime": datetime(year=2023,month=5,day=3,hour=14),"period": 1, "duration": 60},
+                    4: {"id": 4, "datetime": datetime(year=2023,month=6,day=4,hour=15),"period": 2, "duration": 60, "team": 2},
+                    5: {"id": 5, "datetime": datetime(year=2023,month=6,day=5,hour=16),"period": 2, "duration": 60},
+                    6: {"id": 6, "datetime": datetime(year=2023,month=6,day=6,hour=17),"period": 2, "duration": 60},
+                    7: {"id": 7, "datetime": datetime(year=2023,month=7,day=7,hour=18),"period": 3, "duration": 60, "team": 1},
+                    8: {"id": 8, "datetime": datetime(year=2023,month=7,day=8,hour=19),"period": 3, "duration": 60, "team": 2},
+                    9: {"id": 9, "datetime": datetime(year=2023,month=7,day=9,hour=20),"period": 3, "duration": 60},
                     }
 
     for rendezvous_id, info in rendezvous.items():
