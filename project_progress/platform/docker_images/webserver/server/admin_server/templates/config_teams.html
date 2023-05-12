@@ -3,16 +3,17 @@
 {% block content_header %}
 
 <script>
-    configdict = {{ configdict|safe }}
+    teams = {{ teams|safe }}
+    students = {{ students|safe }}
     var inactive = false;
 
     function search_and_display(input){
         $(".table_row").hide();
 
         if(input == ""){
-            for (team in configdict.teams){
-                if(inactive || configdict.teams[team].active_as=="true"){
-                    $(".as"+configdict.teams[team].asn+"_row").show();
+            for (team in teams){
+                if(inactive || teams[team].active_as=="true"){
+                    $(".as"+teams[team].asn+"_row").show();
                 }
             }
             return;
@@ -20,19 +21,19 @@
         
         if (isNaN(input)) {
             filter = input.toUpperCase();
-            for (studen in configdict.students){
-                if (configdict.students[studen].name.toUpperCase().includes(filter)){
-                    if(inactive || configdict.teams[configdict.students[studen].team-1].active_as=="true"){
-                        $(".as"+configdict.students[studen].team+"_row").show();
+            for (studen in students){
+                if (students[studen].name.toUpperCase().includes(filter)){
+                    if(inactive || teams[students[studen].team-1].active_as=="true"){
+                        $(".as"+students[studen].team+"_row").show();
                     }
                 }
             }
         } else {
             //if a number is given sort by asn
             filter = input;
-            for (team in configdict.teams){
-                if (filter == configdict.teams[team].asn){
-                    if(inactive || configdict.teams[team].active_as){
+            for (team in teams){
+                if (filter == teams[team].asn){
+                    if(inactive || teams[team].active_as){
                         $(".as"+filter+"_row").show();
                     }
                 }
@@ -117,7 +118,7 @@
             </tr>
         </thead>
         <tbody id="teamsTableBody">
-            {% for team in configdict.teams %}
+            {% for team in teams %}
                 <tr class="table_row as{{team.asn}}_row {{'inactive_as tw-text-black tw-bg-red-400 hover:tw-bg-red-300' if team.active_as == "false" else 'tw-bg-white hover:tw-bg-gray-50 tw-text-gray-900'}} tw-border-b">
                     <td scope="row" class="tw-px-6 tw-py-4 tw-font-medium tw-whitespace-nowrap">
                         {{team.asn}}
@@ -126,16 +127,16 @@
                         {{team.password}}
                     </td>
                     <td class="tw-px-6 tw-py-4">
-                        {{get_student(team.members[0], configdict)}}
+                        {{get_student(team.members[0], students)}}
                     </td>
                     <td class="tw-px-6 tw-py-4">
-                        {{get_student(team.members[1], configdict)}}
+                        {{get_student(team.members[1], students)}}
                     </td>
                     <td class="tw-px-6 tw-py-4">
-                        {{get_student(team.members[2], configdict)}}
+                        {{get_student(team.members[2], students)}}
                     </td>
                     <td class="tw-px-6 tw-py-4">
-                        {{get_student(team.members[3], configdict)}}
+                        {{get_student(team.members[3], students)}}
                     </td>
                     <td class="tw-px-6 tw-py-4">
                         <button data-modal-target="edit-team-{{team.asn}}-modal" data-modal-toggle="edit-team-{{team.asn}}-modal" class="tw-block tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800" type="button">
@@ -163,7 +164,7 @@
                         <div>
                             <label for="asn" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select new team's as number</label>
                             <select name="asn" id="new_team_asn" placeholder="new asn" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" required>
-                                {% for team in configdict.teams %}
+                                {% for team in teams %}
                                     {% if team.active_as=="false"%}
                                         <option value="{{team.asn}}">{{team.asn}}</option>
                                     {% endif %}
@@ -178,7 +179,7 @@
                             <div>
                                 <label for="member{{i+1}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Member {{i+1}}</label>
                                 <select name="member{{i+1}}" id="newteam_member{{i+1}}" placeholder="Select team member {{i}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
-                                    {% for student in configdict.students %}
+                                    {% for student in students %}
                                         {% if student.team == -1 %}
                                             <option value="{{student.id}}">{{student.name}}</option>
                                         {% endif %}
@@ -200,7 +201,7 @@
         </div>
     </div> 
 
-    {% for team in configdict.teams %}
+    {% for team in teams %}
     <div id="edit-team-{{team.asn}}-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
         <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
             <!-- Modal content -->
@@ -221,7 +222,7 @@
                             <div>
                                 <label for="member{{i+1}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Member {{i}}</label>
                                 <select name="member{{i+1}}" id="team{{team.asn}}_member{{i+1}}" placeholder="Select team member {{i+1}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
-                                    {% for student in configdict.students %}
+                                    {% for student in students %}
                                         {% if student.team == -1 or team.members[i] == student.id %}
                                         <option value="{{student.id}}" {{'selected="selected"' if team.members[i] == student.id else '' }}>{{student.name}}</option>
                                         {% endif %}

@@ -15,7 +15,7 @@ from wtforms.validators import InputRequired
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from flask_bcrypt import Bcrypt
-from datetime import datetime
+from datetime import datetime, timedelta
 import database as db
 import psutil
 
@@ -158,45 +158,26 @@ def create_admin_server(db_session, config=None):
     @app.route("/as_teams")
     @fresh_login_required
     def as_teams():
-        teams_dict = {}
+        teams_list = []
         for team in db_session.query(db.AS_team).all():
-            teams_dict[str(team.asn)] = {}
-            teams_dict[str(team.asn)]["password"] = team.password
+            if not team.active_as:
+                continue
+
+            teams_list.append({
+                "asn": team.asn,
+                "password": team.password,
+                "member1": db_session.query(db.Student).get(team.member1).name if team.member1 else None,
+                "member2": db_session.query(db.Student).get(team.member2).name if team.member2 else None,
+                "member3": db_session.query(db.Student).get(team.member3).name if team.member3 else None,
+                "member4": db_session.query(db.Student).get(team.member4).name if team.member4 else None,
+            })
             
-            if team.member1 is not None:
-                teams_dict[str(team.asn)]["member1"] = {}
-                teams_dict[str(team.asn)]["member1"]["id"] = team.member1
-                teams_dict[str(team.asn)]["member1"]["name"] = db_session.query(db.Student).get(team.member1).name
-            else:
-                teams_dict[str(team.asn)]["member1"] = 'None'
-
-            if team.member2 is not None:
-                teams_dict[str(team.asn)]["member2"] = {}
-                teams_dict[str(team.asn)]["member2"]["id"] = team.member2
-                teams_dict[str(team.asn)]["member2"]["name"] = db_session.query(db.Student).get(team.member2).name
-            else:
-                teams_dict[str(team.asn)]["member2"] = 'None'
-
-            if team.member3 is not None:
-                teams_dict[str(team.asn)]["member3"] = {}
-                teams_dict[str(team.asn)]["member3"]["id"] = team.member3
-                teams_dict[str(team.asn)]["member3"]["name"] = db_session.query(db.Student).get(team.member3).name
-            else:
-                teams_dict[str(team.asn)]["member3"] = 'None'
-
-            if team.member4 is not None:
-                teams_dict[team.asn]["member4"] = {}
-                teams_dict[team.asn]["member4"]["id"] = team.member4
-                teams_dict[team.asn]["member4"]["name"] = db_session.query(db.Student).get(team.member4).name
-            else:
-                teams_dict[str(team.asn)]["member4"] = 'None'
-
-        return render_template("as_teams.html", teams=str(teams_dict).replace("'", '"'))
+        return render_template("as_teams.html", teams=teams_list)
 
     @app.route("/config")
     @fresh_login_required
     def config():
-        return render_template("config.html")
+        return redirect(url_for("config_teams"))
 
     @app.route("/config/teams", methods=["GET", "POST"])
     @fresh_login_required
@@ -242,9 +223,11 @@ def create_admin_server(db_session, config=None):
                 else:
                     flash("Duplicate student detected. Please check your input.", "error")
 
-        configdict = {"teams":[], "students":[]}
+        teams_list = []
+        students_list = []
+
         for team in db_session.query(db.AS_team).all():
-            configdict["teams"].append({
+            teams_list.append({
                 "asn": team.asn,
                 "password": team.password,
                 "active_as": "true" if team.active_as else "false",
@@ -256,14 +239,14 @@ def create_admin_server(db_session, config=None):
             })
 
         for student in db_session.query(db.Student).all():
-            configdict["students"].append({
+            students_list.append({
                 "id": student.id,
                 "name": student.name,
                 "email": student.email,
                 "team": student.team if student.team!=None else -1
             })
 
-        return render_template("config_teams.html", configdict=configdict)
+        return render_template("config_teams.html", teams=teams_list, students=students_list)
 
     @app.route("/config/students", methods=["GET", "POST"])
     @fresh_login_required
@@ -304,11 +287,11 @@ def create_admin_server(db_session, config=None):
                 db_session.add(student)
                 db_session.commit()
                 flash(f"Student {request_args['name']} added successfully.", "success")
-                    
-        configdict = {"students":[]}
+                
+        students = []
         
         for student in db_session.query(db.Student).all():
-            configdict["students"].append({
+            students.append({
                 "id": student.id,
                 "name": student.name,
                 "email": student.email,
@@ -329,33 +312,106 @@ def create_admin_server(db_session, config=None):
                 }
             })
 
-        return render_template("config_students.html", configdict=configdict)
+        return render_template("config_students.html", students=students)
 
     @app.route("/config/rendezvous", methods=["GET", "POST"])
     @fresh_login_required
-    def config_rendezvous():
-        
-        configdict = {"teams":[], "students":[], "rendezvous":[], "periods":[]}
+    def config_rendezvous():    
+        if (request.method == "POST") and ("type" in dict(request.form)):
+            request_args = dict(request.form)
+            debug(f"POST request received: {request_args}")
+            if request_args["type"] == "new-period":
+                '''Add new period'''
+                # TODO: checks
+                period = db.Period(name=request_args["name"], start=datetime.strptime(request_args["start"],"%Y-%d-%m"), end=datetime.strptime(request_args["end"],"%Y-%d-%m"))
+                db_session.add(period)
+                db_session.commit()
+                flash(f"Period {request_args['name']} added successfully.", "success")
+            elif request_args["type"] == "edit-period":
+                '''Edit existing period'''
+                period = db_session.query(db.Period).get(request_args["id"])
+                                
+                if "delete" in request_args:
+                    count=0
+                    for rendezvous in db_session.query(db.Rendezvous).filter(db.Rendezvous.period==period.id).all():
+                        db_session.delete(rendezvous)
+                        count+=1
+                    flash(f"Deleted {count} rendezvous because of the period deletion.", "success")
+                    
+                    db_session.delete(period)
+                    flash(f"Period \"{request_args['name']}\" deleted successfully.", "success")
+                
+                else:
+                    period.name     = request_args["name"]
+                    if request_args["start"] != "":
+                        period.start    = datetime.strptime(request_args["start"],"%Y-%d-%m")
+                    if request_args["end"] != "":
+                        period.end      = datetime.strptime(request_args["end"],"%Y-%d-%m")
 
+                    db_session.add(period)
+                    flash(f"Period \"{request_args['name']}\" updated successfully.", "success")
+
+                # TODO: checks
+                db_session.commit()
+
+            elif request_args["type"] == "new-rendezvous":
+                '''Add new rendezvous'''
+                rendezvous = db.Rendezvous(period=request_args["period"], datetime=datetime.strptime(request_args["start"],"%Y-%d-%mT%H:%M"), duration=request_args["duration"])
+                db_session.add(rendezvous)
+                db_session.commit()
+                flash(f"Rendezvous added successfully.", "success")
+
+            elif request_args["type"] == "new-rendezvous-range":
+                '''Add new rendezvous range'''
+                period = db_session.query(db.Period).get(request_args["period"])
+                start = datetime.strptime(request_args["start"],"%Y-%d-%mT%H:%M")
+                end = datetime.strptime(request_args["end"],"%Y-%d-%mT%H:%M")
+                duration = int(request_args["duration"])
+                count=0
+                while start < end:
+                    count+=1
+                    rendezvous = db.Rendezvous(period=period.id, datetime=start, duration=duration)
+                    db_session.add(rendezvous)
+                    start += timedelta(minutes=duration)
+                
+                db_session.commit()
+                flash(f"Added {count} rendezvous successfully.", "success")
+
+            elif request_args["type"] == "edit-rendezvous":
+                '''Edit existing rendezvous'''
+                rendezvous = db_session.query(db.Rendezvous).get(request_args["id"])
+                if "delete" in request_args:
+                    db_session.delete(rendezvous)
+                    flash(f"Rendezvous deleted successfully.", "success")
+                else:
+                    rendezvous.team     = request_args["team"]
+                    db_session.add(rendezvous)
+                    flash(f"Rendezvous updated successfully.", "success")
+
+                db_session.commit()
+
+        periods_list = []
         for period in db_session.query(db.Period).all():
-            configdict["periods"].append({
+            periods_list.append({
                 "id": period.id,
                 "name": period.name,
-                "start": str(period.start),
-                "end": str(period.end)
+                "start": date_to_dict(period.start),
+                "end": date_to_dict(period.end)
             })
 
+        rendezvous_list = []
         for rendezvous in db_session.query(db.Rendezvous).all():
-            configdict["rendezvous"].append({
+            rendezvous_list.append({
                 "id"        : rendezvous.id,
                 "period"    : rendezvous.period,
-                "datetime"  : str(rendezvous.datetime),
+                "datetime"  : date_to_dict(rendezvous.datetime),
                 "duration"  : rendezvous.duration,
                 "team"      : rendezvous.team if rendezvous.team!=None else -1
             })
 
+        teams_list = []
         for team in db_session.query(db.AS_team).all():
-            configdict["teams"].append({
+            teams_list.append({
                 "asn": team.asn,
                 "is_active": 1 if team.is_active else 0,
                 "member1": team.member1 if team.member1!=None else -1,
@@ -364,15 +420,16 @@ def create_admin_server(db_session, config=None):
                 "member4": team.member4 if team.member4!=None else -1
             })
 
+        students_list = []
         for student in db_session.query(db.Student).all():
-            configdict["students"].append({
+            students_list.append({
                 "id": student.id,
                 "name": student.name,
                 "email": student.email,
                 "team": student.team if student.team!=None else -1,
             })
 
-        return render_template("config_rendezvous.html", configdict=configdict)
+        return render_template("config_rendezvous.html", periods=periods_list, rendezvous_list=rendezvous_list, teams=teams_list, students=students_list)
 
     @app.route("/logout")
     @fresh_login_required
@@ -531,3 +588,18 @@ def create_test_db_snapshot(db_session):
         new_rendezvous = db.Rendezvous(id=rendezvous_id, datetime=info["datetime"], period=info["period"], duration=info["duration"], team=info["team"] if "team" in info else None)
         db_session.add(new_rendezvous)
         db_session.commit()    
+
+def date_to_dict(date):
+    """Convert datetime object to dict."""
+    return {
+        "year": date.strftime("%Y"),
+        "month": date.strftime("%b"),
+        "day": date.strftime("%d"),
+        "day_str": date.strftime("%a"),
+        "hour": date.strftime("%H"),
+        "minute": date.strftime("%M"),
+        "date": date.strftime("%Y-%m-%d"),
+        "time": date.strftime("%H:%M"),
+        "past": 1 if date < dt.utcnow() else 0,
+        "actual": str(date)
+    }

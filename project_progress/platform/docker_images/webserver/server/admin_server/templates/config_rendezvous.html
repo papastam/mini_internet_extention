@@ -3,58 +3,8 @@
 {% block content_header %}
 
 <script>
-configdict = {{configdict|safe}};
-
-function parseDates(configdict){
-    for (index in configdict.rendezvous){
-        rendezvous = configdict.rendezvous[index]
-        rendezvous.datetime = new Date(rendezvous.datetime)
-        if (rendezvous.datetime > new Date()){
-            rendezvous.status = "upcoming"
-        } else {
-            rendezvous.status = "past"
-        }
-
-    }
-}
-
-function generate_calendar_icon(rendezvous){
-    date_arr = rendezvous.datetime.toDateString().split(" ")
-    time_arr = ["00"+rendezvous.datetime.getHours(), "00"+rendezvous.datetime.getMinutes()]
-    time_arr[0] = time_arr[0].slice(-2)
-    time_arr[1] = time_arr[1].slice(-2)
-    return '<div class="tw-font-medium">\
-        <div class="tw-w-32 tw-flex-none tw-rounded-t lg:tw-rounded-t-none lg:tw-rounded-l tw-text-center tw-shadow-lg ">\
-          <div class="tw-block tw-rounded-t tw-overflow-hidden tw-text-center ">\
-            <div class="tw-bg-blue-950 tw-text-white tw-py-1">\
-              '+ date_arr[1] +'\
-            </div>\
-            <div class="tw-pt-1 tw-border-l tw-border-r tw-border-white tw-bg-white">\
-              <span class="tw-text-5xl tw-font-bold tw-leading-tight">\
-                '+ date_arr[2] +'\
-              </span>\
-            </div>\
-            <div class="tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white tw--pt-2 tw--mb-1">\
-              <span class="tw-text-sm">\
-                '+ date_arr[0] +'\
-              </span>\
-            </div>\
-            <div class="tw-pb-2 tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white">\
-              <span class="tw-text-xs tw-leading-normal">\
-                '+ time_arr[0]+':'+ time_arr[1] +'\
-              </span>\
-            </div>\
-          </div>\
-        </div>\
-      </div>'
-}
-
-function load_rendezvous(configdict){
-    for (index in configdict.rendezvous){
-        rendezvous = configdict.rendezvous[index]
-        $("#rendezvous" + rendezvous.id + "-icon").html(generate_calendar_icon(rendezvous))
-    }
-}
+students = {{ students|safe}};
+rendezvous_list = {{ rendezvous_list|safe}};
 
 function search_and_display(input){
     if (input == ""){
@@ -67,9 +17,9 @@ function search_and_display(input){
     if (isNaN(input)) {
         filter = input.toUpperCase();
         student_team=-1
-        for (student in configdict.students){
-            if (configdict.students[student].name.toUpperCase().includes(filter)){
-                student_team = configdict.students[student].team
+        for (student in students){
+            if (students[student].name.toUpperCase().includes(filter)){
+                student_team = students[student].team
                 break;
             }
         }
@@ -78,38 +28,28 @@ function search_and_display(input){
             return
         }
 
-        for (rendezvous in configdict.rendezvous){
-            if (configdict.rendezvous[rendezvous].team == student_team){
-                $("#rendezvous"+configdict.rendezvous[rendezvous].id).show();
+        for (rendezvous in rendezvous_list){
+            if (rendezvous_list[rendezvous].team == student_team){
+                $("#rendezvous"+rendezvous_list[rendezvous].id).show();
             }
         }
     } else {
         //if a number is given sort by asn
         filter = input;
-        for (rendezvous in configdict.rendezvous){
-            if (filter == configdict.rendezvous[rendezvous].team){
-                $("#rendezvous"+configdict.rendezvous[rendezvous].id).show();
+        for (rendezvous in rendezvous_list){
+            if (filter == rendezvous_list[rendezvous].team){
+                $("#rendezvous"+rendezvous_list[rendezvous].id).show();
             }
         }
     }
 
 }
 
-
 $(document).ready(function() {
-    
-    parseDates(configdict);
-    console.log(configdict);
-
-    load_rendezvous(configdict);
-
     $("#rendezvous-search-bar").on("keyup", function() {
         search_and_display($("#rendezvous-search-bar").val());
     });
 } );
-
-
-
 </script>
 
 {% endblock %}
@@ -146,7 +86,7 @@ $(document).ready(function() {
     <table id="studentTable" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
-                {% for period in configdict.periods %}
+                {% for period in periods %}
                 <th scope="col" class="px-6 py-3">
                     <a data-modal-target="edit-period{{period.id}}-modal" data-modal-toggle="edit-period{{period.id}}-modal" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">{{ period.name }}</a>
                 </th>
@@ -155,13 +95,39 @@ $(document).ready(function() {
         </thead>
         <tbody id="studentsTableBody">
             <tr class="tw-bg-white tw-text-gray-900 tw-border-b">
-            {% for period in configdict.periods %}
+            {% for period in periods %}
                 <td class="">
                     <table class="tw-text-left tw-rounded-lg">
-                        {% for rendezvous in configdict.rendezvous%}
+                        {% for rendezvous in rendezvous_list%}
                         {% if rendezvous.period == period.id %}
                             <tr id="rendezvous{{rendezvous.id}}" class="rendezvous tw-bg-gray-50 tw-border-4 ">
-                                <td id="rendezvous{{rendezvous.id}}-icon" class="tw-px-6 tw-py-4 tw-font-medium tw-text-gray-900 tw-whitespace-nowrap "></td>
+                                <td id="rendezvous{{rendezvous.id}}-icon" class="tw-px-6 tw-py-4 tw-font-medium tw-text-gray-900 tw-whitespace-nowrap ">
+                                    <div class="tw-font-medium">
+                                        <div class="tw-w-32 tw-flex-none tw-rounded-t lg:tw-rounded-t-none lg:tw-rounded-l tw-text-center tw-shadow-lg ">
+                                          <div class="tw-block tw-rounded-t tw-overflow-hidden tw-text-center ">
+                                            <div class="tw-bg-blue-950 tw-text-white tw-py-1">
+                                              {{rendezvous.datetime.month}}
+                                            </div>
+                                            <div class="tw-pt-1 tw-border-l tw-border-r tw-border-white tw-bg-white">
+                                              <span class="tw-text-5xl tw-font-bold tw-leading-tight">
+                                                {{rendezvous.datetime.day}}
+                                              </span>
+                                            </div>
+                                            <div class="tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white tw--pt-2 tw--mb-1">
+                                              <span class="tw-text-sm">
+                                                {{rendezvous.datetime.day_str}}
+                                              </span>
+                                            </div>
+                                            <div class="tw-pb-2 tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white">
+                                              <span class="tw-text-xs tw-leading-normal">
+                                                {{rendezvous.datetime.time}}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                    </div>
+                                    
+                                </td>
                                 <td class="tw-text-lg tw-px-6 tw-py-4"><a data-modal-target="edit-rendezvous{{rendezvous.id}}-modal" data-modal-toggle="edit-rendezvous{{rendezvous.id}}-modal" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">{{'None' if rendezvous.team == -1 else 'Team '}}{{'' if rendezvous.team == -1 else rendezvous.team}}</a></td>
                             </tr>
                         {% endif %}
@@ -191,17 +157,18 @@ $(document).ready(function() {
             <div class="tw-px-6 tw-py-6 lg:tw-px-8">
                 <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">New period</h3>
                 <form class="tw-space-y-6" action="#" method="POST">
+                    <input type="hidden" name="type" value="new-period">
                     <div>
                         <label for="name" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period name</label>
                         <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="name" type="text">
                     </div>
                     <div>
                         <label for="start" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period starting date</label>
-                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="start" type="datetime-local">
+                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="start" type="date">
                     </div>
                     <div>
                         <label for="end" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period ending date</label>
-                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="end" type="datetime-local">
+                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="end" type="date">
                     </div>
                     <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Add Period</button>
                 </form>
@@ -211,7 +178,7 @@ $(document).ready(function() {
 </div> 
 
 <!-- Edit period -->
-{% for period in configdict.periods %}
+{% for period in periods %}
 <div id="edit-period{{period.id}}-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
     <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
         <!-- Modal content -->
@@ -223,19 +190,21 @@ $(document).ready(function() {
             <div class="tw-px-6 tw-py-6 lg:tw-px-8">
                 <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">Edit Period "{{period.name}}"</h3>
                 <form class="tw-space-y-6" action="#" method="POST">
+                    <input type="hidden" name="type" value="edit-period">
+                    <input type="hidden" name="id" value="{{period.id}}">
                     <div>
                         <label for="name" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period name</label>
                         <input value="{{period.name}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="name" type="text">
                     </div>
                     <div>
                         <label for="start" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period starting date</label>
-                        <input value="{{period.start}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="start" type="datetime-local">
+                        <input value="{{period.start.date}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="start" type="date">
                     </div>
                     <div>
                         <label for="end" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period ending date</label>
-                        <input value="{{period.end}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="end" type="datetime-local">
+                        <input value="{{period.end.date}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="end" type="date">
                     </div>
-                    <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Add Period</button>
+                    <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Update Period</button>
                     <button type="submit" name='delete' class="tw-w-full tw-text-white tw-bg-red-700 hover:tw-bg-red-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-red-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-red-600 dark:hover:tw-bg-red-700 dark:focus:tw-ring-red-800">Delete Period</button>
                 </form>
                 </form>
@@ -257,6 +226,7 @@ $(document).ready(function() {
             <div class="tw-px-6 tw-py-6 lg:tw-px-8">
                 <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">New rendezvous</h3>
                 <form class="tw-space-y-6" action="#" method="POST">
+                    <input type="hidden" name="type" value="new-rendezvous">
                     <div>
                         <label for="start" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select Rendezvous starting date/time</label>
                         <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-start" name="start" type="datetime-local">
@@ -267,7 +237,11 @@ $(document).ready(function() {
                     </div>
                     <div>
                         <label for="period" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select Rendezvous period</label>
-                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-period" name="period" type="text">
+                        <select class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-period" name="period">
+                            {% for period in periods %}
+                                <option value="{{ period.id }}">{{ period.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Add rendezvous</button>
                 </form>
@@ -288,6 +262,7 @@ $(document).ready(function() {
             <div class="tw-px-6 tw-py-6 lg:tw-px-8">
                 <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">New rendezvous range</h3>
                 <form class="tw-space-y-6" action="#" method="POST">
+                    <input type="hidden" name="type" value="new-rendezvous-range">
                     <div>
                         <label for="start" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select Rendezvous range starting date/time</label>
                         <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-range-start" name="start" type="datetime-local">
@@ -302,7 +277,11 @@ $(document).ready(function() {
                     </div>
                     <div>
                         <label for="period" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select Rendezvous period</label>
-                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-range-period" name="period" type="text">
+                        <select class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" id="new-rendezvous-range-period" name="period">
+                            {% for period in periods %}
+                                <option value="{{ period.id }}">{{ period.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Generate Rendezvous</button>
                 </form>
@@ -312,7 +291,7 @@ $(document).ready(function() {
 </div> 
 
 <!-- Edit Rendezvous -->
-{% for rendezvous in configdict.rendezvous %}
+{% for rendezvous in rendezvous_list %}
 <div id="edit-rendezvous{{rendezvous.id}}-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
     <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
         <!-- Modal content -->
@@ -324,9 +303,11 @@ $(document).ready(function() {
             <div class="tw-px-6 tw-py-6 lg:tw-px-8">
                 <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">Edit rendezvous at</h3>
                 <form class="tw-space-y-6" action="#" method="POST">
+                    <input type="hidden" name="type" value="edit-rendezvous">
+                    <input type="hidden" name="id" value="{{rendezvous.id}}">
                     <div>
                         <label for="date" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Rendezvous date/time</label>
-                        <input  id="new-rendezvous-range-start" name="start" type="datetime-local" value="{{rendezvous.datetime}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" disabled>
+                        <input  id="new-rendezvous-range-start" name="start" type="datetime-local" value="{{rendezvous.datetime.actual}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" disabled>
                     </div>
                     <div>
                         <label for="duration" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Rendezvous duration (minutes)</label>
@@ -339,7 +320,7 @@ $(document).ready(function() {
                     <div>
                         <label for="team" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Assigned team</label>
                         <select name="team" placeholder="Select team" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
-                            {% for team in configdict.teams %}
+                            {% for team in teams %}
                                 {% if team.is_active %}
                                 <option value="{{team.asn}}" {{"selected" if rendezvous.team == team.asn }}>{{team.asn}}</option>
                                 {% endif %}

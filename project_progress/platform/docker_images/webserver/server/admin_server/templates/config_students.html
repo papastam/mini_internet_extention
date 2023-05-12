@@ -2,17 +2,16 @@
 {% block content_header %}
 
 <script>
-    configdict = {{ configdict|safe|replace("None", "-1") }}
-    console.log(configdict)
+    students = {{ students|safe|replace("None", "-1") }}
     var inactive = false;
 
     function search_and_display(input){
         $(".table_row").hide();
 
         if(input == ""){
-            for (student in configdict.students){
-                if(inactive || configdict.students[student].team != -1){
-                    $(".student"+configdict.students[student].id+"_row").show();
+            for (student in students){
+                if(inactive || students[student].team != -1){
+                    $(".student"+students[student].id+"_row").show();
                 }
             }
             return;
@@ -20,20 +19,20 @@
         
         if (isNaN(input)) {
             filter = input.toUpperCase();
-            for (studen in configdict.students){
-                if (configdict.students[studen].name.toUpperCase().includes(filter) || configdict.students[studen].email.toUpperCase().includes(filter)){
-                    if(inactive || configdict.students[studen].team != -1){
-                        $(".student"+configdict.students[studen].id+"_row").show();
+            for (studen in students){
+                if (students[studen].name.toUpperCase().includes(filter) || students[studen].email.toUpperCase().includes(filter)){
+                    if(inactive || students[studen].team != -1){
+                        $(".student"+students[studen].id+"_row").show();
                     }
                 }
             }
         } else {
             //if a number is given sort by asn
             filter = input;
-            for (student in configdict.students){
-                if (filter == configdict.students[student].team){
-                    if(inactive || configdict.students[student].team != -1){
-                        $(".student"+configdict.students[student].id+"_row").show();
+            for (student in students){
+                if (filter == students[student].team){
+                    if(inactive || students[student].team != -1){
+                        $(".student"+students[student].id+"_row").show();
                     }
                 }
             }
@@ -42,7 +41,6 @@
 
 
     $(document).ready(function(){
-        console.log(configdict);
         $(".inactive_student").hide();
 
         $("#students-search-bar").on("keyup", function() {
@@ -145,7 +143,7 @@
             </tr>
         </thead>
         <tbody id="studentsTableBody">
-            {% for student in configdict.students %}
+            {% for student in students %}
                 <tr class="table_row student{{student.id}}_row {{'inactive_student tw-text-black tw-bg-red-400 hover:tw-bg-red-300' if student.team == -1 else 'tw-bg-white hover:tw-bg-gray-50 tw-text-gray-900'}} tw-border-b">
                     <td scope="row" class="tw-px-6 tw-py-4 tw-font-medium tw-whitespace-nowrap">
                         {{student.name}}
@@ -230,7 +228,7 @@
         </div>
     </div> 
 
-    {% for student in configdict.students %}
+    {% for student in students %}
     <div id="edit-student-{{student.id}}-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
         <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
             <!-- Modal content -->
