@@ -1,7 +1,7 @@
 #Types
 *.db #Database files
 *.log #Log files
-project_progress/platform/docker_images/webserver/server/routing_project_server/database.db
+project_progress/platform/docker_images/webserver/server/database/database.db
 .gitignore
 nohup.out
 
