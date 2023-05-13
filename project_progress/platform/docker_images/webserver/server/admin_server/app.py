@@ -21,6 +21,7 @@ import psutil
 
 from utils import admin_log, debug, check_for_dupes, update_students, date_to_dict
 
+
 # CAUTION: These default values are overwritten by the config file.
 config_defaults = {
     'LOCATIONS': {
@@ -37,12 +38,14 @@ config_defaults = {
     'AUTO_START_WORKERS': True
 }
 
+admin_users = {'papastam': 'admin'}
+
 class LoginForm(FlaskForm):
     username = StringField(validators=[InputRequired(),], render_kw={"placeholder": "Username"}, )
     password = PasswordField(validators=[InputRequired()], render_kw={"placeholder": "Password"})
     submit = SubmitField('Login')
 
-def create_admin_server(db_session, config=None):
+def create_admin_server(db_session, config=None, build=False):
     """Create and configure the app."""
     app = Flask(__name__)
     app.config.from_mapping(config_defaults)
@@ -62,6 +65,9 @@ def create_admin_server(db_session, config=None):
     login_manager.session_protection = "strong"
     
     bcrypt = Bcrypt(app) 
+
+    if build:
+        db.create_admin_login(db_session, admin_users, bcrypt)
 
     @login_manager.user_loader
     def load_user(user_id):

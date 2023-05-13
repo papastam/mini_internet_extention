@@ -84,7 +84,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[InputRequired(), Length(min=8, max=80)])
     submit = SubmitField('Login')
 
-def create_project_server(db_session, config=None):
+def create_project_server(db_session, config=None, build=False):
     """Create and configure the app."""
     app = Flask(__name__)
     app.config.from_mapping(config_defaults)
@@ -111,6 +111,10 @@ def create_project_server(db_session, config=None):
         return db_session.query(db.AS_team).get(int(asn))
 
     bcrypt.init_app(app)
+
+    if build:
+        db.create_as_login(db_session,app.config['LOCATIONS']['as_passwords'])
+        db.create_test_db_snapshot(db_session)
 
     for as_team in db_session.query(db.AS_team).all():
         login_choices.append((as_team.asn, as_team.asn))    

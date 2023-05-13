@@ -2,33 +2,26 @@ import database as db
 import os
 from utils import *
 
-def build_db():
-    db.init_db(True)
+def create_as_login(db_session, as_pass_file):
 
-    # Check if the database exists and if not create it
-    if not os.path.isfile("/server/database/database.db"):
-        open("/server/database/database.db", 'w+').close()
-    else:
-        # Clear the database
-        with open("/server/database/database.db",'r+') as file:
-            file.truncate(0)
+    as_cridentials = parsers.parse_as_passwords(as_pass_file)
+    if not as_cridentials:
+        error("AS login info was not loaded. AS Teams Login will not be available.")
 
-    #Clear the log files
-    with open("/server/routing_project_server/as.log",'r+') as file:
-        file.truncate(0)    
-    with open("/server/admin_server/admin_login.log",'r+') as file:
-        file.truncate(0)
+    #Add admin users
+    for asn, password in as_cridentials.items():
+        if db_session.query(db.AS_team).filter_by(asn=asn).first():
+            continue
+        new_user = db.AS_team(asn=asn, password=password)
+        db_session.add(new_user)
+    db_session.commit()
 
-    # init the database and get a new session
-    db_session = db.init_db(True)
-
-    create_test_db_snapshot(db_session)
-
-def create_as_login():
-    pass
-
-def create_admin_login():
-    pass
+def create_admin_login(db_session, admin_users, bcrypt):
+    for user, password in admin_users.items():
+        new_user = db.Admin(username=user, password=bcrypt.generate_password_hash(password).decode('utf-8'))
+        db_session.add(new_user)
+        db_session.commit()
+        admin_log("INIT: Added user: " + user)
 
 def create_as_accounts(app, db_session):
     as_cridentials = parsers.parse_as_passwords(app.config['LOCATIONS']['as_passwords'])
@@ -85,15 +78,15 @@ def create_test_db_snapshot(db_session):
         db_session.commit()
 
     rendezvous =    {
-                    1: {"id": 1, "datetime": datetime(year=2023,month=5,day=1,hour=12),"period": 1, "duration": 60, "team": 1},
-                    2: {"id": 2, "datetime": datetime(year=2023,month=5,day=2,hour=13),"period": 1, "duration": 60, "team": 2},
-                    3: {"id": 3, "datetime": datetime(year=2023,month=5,day=3,hour=14),"period": 1, "duration": 60},
-                    4: {"id": 4, "datetime": datetime(year=2023,month=6,day=4,hour=15),"period": 2, "duration": 60, "team": 2},
-                    5: {"id": 5, "datetime": datetime(year=2023,month=6,day=5,hour=16),"period": 2, "duration": 60},
-                    6: {"id": 6, "datetime": datetime(year=2023,month=6,day=6,hour=17),"period": 2, "duration": 60},
-                    7: {"id": 7, "datetime": datetime(year=2023,month=7,day=7,hour=18),"period": 3, "duration": 60, "team": 1},
-                    8: {"id": 8, "datetime": datetime(year=2023,month=7,day=8,hour=19),"period": 3, "duration": 60, "team": 2},
-                    9: {"id": 9, "datetime": datetime(year=2023,month=7,day=9,hour=20),"period": 3, "duration": 60},
+                    1: {"id": 1, "datetime": dt(year=2023,month=5,day=1,hour=12),"period": 1, "duration": 60, "team": 1},
+                    2: {"id": 2, "datetime": dt(year=2023,month=5,day=2,hour=13),"period": 1, "duration": 60, "team": 2},
+                    3: {"id": 3, "datetime": dt(year=2023,month=5,day=3,hour=14),"period": 1, "duration": 60},
+                    4: {"id": 4, "datetime": dt(year=2023,month=6,day=4,hour=15),"period": 2, "duration": 60, "team": 2},
+                    5: {"id": 5, "datetime": dt(year=2023,month=6,day=5,hour=16),"period": 2, "duration": 60},
+                    6: {"id": 6, "datetime": dt(year=2023,month=6,day=6,hour=17),"period": 2, "duration": 60},
+                    7: {"id": 7, "datetime": dt(year=2023,month=7,day=7,hour=18),"period": 3, "duration": 60, "team": 1},
+                    8: {"id": 8, "datetime": dt(year=2023,month=7,day=8,hour=19),"period": 3, "duration": 60, "team": 2},
+                    9: {"id": 9, "datetime": dt(year=2023,month=7,day=9,hour=20),"period": 3, "duration": 60},
                     }
 
     for rendezvous_id, info in rendezvous.items():

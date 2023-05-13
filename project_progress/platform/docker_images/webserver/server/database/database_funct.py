@@ -12,6 +12,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from .build_db import create_test_db_snapshot
+
 db = SQLAlchemy()
 
 Base = declarative_base()
@@ -107,4 +109,3 @@ def init_db(build: bool = False):
         Base.metadata.create_all(engine)
     session = Session()
     return session
-

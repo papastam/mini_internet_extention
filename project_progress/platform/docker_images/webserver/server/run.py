@@ -9,24 +9,27 @@ from routing_project_server import create_project_server
 from admin_server import create_admin_server
 import os
 
-from utils import debug
+from utils import debug, reset_files
 
 if __name__ == "__main__":
 
+    build=False
     if os.getenv('BUILD')=="true":
         debug("Building database...")
+        reset_files()
         db_session = init_db(build=True)
+        build=True
     else:
         debug("Build environment variable not set. Not building database.")
         db_session = init_db()
 
-    project_server = create_project_server(db_session)
+    project_server = create_project_server(db_session,build=build)
     project_host = project_server.config['HOST']
     project_port = project_server.config['PORT']
     
     # bjoern.run(project_server, project_host, project_port)
     
-    admin_server = create_admin_server(db_session)
+    admin_server = create_admin_server(db_session,build=build)
     admin_host = admin_server.config['HOST']
     admin_port = admin_server.config['PORT']
 
