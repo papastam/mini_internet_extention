@@ -36,7 +36,10 @@ from wtforms import StringField, PasswordField, SubmitField
 from flask_bcrypt import Bcrypt
 import database as db
 
-from . import bgp_policy_analyzer, matrix, parsers
+from utils import parsers
+from utils import as_log, date_to_dict
+
+from . import bgp_policy_analyzer, matrix
 
 # CAUTION: These default values are overwritten by the setup script.
 # ./setup_webserver.sh will write to file 'groups/webserver/admin_config.py' and 'groups/webserver/project_config.py' 
@@ -81,18 +84,6 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[InputRequired(), Length(min=8, max=80)])
     submit = SubmitField('Login')
 
-def debug(message):
-    print("\033[35mDEBUG: " + str(message) + "\033[0m")
-
-def error(message):
-    print("\033[31mERROR: " + str(message) + "\033[0m")
-
-def as_log(message):
-    """Log message to admin log."""
-    time = strftime("%d-%m-%y %H:%M:%S", gmtime())
-    with open("/server/routing_project_server/as.log", "a") as file:
-        file.write(time + ' | ' + message+'\n')
-
 def create_project_server(db_session, config=None):
     """Create and configure the app."""
     app = Flask(__name__)
@@ -121,7 +112,7 @@ def create_project_server(db_session, config=None):
 
     bcrypt.init_app(app)
 
-    create_as_accounts(app, db_session)
+    
 
     @app.template_filter()
     def format_datetime(utcdatetime, format='%Y-%m-%d at %H:%M'):
@@ -345,21 +336,26 @@ def create_project_server(db_session, config=None):
     @app.route("/rendezvous/<int:selected_period>", methods=['GET', 'POST'])
     @login_required
     def rendezvous(selected_period: Optional[int] = None):
-       
+        
+
         #Period selection page    
         if selected_period is None:
             configdict = {"periods":[]}
             for period in db_session.query(db.Period).all():
                 configdict["periods"].append({
                     "id":period.id,
-                    "name":period.name, 
-                    "start":str(period.start),
-                    "end":str(period.end),
+                    "name":period.name,
                     })
 
             return render_template('rendezvous_basic.html', configdict=configdict)
        
         #Display the actual rendezvous page
+        selected_period_obj = db_session.query(db.Period).filter(db.Period.id == selected_period).first()
+        if selected_period_obj is None:
+            # Invalid period selected
+            flash('Invalid period selected', 'error')
+            return redirect(url_for('rendezvous')) 
+
         booked_rendezvous = db_session.query(db.Rendezvous).filter(db.Rendezvous.period == selected_period).filter(db.Rendezvous.team == current_user.asn).first()
         configdict = {"periods":[] }
 
@@ -401,15 +397,15 @@ def create_project_server(db_session, config=None):
 
         #In any case, display the period selection and the selected period        
         for period in db_session.query(db.Period).all():
+            if not period.live:
+                continue
             configdict["periods"].append({
                 "id":period.id,
-                "name":period.name, 
-                "start":str(period.start),
-                "end":str(period.end),
+                "name":period.name,
                 })
 
             configdict["selected"] = {} 
-            configdict["selected"]["name"] = db_session.query(db.Period).filter(db.Period.id == selected_period).first().name
+            configdict["selected"]["name"] = selected_period_obj.name
             
         return render_template('rendezvous.html', configdict=configdict)
 
@@ -582,35 +578,3 @@ def prepare_bgp_analysis(config, asn=None, worker=False):
         last, msgs = bgp_policy_analyzer.bgp_report(
             as_data, connection_data, looking_glass_data)
     return last, freq, msgs
-
-# ===================================================
-# ================ Helper functions =================
-# ===================================================
-def date_to_dict(date):
-    """Convert datetime object to dict."""
-    return {
-        "year": date.strftime("%Y"),
-        "month": date.strftime("%b"),
-        "day": date.strftime("%d"),
-        "day_str": date.strftime("%a"),
-        "hour": date.strftime("%H"),
-        "minute": date.strftime("%M"),
-        "date": date.strftime("%Y-%m-%d"),
-        "time": date.strftime("%H:%M"),
-        "past": 1 if date < dt.utcnow() else 0,
-    }
-
-def create_as_accounts(app, db_session):
-    global login_choices
-
-    as_cridentials = parsers.parse_as_passwords(app.config['LOCATIONS']['as_passwords'])
-    if not as_cridentials:
-        error("AS login info was not loaded. AS Teams Login will not be available.")
-
-    #Add admin users
-    for asn, password in as_cridentials.items():
-        login_choices.append((str(asn),str(asn)))
-
-        new_user = db.AS_team(asn=asn, password=password)
-        db_session.add(new_user)
-    db_session.commit()

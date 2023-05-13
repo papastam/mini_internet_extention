@@ -7,24 +7,18 @@ from multiprocessing import Process
 from database import init_db
 from routing_project_server import create_project_server
 from admin_server import create_admin_server
+import os
+
+from utils import debug
 
 if __name__ == "__main__":
 
-
-    #Clear the databases
-    with open("/server/database/database.db",'r+') as file:
-        file.truncate(0)
-
-    #Clear the log files
-    with open("/server/routing_project_server/as.log",'r+') as file:
-        file.truncate(0)    
-    with open("/server/admin_server/admin_login.log",'r+') as file:
-        file.truncate(0)
-    
-    # init the database and get a new session
-    db_session = init_db()
-
-
+    if os.getenv('BUILD')=="true":
+        debug("Building database...")
+        db_session = init_db(build=True)
+    else:
+        debug("Build environment variable not set. Not building database.")
+        db_session = init_db()
 
     project_server = create_project_server(db_session)
     project_host = project_server.config['HOST']

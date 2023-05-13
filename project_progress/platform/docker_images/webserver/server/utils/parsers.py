@@ -11,6 +11,8 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from .utils import warrning
+
 
 def find_looking_glass_textfiles(directory: os.PathLike) \
         -> Dict[int, Dict[str, Path]]:
@@ -211,8 +213,7 @@ def _read_json_safe(filename: os.PathLike, sleep_time=0.01, max_attempts=200):
         except json.decoder.JSONDecodeError as error:
             if current_attempt == max_attempts:
                 # raise error
-                print ('WARNING: could not read {} and path validity.'.format(filename))
-                print ('We assume empty BGP configuration for this router')
+                warrning('could not read {} and path validity.\nWe assume empty BGP configuration for this router'.format(filename))
     
                 # return the same json as if BGP was not running in the router.
                 return {'warning':'Default BGP instance not found'}

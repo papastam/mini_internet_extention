@@ -9,5 +9,5 @@ docker stop PROXY
 docker rm PROXY
 
 cd ../..
-time ./setup/website_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
+time ./setup/website_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}" -b
 # time ../../groups/rpki/webserver_links.sh

@@ -99,11 +99,12 @@ class Period(Base):
  
     id          = db.Column(db.Integer, primary_key=True)
     name        = db.Column(db.String, nullable=False)
-    start       = db.Column(db.DateTime(timezone=True), nullable=False)
-    end         = db.Column(db.DateTime(timezone=True), nullable=False)
+    live        = db.Column(db.Boolean, nullable=False, default=False)
 
-def init_db():
+def init_db(build: bool = False):
     # Create the database
-    Base.metadata.create_all(engine)
+    if build:
+        Base.metadata.create_all(engine)
     session = Session()
     return session
+

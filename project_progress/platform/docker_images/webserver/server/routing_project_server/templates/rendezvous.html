@@ -83,13 +83,13 @@
 
         <div id="rendezvous-div" class=" tw-flex tw-flex-row">
         {% for day in configdict.days %}
-            <div class="tw-m-5 rtw-rounded-md tw-shadow-md ">
+            <div class="tw-m-5 tw-rounded-md ">
                 {% for rendezvous in configdict.days[day] %}
-                    <a href="#">
+                    <a class="tw-p-4" href="#">
                         <div id="rendezvous{{rendezvous.id}}" class="tw-font-medium">
                             <div class="tw-w-32 tw-flex-none tw-rounded-t lg:tw-rounded-t-none lg:tw-rounded-l tw-text-center tw-shadow-lg ">
                                 <div class="tw-block tw-rounded-t tw-overflow-hidden tw-text-center ">
-                                    <div class="{{'tw-bg-blue-950 ' if rendezvous.available!=1 else 'tw-bg-neutral-800 '}} tw-text-white tw-py-1">
+                                    <div class="{{'tw-bg-blue-950 ' if rendezvous.available==1 else 'tw-bg-neutral-800 '}} tw-text-white tw-py-1">
                                         {{rendezvous.datetime.month}}
                                     </div>
                                     <div class="tw-pt-1 tw-border-l tw-border-r tw-border-white tw-bg-white">

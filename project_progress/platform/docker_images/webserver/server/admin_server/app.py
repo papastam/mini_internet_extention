@@ -19,6 +19,8 @@ from datetime import datetime, timedelta
 import database as db
 import psutil
 
+from utils import admin_log, debug, check_for_dupes, update_students, date_to_dict
+
 # CAUTION: These default values are overwritten by the config file.
 config_defaults = {
     'LOCATIONS': {
@@ -35,24 +37,10 @@ config_defaults = {
     'AUTO_START_WORKERS': True
 }
 
-admin_users= {
-    "papastam": "admin"
-}   
-
-
 class LoginForm(FlaskForm):
     username = StringField(validators=[InputRequired(),], render_kw={"placeholder": "Username"}, )
     password = PasswordField(validators=[InputRequired()], render_kw={"placeholder": "Password"})
     submit = SubmitField('Login')
-    
-def debug(message):
-    print("\033[35mDEBUG: " + message + "\033[0m")
-
-def admin_log(message):
-    """Log message to admin log."""
-    time = strftime("%d-%m-%y %H:%M:%S", gmtime())
-    with open("/server/admin_server/admin_login.log", "a") as file:
-        file.write(time + ' | ' + message+'\n')
 
 def create_admin_server(db_session, config=None):
     """Create and configure the app."""
@@ -78,17 +66,6 @@ def create_admin_server(db_session, config=None):
     @login_manager.user_loader
     def load_user(user_id):
         return db_session.query(db.Admin).get(int(user_id))
-
-
-    #Add admin users
-    for user, password in admin_users.items():
-        new_user = db.Admin(username=user, password=bcrypt.generate_password_hash(password).decode('utf-8'))
-        db_session.add(new_user)
-        db_session.commit()
-        admin_log("INIT: Added user: " + user)
-
-    #Init database
-    create_test_db_snapshot(db_session)
 
     @app.route("/")
     @fresh_login_required
@@ -323,7 +300,7 @@ def create_admin_server(db_session, config=None):
             if request_args["type"] == "new-period":
                 '''Add new period'''
                 # TODO: checks
-                period = db.Period(name=request_args["name"], start=datetime.strptime(request_args["start"],"%Y-%d-%m"), end=datetime.strptime(request_args["end"],"%Y-%d-%m"))
+                period = db.Period(name=request_args["name"])
                 db_session.add(period)
                 db_session.commit()
                 flash(f"Period {request_args['name']} added successfully.", "success")
@@ -336,18 +313,15 @@ def create_admin_server(db_session, config=None):
                     for rendezvous in db_session.query(db.Rendezvous).filter(db.Rendezvous.period==period.id).all():
                         db_session.delete(rendezvous)
                         count+=1
-                    flash(f"Deleted {count} rendezvous because of the period deletion.", "success")
+                    if count>0:
+                        flash(f"Deleted {count} rendezvous because of the period deletion.", "success")
                     
                     db_session.delete(period)
                     flash(f"Period \"{request_args['name']}\" deleted successfully.", "success")
                 
                 else:
+                    period.live     = request_args["live"]=="1"
                     period.name     = request_args["name"]
-                    if request_args["start"] != "":
-                        period.start    = datetime.strptime(request_args["start"],"%Y-%d-%m")
-                    if request_args["end"] != "":
-                        period.end      = datetime.strptime(request_args["end"],"%Y-%d-%m")
-
                     db_session.add(period)
                     flash(f"Period \"{request_args['name']}\" updated successfully.", "success")
 
@@ -395,8 +369,7 @@ def create_admin_server(db_session, config=None):
             periods_list.append({
                 "id": period.id,
                 "name": period.name,
-                "start": date_to_dict(period.start),
-                "end": date_to_dict(period.end)
+                "live": 1 if period.live else 0
             })
 
         rendezvous_list = []
@@ -496,110 +469,6 @@ def measure_stats(config, app, db_session, worker=False):
         new_measurement = db.Measurement(cpu=cpu, memory=memory, disk=disk)
         db_session.add(new_measurement)
         db_session.commit()
-        print("\033[93mMeasured stats \033[03m(%s)\033[00m" % str(time))
+        print("\033[34mMeasured stats \033[03m(%s)\033[00m" % str(time))
 
     return (time, cpu, memory, disk)
-
-def check_for_dupes(member1, member2, member3, member4):
-    """Check for duplicate students"""
-    if member1 != "-1":
-        if member1 == member2 or member1 == member3 or member1 == member4:
-            return False
-    if member2 != "-1":
-        if member2 == member3 or member2 == member4:
-            return False
-    if member3 != "-1":
-        if member3 == member4:
-            return False
-    return True
-
-def update_students(db_session, team, member1, member2, member3, member4):
-    """First up, remove all students from the team"""
-    for student in db_session.query(db.Student).filter(db.Student.team == team).all():
-        student.team = None
-        db_session.add(student)
-        db_session.commit()
-
-    """Then, add the new ones"""
-    membersarr=[member1, member2, member3, member4]
-    for member in membersarr:
-        if member != "-1":
-            student = db_session.query(db.Student).filter(db.Student.id == member).first()
-            student.team = team
-            db_session.add(student)
-    
-    db_session.commit()
-
-def create_test_db_snapshot(db_session):
-    """Create sample tables"""
-    # Create sample students from dict.
-    students =  {
-                1: {"name": "Chris Papastamos", "email": "csd4569@csd.uoc.gr", "team": 1}, 
-                2: {"name": "Dimitris Bisias", "email": "csd1111@csd.uoc.gr", "team": 1}, 
-                3: {"name": "Orestis Chiotakis", "email": "csd2222@csd.uoc.gr", "team": 2}, 
-                4: {"name": "Manousos Manouselis", "email": "csd3333@csd.uoc.gr", "team": 2}, 
-                5: {"name": "Test Student" , "email": "teststudent@provider.com", "team": 2},
-                6: {"name": "Unassigned Student" , "email": "unassigned@provider.com", "team": None},
-                }
-
-    for student_id, info in students.items():
-        new_student = db.Student(id=student_id, name=info["name"], email=info["email"], team=info["team"] if "team" in info else None)
-        db_session.add(new_student)
-        db_session.commit()
-    
-    team1 = db_session.query(db.AS_team).get(1)
-    team1.member1 = 1
-    team1.member2 = 2
-    team1.active_as = True
-    db_session.add(team1)
-    
-    team2 = db_session.query(db.AS_team).get(2)
-    team2.member1 = 3
-    team2.member2 = 4
-    team2.member3 = 5
-    db_session.add(team2)
-
-    db_session.commit()
-
-    periods =   {
-                1: {"id": 1, "name": "Phase 1", "start": datetime(year=2023,month=2,day=1,hour=12), "end": datetime(year=2023,month=2,day=2,hour=12)},
-                2: {"id": 2, "name": "Phase 2", "start": datetime(year=2023,month=6,day=1,hour=12), "end": datetime(year=2023,month=6,day=15,hour=12)},
-                3: {"id": 3, "name": "Phase 3", "start": datetime(year=2023,month=7,day=1,hour=12), "end": datetime(year=2023,month=7,day=15,hour=12)},
-                }
-    
-    for period_id, info in periods.items():
-        new_period = db.Period(id=period_id, name=info["name"], start=info["start"], end=info["end"])
-        db_session.add(new_period)
-        db_session.commit()
-
-    rendezvous =    {
-                    1: {"id": 1, "datetime": datetime(year=2023,month=5,day=1,hour=12),"period": 1, "duration": 60, "team": 1},
-                    2: {"id": 2, "datetime": datetime(year=2023,month=5,day=2,hour=13),"period": 1, "duration": 60, "team": 2},
-                    3: {"id": 3, "datetime": datetime(year=2023,month=5,day=3,hour=14),"period": 1, "duration": 60},
-                    4: {"id": 4, "datetime": datetime(year=2023,month=6,day=4,hour=15),"period": 2, "duration": 60, "team": 2},
-                    5: {"id": 5, "datetime": datetime(year=2023,month=6,day=5,hour=16),"period": 2, "duration": 60},
-                    6: {"id": 6, "datetime": datetime(year=2023,month=6,day=6,hour=17),"period": 2, "duration": 60},
-                    7: {"id": 7, "datetime": datetime(year=2023,month=7,day=7,hour=18),"period": 3, "duration": 60, "team": 1},
-                    8: {"id": 8, "datetime": datetime(year=2023,month=7,day=8,hour=19),"period": 3, "duration": 60, "team": 2},
-                    9: {"id": 9, "datetime": datetime(year=2023,month=7,day=9,hour=20),"period": 3, "duration": 60},
-                    }
-
-    for rendezvous_id, info in rendezvous.items():
-        new_rendezvous = db.Rendezvous(id=rendezvous_id, datetime=info["datetime"], period=info["period"], duration=info["duration"], team=info["team"] if "team" in info else None)
-        db_session.add(new_rendezvous)
-        db_session.commit()    
-
-def date_to_dict(date):
-    """Convert datetime object to dict."""
-    return {
-        "year": date.strftime("%Y"),
-        "month": date.strftime("%b"),
-        "day": date.strftime("%d"),
-        "day_str": date.strftime("%a"),
-        "hour": date.strftime("%H"),
-        "minute": date.strftime("%M"),
-        "date": date.strftime("%Y-%m-%d"),
-        "time": date.strftime("%H:%M"),
-        "past": 1 if date < dt.utcnow() else 0,
-        "actual": str(date)
-    }
