@@ -112,7 +112,8 @@ def create_project_server(db_session, config=None):
 
     bcrypt.init_app(app)
 
-    
+    for as_team in db_session.query(db.AS_team).all():
+        login_choices.append((as_team.asn, as_team.asn))    
 
     @app.template_filter()
     def format_datetime(utcdatetime, format='%Y-%m-%d at %H:%M'):
