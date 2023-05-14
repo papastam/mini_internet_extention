@@ -59,6 +59,11 @@ def create_admin_server(db_session, config=None, build=False):
     elif config is not None:
         app.config.from_pyfile(config)
 
+    app.config.update(
+        DEBUG=True
+    )
+
+
     #Admin login init
     login_manager = LoginManager(app)
     login_manager.login_view = '/login'
@@ -143,7 +148,7 @@ def create_admin_server(db_session, config=None, build=False):
     def as_teams():
         teams_list = []
         for team in db_session.query(db.AS_team).all():
-            if not team.active_as:
+            if not team.is_authenticated:
                 continue
 
             teams_list.append({
@@ -197,7 +202,7 @@ def create_admin_server(db_session, config=None, build=False):
                     team.member2 = form_args["member2"] if form_args["member2"]!="-1" else None
                     team.member3 = form_args["member3"] if form_args["member3"]!="-1" else None
                     team.member4 = form_args["member4"] if form_args["member4"]!="-1" else None
-                    team.active_as = True if form_args["active_as"]=="1" else False
+                    team.is_authenticated = True if form_args["active_as"]=="1" else False
 
                     db_session.add(team)
                     db_session.commit()
@@ -213,7 +218,7 @@ def create_admin_server(db_session, config=None, build=False):
             teams_list.append({
                 "asn": team.asn,
                 "password": team.password,
-                "active_as": "true" if team.active_as else "false",
+                "active_as": "true" if team.is_authenticated else "false",
                 "members": [team.member1 if team.member1!=None else -1, 
                             team.member2 if team.member2!=None else -1, 
                             team.member3 if team.member3!=None else -1, 
@@ -392,7 +397,7 @@ def create_admin_server(db_session, config=None, build=False):
         for team in db_session.query(db.AS_team).all():
             teams_list.append({
                 "asn": team.asn,
-                "is_active": 1 if team.is_active else 0,
+                "active_as": 1 if team.is_authenticated else 0,
                 "member1": team.member1 if team.member1!=None else -1,
                 "member2": team.member2 if team.member2!=None else -1,
                 "member3": team.member3 if team.member3!=None else -1,

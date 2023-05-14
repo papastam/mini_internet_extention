@@ -22,4 +22,4 @@ RUN pip install -e /server
 ENV PROJECT_SERVER_CONFIG="/server/project_config.py"
 ENV ADMIN_SERVER_CONFIG="/server/admin_config.py"
 
-CMD ["python3", "/server/run.py"]
+# CMD ["python3", "/server/run.py"]

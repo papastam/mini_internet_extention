@@ -37,7 +37,7 @@ from flask_bcrypt import Bcrypt
 import database as db
 
 from utils import parsers
-from utils import as_log, date_to_dict
+from utils import as_log, date_to_dict, debug
 
 from . import bgp_policy_analyzer, matrix
 
@@ -68,8 +68,7 @@ config_defaults = {
     'ANALYSIS_CACHE': '/tmp/cache/analysis.db',
 }
 
-#AS Login Database
-# db = SQLAlchemy()
+#inittialize global variables
 bcrypt = Bcrypt() 
 login_choices = []
 
@@ -117,6 +116,8 @@ def create_project_server(db_session, config=None, build=False):
         db.create_test_db_snapshot(db_session)
 
     for as_team in db_session.query(db.AS_team).all():
+        if as_team.is_authenticated == False:
+            continue
         login_choices.append((as_team.asn, as_team.asn))    
 
     @app.template_filter()
@@ -280,14 +281,19 @@ def create_project_server(db_session, config=None, build=False):
             as_team = db_session.query(db.AS_team).filter(db.AS_team.asn == form.asn.data).first()
 
             if as_team and (as_team.password==form.password.data):
-                as_log(f"Successful attempt for {form.asn.data} with password {form.password.data}")
-                login_user(as_team)
-                db_session.commit()
-                flash('Logged in successfully.', 'success')
+                if as_team.is_authenticated == False:
+                    flash('Login unsuccessful. Your account is not active', 'error')
+                    as_log(f"Unsuccessful attempt for {form.asn.data} with password {form.password.data} - account not active -")
+                else:
+                    as_log(f"Successful attempt for {form.asn.data} with password {form.password.data}")
+                    login_user(as_team)
+                    db_session.commit()
+                    flash('Logged in successfully.', 'success')
+                    
+                    if next_url:
+                        return redirect(next_url)
+                    return redirect(url_for('connectivity_matrix'))
         
-                if next_url:
-                    return redirect(next_url)
-                return redirect(url_for('connectivity_matrix'))
         
             elif as_team:
                 as_log(f"Unsuccessful attempt for {form.asn.data} with password {form.password.data}")
@@ -341,7 +347,26 @@ def create_project_server(db_session, config=None, build=False):
     @app.route("/rendezvous/<int:selected_period>", methods=['GET', 'POST'])
     @login_required
     def rendezvous(selected_period: Optional[int] = None):
-        
+        if request.method == 'POST':
+            request_dict = request.form.to_dict()
+            debug(request_dict)
+            if "rend_id" in request_dict:
+                requested_rendezvous = db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first()
+                if "cancel" in request_dict:
+                    debug(f"{requested_rendezvous.team} == {request_dict['team_asn']}")
+                    if requested_rendezvous.team == int(request_dict["team_asn"]):
+                        requested_rendezvous.team = None
+                        db_session.commit()
+                        flash('Rendezvous cancelled successfully.', 'success')
+                    else:
+                        flash('You cannot cancel this rendezvous', 'error')
+                elif ("team_asn" in request_dict):
+                    if requested_rendezvous.team:
+                        flash('This rendezvous is already booked by another team', 'error')
+                    else:
+                        requested_rendezvous.team = request_dict["team_asn"]
+                        db_session.commit()
+                        flash('Rendezvous booked successfully.', 'success')
 
         #Period selection page    
         if selected_period is None:

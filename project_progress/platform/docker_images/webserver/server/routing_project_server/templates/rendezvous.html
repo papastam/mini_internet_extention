@@ -58,9 +58,10 @@
                         </div>
                     </div>
                 </div>
-                <form action="/rendezvous/{{configdict.booked_rendezvous.id}}/cancel" method="post">
-                    <input type="hidden" name="rendezvous_id" value="{{configdict.booked_rendezvous.id}}">
-                    <button type="submit" value="cancel" class="tw-ml-10 tw-mt-4 tw-py-2 tw-px-4 tw-bg-red-600 tw-text-white tw-font-semibold tw-rounded-lg tw-shadow-md hover:tw-bg-red-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-red-500 focus:tw-ring-opacity-50">
+                <form action="#" method="post">
+                    <input type="hidden" name="rend_id" value="{{configdict.booked_rendezvous.id}}">
+                    <input type="hidden" name="team_asn" value="{{current_user.asn}}">
+                    <button type="submit" name="cancel" value="1" class="tw-ml-10 tw-mt-4 tw-py-2 tw-px-4 tw-bg-red-600 tw-text-white tw-font-semibold tw-rounded-lg tw-shadow-md hover:tw-bg-red-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-red-500 focus:tw-ring-opacity-50">
                         Cancel
                     </button>
             </div>
@@ -81,16 +82,13 @@
             </p>
         </div>
 
-        <form >
+        <form action="#" method="POST">
+            <input type="hidden" name="team_asn" value="{{current_user.asn}}"> 
             <div id="rendezvous-div" class=" tw-flex tw-flex-row">
                 {% for day in configdict.days %}
                 <div class="tw-m-5 tw-rounded-md ">
                     {% for rendezvous in configdict.days[day] %}
-                    {% if rendezvous.available==1 %}
-                    <a class="tw-p-4" href="">
-                    {% else %}
-                    <a class="tw-cursor-not-allowed tw-pointer-events-none tw-p-4">
-                    {% endif %}
+                    <button type="submit" name="rend_id" value="{{rendezvous.id}}" class="{{"tw-cursor-not-allowed tw-pointer-events-none" if rendezvous.available!=1}} tw-p-4">
                         <div id="rendezvous{{rendezvous.id}}" class="tw-font-medium">
                             <div class="tw-w-32 tw-flex-none tw-rounded-t lg:tw-rounded-t-none lg:tw-rounded-l tw-text-center tw-shadow-lg ">
                                 <div class="tw-block tw-rounded-t tw-overflow-hidden tw-text-center ">
@@ -115,7 +113,7 @@
                                 </div>
                             </div>
                         </div>
-                    </a>
+                    </button>
                     {% endfor %}
                 </div>  
                 {% endfor %}

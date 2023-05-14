@@ -8,11 +8,15 @@ from database import init_db
 from routing_project_server import create_project_server
 from admin_server import create_admin_server
 import os
+import signal
 
 from utils import debug, reset_files
 
-if __name__ == "__main__":
+project_server_run = None
+admin_server_run = None
 
+if __name__ == "__main__":
+    
     build=False
     if os.getenv('BUILD')=="true":
         debug("Building database...")
@@ -48,3 +52,11 @@ if __name__ == "__main__":
     )
     admin_server_run.start()
     print(f"\033[45mRunning admin server on `{admin_host}:{admin_port}`.\033[00m")
+
+def shutdown_handler(signum, frame):
+    print("Shutting down...")
+    project_server_run.terminate()
+    admin_server_run.terminate()
+    exit(1)
+
+signal.signal(signal.SIGINT, shutdown_handler)

@@ -55,7 +55,7 @@ def create_test_db_snapshot(db_session):
     team1 = db_session.query(db.AS_team).get(1)
     team1.member1 = 1
     team1.member2 = 2
-    team1.active_as = True
+    team1.is_authenticated = True
     db_session.add(team1)
     
     team2 = db_session.query(db.AS_team).get(2)

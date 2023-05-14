@@ -304,7 +304,7 @@ $(document).ready(function() {
                     </div>
                     <div>
                         <label for="duration" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Rendezvous duration (minutes)</label>
-                        <input id="new-rendezvous-range-duration" name="duration" type="text" value="rendezvous.duration" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" disabled>
+                        <input id="new-rendezvous-range-duration" name="duration" type="text" value="{{rendezvous.duration}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" disabled>
                     </div>
                     <div>
                         <label for="period" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Rendezvous period</label>
@@ -314,7 +314,7 @@ $(document).ready(function() {
                         <label for="team" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Assigned team</label>
                         <select name="team" placeholder="Select team" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
                             {% for team in teams %}
-                                {% if team.is_active %}
+                                {% if team.active_as %}
                                 <option value="{{team.asn}}" {{"selected" if rendezvous.team == team.asn }}>{{team.asn}}</option>
                                 {% endif %}
                             {% endfor %}
