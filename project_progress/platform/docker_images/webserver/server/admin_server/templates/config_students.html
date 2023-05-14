@@ -149,7 +149,11 @@
                         {{student.name}}
                     </td>
                     <td class="tw-px-6 tw-py-4">
+                        {% if student.email!="" %}
+                        <a href="mailto:{{student.email}}">{{student.email}}</a>
+                        {% else %}
                         {{student.email}}
+                        {% endif %}
                     </td>
                     <td class="tw-px-6 tw-py-4">
                         {{student.team if student.team != -1 else 'None'}}

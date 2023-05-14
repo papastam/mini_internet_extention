@@ -147,9 +147,7 @@ def create_admin_server(db_session, config=None, build=False):
     @fresh_login_required
     def as_teams():
         teams_list = []
-        for team in db_session.query(db.AS_team).all():
-            if not team.is_authenticated:
-                continue
+        for team in db_session.query(db.AS_team).filter(db.AS_team.is_authenticated==True).all():
 
             teams_list.append({
                 "asn": team.asn,
@@ -172,44 +170,81 @@ def create_admin_server(db_session, config=None, build=False):
     def config_teams():
         if request.method == "POST":
             form_args = dict(request.form)
-            debug(f"POST request received: {form_args}")
 
-            if "asn" in form_args:
-                team = db_session.query(db.AS_team).get(form_args["asn"])
+            try:
+                if "asn" in form_args:
+                    team = db_session.query(db.AS_team).get(form_args["asn"])
+                    if ("clear" in form_args) and (form_args["clear"]=="1"):
+                        '''Clear and deactivate the team'''
+                        team.member1 = None
+                        team.member2 = None
+                        team.member3 = None
+                        team.member4 = None
+                        team.is_authenticated = False
+                        flash(f"Team {team.asn} cleared", "info")
 
-                if check_for_dupes(form_args["member1"], form_args["member2"], form_args["member3"], form_args["member4"]):
-                    update_students(db_session, team.asn, form_args["member1"], form_args["member2"], form_args["member3"], form_args["member4"])
+                        db_session.add(team)
+                        db_session.commit()
+                    elif check_for_dupes(form_args["member1"], form_args["member2"], form_args["member3"], form_args["member4"]):
+                        update_students(db_session, team.asn, form_args["member1"], form_args["member2"], form_args["member3"], form_args["member4"])
 
-                    if "password" not in form_args:
-                        '''No password change'''
-                    elif  form_args["password"] == team.password:
-                        '''No need to change password'''
-                        pass
-                    elif len(form_args["password"]) < 8:
-                        '''Password too short'''
-                        flash("Password must be at least 8 characters long. Password not updated", "info")
+                        if ("password" not in form_args) or (form_args["password"] == ""):
+                            '''No password change'''
+                        elif  form_args["password"] == team.password:
+                            '''No need to change password'''
+                        elif len(form_args["password"]) < 8:
+                            '''Password too short'''
+                            flash("Password must be at least 8 characters long. Password not updated", "info")
+                        else:
+                            # Change password in database
+                            team.password = form_args["password"]
+                            
+                            # Change password in docker
+                            with open(app.config['LOCATIONS']['docker_pipe'], 'w') as pipe:
+                                pipe.write(f"changepass {team.asn} {form_args['password']}\n")
+                                pipe.flush()
+                                pipe.close()
+
+                        '''Check if team is active'''
+                        if (form_args["member1"] == "-1") and (form_args["member2"] == "-1") and (form_args["member3"] == "-1") and (form_args["member4"] == "-1"):
+                            '''No active members'''
+                            team.is_authenticated = False
+                            team.member1 = team.member2 = team.member3 = team.member4 = None
+                            flash(f"Team {team.asn} is now inactive.", "info")
+                        else:
+                            '''Team is active'''
+                            team.is_authenticated = True if form_args["active_as"]=="1" else False
+
+                            '''Save to database'''
+                            team.member1 = form_args["member1"] if form_args["member1"]!="-1" else None
+                            team.member2 = form_args["member2"] if form_args["member2"]!="-1" else None
+                            team.member3 = form_args["member3"] if form_args["member3"]!="-1" else None
+                            team.member4 = form_args["member4"] if form_args["member4"]!="-1" else None
+                            
+                            '''Rearange members if needed'''
+                            if not team.member1:
+                                team.member1 = team.member2
+                                team.member2 = team.member3
+                                team.member3 = team.member4
+                                team.member4 = None
+                            if not team.member2:
+                                team.member2 = team.member3
+                                team.member3 = team.member4
+                                team.member4 = None
+                            if not team.member3:
+                                team.member3 = team.member4
+                                team.member4 = None
+
+
+                            flash(f"Team {team.asn} updated successfully.", "success")
+
+                        db_session.add(team)
+                        db_session.commit()
                     else:
-                        # Change password in database
-                        team.password = form_args["password"]
-                        
-                        # Change password in docker
-                        with open(app.config['LOCATIONS']['docker_pipe'], 'w') as pipe:
-                            pipe.write(f"changepass {team.asn} {form_args['password']}\n")
-                            pipe.flush()
-                            pipe.close()
-
-                    team.member1 = form_args["member1"] if form_args["member1"]!="-1" else None
-                    team.member2 = form_args["member2"] if form_args["member2"]!="-1" else None
-                    team.member3 = form_args["member3"] if form_args["member3"]!="-1" else None
-                    team.member4 = form_args["member4"] if form_args["member4"]!="-1" else None
-                    team.is_authenticated = True if form_args["active_as"]=="1" else False
-
-                    db_session.add(team)
-                    db_session.commit()
-
-                    flash(f"Team {team.asn} updated successfully.", "success")
-                else:
-                    flash("Duplicate student detected. Please check your input.", "error")
+                        flash("Duplicate student detected. Please check your input.", "error")
+            except Exception as e:
+                flash(f"Error: {e}", "error")
+                db_session.rollback()
 
         teams_list = []
         students_list = []
@@ -242,40 +277,49 @@ def create_admin_server(db_session, config=None, build=False):
         if request.method == "POST" and ("name" in dict(request.form) and "email" in dict(request.form)):
             request_args = dict(request.form)
             debug(f"POST request received: {request_args}")
-        
-            if "id" in request_args:
-                '''Update existing student'''
-                student = db_session.query(db.Student).get(request_args["id"])
-                student.name    = request_args["name"]
-                student.email   = request_args["email"]
 
-                student.P1Q1        = request_args["p1q1"] if "p1q1" in request_args else None
-                student.P1Q2        = request_args["p1q2"] if "p1q2" in request_args else None
-                student.P1Q3        = request_args["p1q3"] if "p1q3" in request_args else None
-                student.P1Q4        = request_args["p1q4"] if "p1q4" in request_args else None
-                student.P1Q5        = request_args["p1q5"] if "p1q5" in request_args else None
-                student.midterm1    = request_args["midterm1"] if "midterm1" in request_args else None
+            try:        
+                if len(request_args["name"].split(" ")) < 2:
+                    flash("Please enter the student's full name (at least 2 words).", "error")
+                elif "id" in request_args:
+                    '''Update existing student'''
+                    
+                    student = db_session.query(db.Student).get(request_args["id"])
+                    student.name    = request_args["name"]
+                    student.email   = request_args["email"]
 
-                student.P2Q1        = request_args["p2q1"] if "p2q1" in request_args else None
-                student.P2Q2        = request_args["p2q2"] if "p2q2" in request_args else None
-                student.P2Q3        = request_args["p2q3"] if "p2q3" in request_args else None
-                student.P2Q4        = request_args["p2q4"] if "p2q4" in request_args else None
-                student.P2Q5        = request_args["p2q5"] if "p2q5" in request_args else None
-                student.midterm2    = request_args["midterm2"] if "midterm2" in request_args else None
+                    student.P1Q1        = request_args["p1q1"] if "p1q1" in request_args else None
+                    student.P1Q2        = request_args["p1q2"] if "p1q2" in request_args else None
+                    student.P1Q3        = request_args["p1q3"] if "p1q3" in request_args else None
+                    student.P1Q4        = request_args["p1q4"] if "p1q4" in request_args else None
+                    student.P1Q5        = request_args["p1q5"] if "p1q5" in request_args else None
+                    student.midterm1    = request_args["midterm1"] if "midterm1" in request_args else None
 
-                db_session.add(student)
-                db_session.commit()
-                flash(f"Student {request_args['name']} updated successfully.", "success")
+                    student.P2Q1        = request_args["p2q1"] if "p2q1" in request_args else None
+                    student.P2Q2        = request_args["p2q2"] if "p2q2" in request_args else None
+                    student.P2Q3        = request_args["p2q3"] if "p2q3" in request_args else None
+                    student.P2Q4        = request_args["p2q4"] if "p2q4" in request_args else None
+                    student.P2Q5        = request_args["p2q5"] if "p2q5" in request_args else None
+                    student.midterm2    = request_args["midterm2"] if "midterm2" in request_args else None
 
-            else:
-                '''Add new student'''
+                    db_session.add(student)
+                    db_session.commit()
+                    flash(f"Student {request_args['name']} updated successfully.", "success")
+                else:
+                    '''Add new student'''
+                    if db_session.query(db.Student).filter(db.Student.name==request_args["name"]).first():
+                        flash(f"Student with name: {request_args['name']} already exists.", "error")
+                    else:
+                        student = db.Student(name=request_args["name"], email=request_args["email"] if request_args["email"]!="" else None)
+                        db_session.add(student)
+                        db_session.commit()
+                        flash(f"Student {request_args['name']} added successfully.", "success")
+
+            except Exception as e:
+                flash(f"Error: {e}", "error")
+                db_session.rollback()
                 
-                # TODO: Check for duplicate students
-                student = db.Student(name=request_args["name"], email=request_args["email"])
-                db_session.add(student)
-                db_session.commit()
-                flash(f"Student {request_args['name']} added successfully.", "success")
-                
+        '''Create liststs and render frontend template'''
         students = []
         
         for student in db_session.query(db.Student).all():
@@ -308,73 +352,105 @@ def create_admin_server(db_session, config=None, build=False):
         if (request.method == "POST") and ("type" in dict(request.form)):
             request_args = dict(request.form)
             debug(f"POST request received: {request_args}")
-            if request_args["type"] == "new-period":
-                '''Add new period'''
-                # TODO: checks
-                period = db.Period(name=request_args["name"])
-                db_session.add(period)
-                db_session.commit()
-                flash(f"Period {request_args['name']} added successfully.", "success")
-            elif request_args["type"] == "edit-period":
-                '''Edit existing period'''
-                period = db_session.query(db.Period).get(request_args["id"])
-                                
-                if "delete" in request_args:
-                    count=0
-                    for rendezvous in db_session.query(db.Rendezvous).filter(db.Rendezvous.period==period.id).all():
-                        db_session.delete(rendezvous)
-                        count+=1
-                    if count>0:
-                        flash(f"Deleted {count} rendezvous because of the period deletion.", "success")
+            
+            try:
+                if request_args["type"] == "new-period":
+                    '''Add new period'''
+                    if db_session.query(db.Period).filter(db.Period.name==request_args["name"]).first():
+                        flash(f"Period with name: {request_args['name']} already exists.", "error")
+                    else:
+                        period = db.Period(name=request_args["name"])
+                        db_session.add(period)
+                        flash(f"Period {request_args['name']} added successfully.", "success")
+                elif request_args["type"] == "edit-period":
+                    '''Edit existing period'''
+                    period = db_session.query(db.Period).get(request_args["id"])
+                                    
+                    if "delete" in request_args:
+                        count=0
+                        for rendezvous in db_session.query(db.Rendezvous).filter(db.Rendezvous.period==period.id).all():
+                            db_session.delete(rendezvous)
+                            count+=1
+                        if count>0:
+                            flash(f"Deleted {count} rendezvous because of the period deletion.", "success")
+                        
+                        db_session.delete(period)
+                        flash(f"Period \"{request_args['name']}\" deleted successfully.", "success")
                     
-                    db_session.delete(period)
-                    flash(f"Period \"{request_args['name']}\" deleted successfully.", "success")
-                
-                else:
-                    period.live     = request_args["live"]=="1"
-                    period.name     = request_args["name"]
-                    db_session.add(period)
-                    flash(f"Period \"{request_args['name']}\" updated successfully.", "success")
+                    else:
+                        period_with_name = db_session.query(db.Period).filter(db.Period.name==request_args["name"]).first()
+                        if period_with_name and (period_with_name.id != period.id):
+                            flash(f"Period with name: {request_args['name']} already exists.", "error")
+                        else:
+                            period.live     = request_args["live"]=="1"
+                            period.name     = request_args["name"]
+                            db_session.add(period)
+                            flash(f"Period \"{request_args['name']}\" updated successfully.", "success")
 
-                # TODO: checks
+                elif request_args["type"] == "new-rendezvous":
+                    '''Handle faulty input cases'''
+                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.period==request_args["period"]).filter(db.Rendezvous.datetime==datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M")).first():
+                        flash(f"Rendezvous for period: {db_session.query(db.Period).filter(db.Period.id==request_args['period']).first().name} and start: {request_args['start']} already exists.", "error")
+                    elif datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") < datetime.now():
+                        flash(f"Rendezvous start time: {request_args['start']} is in the past.", "error")
+                    # elif datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") > datetime.strptime(request_args["end"],"%Y-%m-%dT%H:%M"):
+                    #     flash(f"Rendezvous start time: {request_args['start']} is after end time: {request_args['end']}.", "error")
+                    elif int(request_args["duration"]) < 1:
+                        flash(f"Rendezvous duration: {request_args['duration']} is less than 1 minute.", "error")
+                    else:
+                        '''Add new rendezvous'''
+                        rendezvous = db.Rendezvous(period=request_args["period"], datetime=datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M"), duration=request_args["duration"])
+                        db_session.add(rendezvous)
+                        flash(f"Rendezvous added successfully.", "success")
+
+                elif request_args["type"] == "new-rendezvous-range":
+                    '''Handle faulty input cases'''
+                    if datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") < datetime.now():
+                        flash(f"Rendezvous start time: {request_args['start']} is in the past.", "error")
+                    elif datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") > datetime.strptime(request_args["end"],"%Y-%m-%dT%H:%M"):
+                        flash(f"Rendezvous start time: {request_args['start']} is after end time: {request_args['end']}.", "error")
+                    elif int(request_args["duration"]) < 1:
+                        flash(f"Rendezvous duration: {request_args['duration']} is less than 1 minute.", "error")
+                    else:
+                        '''Add new rendezvous range'''
+                        period = db_session.query(db.Period).get(request_args["period"])
+                        start = datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M")
+                        end = datetime.strptime(request_args["end"],"%Y-%m-%dT%H:%M")
+                        duration = int(request_args["duration"])
+                        count=0
+                        while start < end:
+                            count+=1
+                            rendezvous = db.Rendezvous(period=period.id, datetime=start, duration=duration)
+                            db_session.add(rendezvous)
+                            start += timedelta(minutes=duration)
+                    
+                        flash(f"Added {count} rendezvous successfully.", "success")
+                elif request_args["type"] == "edit-rendezvous":
+                    '''Handle faulty input cases'''
+                    if datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") < datetime.now():
+                        flash(f"Rendezvous start time: {request_args['start']} is in the past.", "error")
+                    # elif datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") > datetime.strptime(request_args["end"],"%Y-%m-%dT%H:%M"):
+                    #     flash(f"Rendezvous start time: {request_args['start']} is after end time: {request_args['end']}.", "error")
+                    elif int(request_args["duration"]) < 1:
+                        flash(f"Rendezvous duration: {request_args['duration']} is less than 1 minute.", "error")
+                    else:
+                        '''Edit existing rendezvous'''
+                        rendezvous = db_session.query(db.Rendezvous).get(request_args["id"])
+                        if "delete" in request_args:
+                            db_session.delete(rendezvous)
+                            flash(f"Rendezvous deleted successfully.", "success")
+                        else:
+                            rendezvous.team     = request_args["team"]
+                            db_session.add(rendezvous)
+                            flash(f"Rendezvous updated successfully.", "success")
+
                 db_session.commit()
+            except Exception as e: 
+                debug(f"DATABASE ERROR: {e.with_traceback}")
+                flash(f"Error: {e}", "error")
+                db_session.rollback()
 
-            elif request_args["type"] == "new-rendezvous":
-                '''Add new rendezvous'''
-                rendezvous = db.Rendezvous(period=request_args["period"], datetime=datetime.strptime(request_args["start"],"%Y-%d-%mT%H:%M"), duration=request_args["duration"])
-                db_session.add(rendezvous)
-                db_session.commit()
-                flash(f"Rendezvous added successfully.", "success")
-
-            elif request_args["type"] == "new-rendezvous-range":
-                '''Add new rendezvous range'''
-                period = db_session.query(db.Period).get(request_args["period"])
-                start = datetime.strptime(request_args["start"],"%Y-%d-%mT%H:%M")
-                end = datetime.strptime(request_args["end"],"%Y-%d-%mT%H:%M")
-                duration = int(request_args["duration"])
-                count=0
-                while start < end:
-                    count+=1
-                    rendezvous = db.Rendezvous(period=period.id, datetime=start, duration=duration)
-                    db_session.add(rendezvous)
-                    start += timedelta(minutes=duration)
-                
-                db_session.commit()
-                flash(f"Added {count} rendezvous successfully.", "success")
-
-            elif request_args["type"] == "edit-rendezvous":
-                '''Edit existing rendezvous'''
-                rendezvous = db_session.query(db.Rendezvous).get(request_args["id"])
-                if "delete" in request_args:
-                    db_session.delete(rendezvous)
-                    flash(f"Rendezvous deleted successfully.", "success")
-                else:
-                    rendezvous.team     = request_args["team"]
-                    db_session.add(rendezvous)
-                    flash(f"Rendezvous updated successfully.", "success")
-
-                db_session.commit()
-
+        '''Create liststs and render frontend template'''
         periods_list = []
         for period in db_session.query(db.Period).all():
             periods_list.append({

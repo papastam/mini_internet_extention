@@ -115,11 +115,6 @@ def create_project_server(db_session, config=None, build=False):
         db.create_as_login(db_session,app.config['LOCATIONS']['as_passwords'])
         db.create_test_db_snapshot(db_session)
 
-    for as_team in db_session.query(db.AS_team).all():
-        if as_team.is_authenticated == False:
-            continue
-        login_choices.append((as_team.asn, as_team.asn))    
-
     @app.template_filter()
     def format_datetime(utcdatetime, format='%Y-%m-%d at %H:%M'):
         if utcdatetime.tzinfo is None:  # Attach tzinfo if needed
@@ -275,6 +270,10 @@ def create_project_server(db_session, config=None, build=False):
     
     @app.route("/as_login", methods=['GET', 'POST'])
     def as_login():
+        login_choices.clear()
+        for as_team in db_session.query(db.AS_team).filter(db.AS_team.is_authenticated==True).all():
+            login_choices.append((as_team.asn, as_team.asn))    
+
         form = LoginForm()
         next_url = request.form.get("next")
         if form.validate_on_submit():
