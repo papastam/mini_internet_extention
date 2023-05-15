@@ -6,9 +6,26 @@
 students = {{ students|safe}};
 rendezvous_list = {{ rendezvous_list|safe}};
 
+available_active=true
+booked_active=true
+past_active=true
+
+function hide_diasabled(){
+    if (!available_active){
+        $(".available_rendezvous").hide()
+    }
+    if (!booked_active){
+        $(".booked_rendezvous").hide()
+    }
+    if (!past_active){
+        $(".past_rendezvous").hide()
+    }
+}
+
 function search_and_display(input){
     if (input == ""){
         $(".rendezvous").show()
+        hide_diasabled()
         return
     }
     
@@ -25,6 +42,7 @@ function search_and_display(input){
         }
 
         if (student_team == -1){
+            hide_diasabled()
             return
         }
 
@@ -43,10 +61,58 @@ function search_and_display(input){
         }
     }
 
+    hide_diasabled()
+
+}
+
+function toggle_available_rendezvous(){
+    console.log("Hey")
+    if (available_active){
+        {# $(".available_rendezvous").hide() #}
+        $("#available_toggle").addClass("tw-line-through")
+        available_active=false
+    } else {
+        {# $(".available_rendezvous").show() #}
+        $("#available_toggle").removeClass("tw-line-through")
+        available_active=true
+    }
+    search_and_display($("#rendezvous-search-bar").val());
+}
+
+function toggle_booked_rendezvous(){
+    console.log("Hey")
+    if (booked_active){
+        {# $(".booked_rendezvous").hide() #}
+        $("#booked_toggle").addClass("tw-line-through")
+        booked_active=false
+    } else {
+        {# $(".booked_rendezvous").show() #}
+        $("#booked_toggle").removeClass("tw-line-through")
+        booked_active=true
+    }
+    search_and_display($("#rendezvous-search-bar").val());
+
+}
+
+function toggle_past_rendezvous(){
+    console.log("Hey")
+    if (past_active){
+        {# $(".past_rendezvous").hide() #}
+        $("#past_toggle").addClass("tw-line-through")
+        past_active=false
+    } else {
+        {# $(".past_rendezvous").show() #}
+        $("#past_toggle").removeClass("tw-line-through")
+        past_active=true
+    }
+    search_and_display($("#rendezvous-search-bar").val());
+
 }
 
 $(document).ready(function() {
+
     $("#rendezvous-search-bar").on("keyup", function() {
+        console.log("HEllos")
         search_and_display($("#rendezvous-search-bar").val());
     });
 } );
@@ -81,6 +147,20 @@ $(document).ready(function() {
         </button>
     </div>
 </div>
+<div id="colors_memo" class="tw-flex tw-flex-row tw-justify-around tw-rounded-md tw-shadow-md tw-py-2 tw-m-2">
+    <a id="past_toggle" onclick="toggle_past_rendezvous()" class="tw-flex tw-flex-row tw-items-center">
+        <div class="tw-h-5 tw-w-5 tw-rounded-full tw-bg-gray-800"></div>
+        <span class="tw-text-xs tw-font-medium tw-ml-2">Past Rendezvous</span>
+    </a>
+    <a id="available_toggle" onclick="toggle_available_rendezvous()" class="tw-flex tw-flex-row tw-items-center">
+        <div class="tw-h-5 tw-w-5 tw-rounded-full tw-bg-blue-800"></div>
+        <span class="tw-text-xs tw-font-medium tw-ml-2">Available Rendezvous</span>
+    </a>
+    <a id="booked_toggle" onclick="toggle_booked_rendezvous()" class="tw-flex tw-flex-row tw-items-center">
+        <div class="tw-h-5 tw-w-5 tw-rounded-full tw-bg-green-800"></div>
+        <span class="tw-text-xs tw-font-medium tw-ml-2">Booked Rendezvous</span>
+    </a>
+</div>
 
 <div id="rendezvous-table"class="tw-rounded-md tw-shadow-md tw-p-[5px] tw-m-[10px] tw-relative tw-overflow-x-auto tw-shadow-md sm:tw-rounded-lg">
     <table id="studentTable" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -100,12 +180,24 @@ $(document).ready(function() {
                     <table class="tw-text-left tw-rounded-lg">
                         {% for rendezvous in rendezvous_list%}
                         {% if rendezvous.period == period.id %}
-                            <tr id="rendezvous{{rendezvous.id}}" class="rendezvous tw-bg-gray-50 tw-border-4 ">
+                            {% if rendezvous.datetime.past==1 %}
+                            <tr id="rendezvous{{rendezvous.id}}" class="past_rendezvous rendezvous tw-bg-gray-50 tw-border-4 ">
+                            {% elif rendezvous.team==-1 %}
+                            <tr id="rendezvous{{rendezvous.id}}" class="available_rendezvous rendezvous tw-bg-gray-50 tw-border-4 ">
+                            {% else %}
+                            <tr id="rendezvous{{rendezvous.id}}" class="booked_rendezvous rendezvous tw-bg-gray-50 tw-border-4 ">
+                            {% endif %}
                                 <td id="rendezvous{{rendezvous.id}}-icon" class="tw-px-6 tw-py-4 tw-font-medium tw-text-gray-900 tw-whitespace-nowrap ">
                                     <div class="tw-font-medium">
                                         <div class="tw-w-32 tw-flex-none tw-rounded-t lg:tw-rounded-t-none lg:tw-rounded-l tw-text-center tw-shadow-lg ">
                                           <div class="tw-block tw-rounded-t tw-overflow-hidden tw-text-center ">
-                                            <div class="tw-bg-blue-950 tw-text-white tw-py-1">
+                                            {% if rendezvous.datetime.past==1 %}
+                                            <div class="tw-bg-gray-800 tw-text-white tw-py-1">
+                                            {% elif rendezvous.team==-1 %}
+                                            <div class="tw-bg-blue-800 tw-text-white tw-py-1">
+                                            {% else %}
+                                            <div class="tw-bg-green-800 tw-text-white tw-py-1">
+                                            {% endif %}
                                               {{rendezvous.datetime.month}}
                                             </div>
                                             <div class="tw-pt-1 tw-border-l tw-border-r tw-border-white tw-bg-white">
