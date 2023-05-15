@@ -61,7 +61,7 @@
                 <form action="#" method="post">
                     <input type="hidden" name="rend_id" value="{{configdict.booked_rendezvous.id}}">
                     <input type="hidden" name="team_asn" value="{{current_user.asn}}">
-                    <button type="submit" name="cancel" value="1" class="tw-ml-10 tw-mt-4 tw-py-2 tw-px-4 tw-bg-red-600 tw-text-white tw-font-semibold tw-rounded-lg tw-shadow-md hover:tw-bg-red-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-red-500 focus:tw-ring-opacity-50">
+                    <button type="submit" name="cancel" value="1" class="tw-ml-10 tw-mt-4 tw-py-2 tw-px-4 tw-bg-red-600 tw-text-white tw-font-semibold tw-rounded-lg tw-shadow-md hover:tw-bg-red-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-red-500 focus:tw-ring-opacity-50" {{"disabled" if configdict.booked_rendezvous.datetime.past==1}}>
                         Cancel
                     </button>
             </div>

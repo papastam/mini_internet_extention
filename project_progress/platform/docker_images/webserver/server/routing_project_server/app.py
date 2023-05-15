@@ -353,14 +353,24 @@ def create_project_server(db_session, config=None, build=False):
                 requested_rendezvous = db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first()
                 if "cancel" in request_dict:
                     debug(f"{requested_rendezvous.team} == {request_dict['team_asn']}")
-                    if requested_rendezvous.team == int(request_dict["team_asn"]):
+
+                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime < datetime.now():
+                        flash('You cannot cancel a rendezvous that has already passed.', 'error')
+                    elif requested_rendezvous.team is None:
+                        flash('This rendezvous is already cancelled.', 'error')
+                    elif requested_rendezvous.team == int(request_dict["team_asn"]):
                         requested_rendezvous.team = None
                         db_session.commit()
                         flash('Rendezvous cancelled successfully.', 'success')
                     else:
                         flash('You cannot cancel this rendezvous', 'error')
                 elif ("team_asn" in request_dict):
-                    if requested_rendezvous.team:
+                    
+                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime < datetime.now():
+                        flash('You cannot book a rendezvous that has already passed.', 'error')
+                    elif requested_rendezvous.team == int(request_dict["team_asn"]):
+                        flash('This rendezvous is already booked by your team', 'error')
+                    elif requested_rendezvous.team:
                         flash('This rendezvous is already booked by another team', 'error')
                     else:
                         requested_rendezvous.team = request_dict["team_asn"]
@@ -370,7 +380,7 @@ def create_project_server(db_session, config=None, build=False):
         #Period selection page    
         if selected_period is None:
             configdict = {"periods":[]}
-            for period in db_session.query(db.Period).all():
+            for period in db_session.query(db.Period).filter(db.Period.live==True).all():
                 configdict["periods"].append({
                     "id":period.id,
                     "name":period.name,
