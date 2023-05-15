@@ -1,4 +1,3 @@
 sidebar at config and rendezvous does not extend to the bottom of the screen
 popup messages are not sticky
-color coded rendezvous icons
 generally test and fix students rendezvosus index page
