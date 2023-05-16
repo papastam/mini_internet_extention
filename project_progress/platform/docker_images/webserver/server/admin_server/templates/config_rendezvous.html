@@ -6,9 +6,26 @@
 students = {{ students|safe}};
 rendezvous_list = {{ rendezvous_list|safe}};
 
+available_active=true
+booked_active=true
+past_active=true
+
+function hide_diasabled(){
+    if (!available_active){
+        $(".available_rendezvous").hide()
+    }
+    if (!booked_active){
+        $(".booked_rendezvous").hide()
+    }
+    if (!past_active){
+        $(".past_rendezvous").hide()
+    }
+}
+
 function search_and_display(input){
     if (input == ""){
         $(".rendezvous").show()
+        hide_diasabled()
         return
     }
     
@@ -25,6 +42,7 @@ function search_and_display(input){
         }
 
         if (student_team == -1){
+            hide_diasabled()
             return
         }
 
@@ -43,10 +61,58 @@ function search_and_display(input){
         }
     }
 
+    hide_diasabled()
+
+}
+
+function toggle_available_rendezvous(){
+    console.log("Hey")
+    if (available_active){
+        {# $(".available_rendezvous").hide() #}
+        $("#available_toggle").addClass("tw-line-through")
+        available_active=false
+    } else {
+        {# $(".available_rendezvous").show() #}
+        $("#available_toggle").removeClass("tw-line-through")
+        available_active=true
+    }
+    search_and_display($("#rendezvous-search-bar").val());
+}
+
+function toggle_booked_rendezvous(){
+    console.log("Hey")
+    if (booked_active){
+        {# $(".booked_rendezvous").hide() #}
+        $("#booked_toggle").addClass("tw-line-through")
+        booked_active=false
+    } else {
+        {# $(".booked_rendezvous").show() #}
+        $("#booked_toggle").removeClass("tw-line-through")
+        booked_active=true
+    }
+    search_and_display($("#rendezvous-search-bar").val());
+
+}
+
+function toggle_past_rendezvous(){
+    console.log("Hey")
+    if (past_active){
+        {# $(".past_rendezvous").hide() #}
+        $("#past_toggle").addClass("tw-line-through")
+        past_active=false
+    } else {
+        {# $(".past_rendezvous").show() #}
+        $("#past_toggle").removeClass("tw-line-through")
+        past_active=true
+    }
+    search_and_display($("#rendezvous-search-bar").val());
+
 }
 
 $(document).ready(function() {
+
     $("#rendezvous-search-bar").on("keyup", function() {
+        console.log("HEllos")
         search_and_display($("#rendezvous-search-bar").val());
     });
 } );
@@ -81,6 +147,20 @@ $(document).ready(function() {
         </button>
     </div>
 </div>
+<div id="colors_memo" class="tw-flex tw-flex-row tw-justify-around tw-rounded-md tw-shadow-md tw-py-2 tw-m-2">
+    <a id="past_toggle" onclick="toggle_past_rendezvous()" class="tw-flex tw-flex-row tw-items-center">
+        <div class="tw-h-5 tw-w-5 tw-rounded-full tw-bg-gray-800"></div>
+        <span class="tw-text-xs tw-font-medium tw-ml-2">Past Rendezvous</span>
+    </a>
+    <a id="available_toggle" onclick="toggle_available_rendezvous()" class="tw-flex tw-flex-row tw-items-center">
+        <div class="tw-h-5 tw-w-5 tw-rounded-full tw-bg-blue-800"></div>
+        <span class="tw-text-xs tw-font-medium tw-ml-2">Available Rendezvous</span>
+    </a>
+    <a id="booked_toggle" onclick="toggle_booked_rendezvous()" class="tw-flex tw-flex-row tw-items-center">
+        <div class="tw-h-5 tw-w-5 tw-rounded-full tw-bg-green-800"></div>
+        <span class="tw-text-xs tw-font-medium tw-ml-2">Booked Rendezvous</span>
+    </a>
+</div>
 
 <div id="rendezvous-table"class="tw-rounded-md tw-shadow-md tw-p-[5px] tw-m-[10px] tw-relative tw-overflow-x-auto tw-shadow-md sm:tw-rounded-lg">
     <table id="studentTable" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -88,7 +168,7 @@ $(document).ready(function() {
             <tr>
                 {% for period in periods %}
                 <th scope="col" class="px-6 py-3">
-                    <a data-modal-target="edit-period{{period.id}}-modal" data-modal-toggle="edit-period{{period.id}}-modal" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">{{ period.name }}</a>
+                    <a data-modal-target="edit-period{{period.id}}-modal" data-modal-toggle="edit-period{{period.id}}-modal" class="tw-font-medium {{"tw-text-blue-600" if period.live else "tw-text-gray-800"}} hover:underline">{{ period.name }} {{"[Inactive]" if  not period.live}}</a>
                 </th>
                 {% endfor %}
             </tr>
@@ -96,16 +176,28 @@ $(document).ready(function() {
         <tbody id="studentsTableBody">
             <tr class="tw-bg-white tw-text-gray-900 tw-border-b">
             {% for period in periods %}
-                <td class="">
+                <td class="tw-align-top">
                     <table class="tw-text-left tw-rounded-lg">
                         {% for rendezvous in rendezvous_list%}
                         {% if rendezvous.period == period.id %}
-                            <tr id="rendezvous{{rendezvous.id}}" class="rendezvous tw-bg-gray-50 tw-border-4 ">
+                            {% if rendezvous.datetime.past==1 %}
+                            <tr id="rendezvous{{rendezvous.id}}" class="past_rendezvous rendezvous tw-bg-gray-50 tw-border-4 ">
+                            {% elif rendezvous.team==-1 %}
+                            <tr id="rendezvous{{rendezvous.id}}" class="available_rendezvous rendezvous tw-bg-gray-50 tw-border-4 ">
+                            {% else %}
+                            <tr id="rendezvous{{rendezvous.id}}" class="booked_rendezvous rendezvous tw-bg-gray-50 tw-border-4 ">
+                            {% endif %}
                                 <td id="rendezvous{{rendezvous.id}}-icon" class="tw-px-6 tw-py-4 tw-font-medium tw-text-gray-900 tw-whitespace-nowrap ">
                                     <div class="tw-font-medium">
                                         <div class="tw-w-32 tw-flex-none tw-rounded-t lg:tw-rounded-t-none lg:tw-rounded-l tw-text-center tw-shadow-lg ">
                                           <div class="tw-block tw-rounded-t tw-overflow-hidden tw-text-center ">
-                                            <div class="tw-bg-blue-950 tw-text-white tw-py-1">
+                                            {% if rendezvous.datetime.past==1 %}
+                                            <div class="tw-bg-gray-800 tw-text-white tw-py-1">
+                                            {% elif rendezvous.team==-1 %}
+                                            <div class="tw-bg-blue-800 tw-text-white tw-py-1">
+                                            {% else %}
+                                            <div class="tw-bg-green-800 tw-text-white tw-py-1">
+                                            {% endif %}
                                               {{rendezvous.datetime.month}}
                                             </div>
                                             <div class="tw-pt-1 tw-border-l tw-border-r tw-border-white tw-bg-white">
@@ -162,14 +254,6 @@ $(document).ready(function() {
                         <label for="name" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period name</label>
                         <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="name" type="text">
                     </div>
-                    <div>
-                        <label for="start" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period starting date</label>
-                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="start" type="date">
-                    </div>
-                    <div>
-                        <label for="end" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period ending date</label>
-                        <input class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="end" type="date">
-                    </div>
                     <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Add Period</button>
                 </form>
             </div>
@@ -196,13 +280,14 @@ $(document).ready(function() {
                         <label for="name" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period name</label>
                         <input value="{{period.name}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="name" type="text">
                     </div>
-                    <div>
-                        <label for="start" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period starting date</label>
-                        <input value="{{period.start.date}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="start" type="date">
-                    </div>
-                    <div>
-                        <label for="end" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Period ending date</label>
-                        <input value="{{period.end.date}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" name="end" type="date">
+                    <div class="tw-flex tw-justify-between">
+                        <div class="tw-flex tw-items-start">
+                            <div class="tw-flex tw-items-center tw-h-5">
+                                <input id="{{period.id}}_live" name="live" type="checkbox" value="1" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800" {{"checked" if period.live}}>
+                                <input id="{{period.id}}_live_hidden" type="hidden" name="live" type="checkbox" value="0" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800" checked>
+                            </div>
+                            <label for="remember" class="tw-ml-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-gray-300">Live Phase</label>
+                        </div>
                     </div>
                     <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Update Period</button>
                     <button type="submit" name='delete' class="tw-w-full tw-text-white tw-bg-red-700 hover:tw-bg-red-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-red-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-red-600 dark:hover:tw-bg-red-700 dark:focus:tw-ring-red-800">Delete Period</button>
@@ -311,7 +396,7 @@ $(document).ready(function() {
                     </div>
                     <div>
                         <label for="duration" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Rendezvous duration (minutes)</label>
-                        <input id="new-rendezvous-range-duration" name="duration" type="text" value="rendezvous.duration" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" disabled>
+                        <input id="new-rendezvous-range-duration" name="duration" type="text" value="{{rendezvous.duration}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" disabled>
                     </div>
                     <div>
                         <label for="period" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Rendezvous period</label>
@@ -321,7 +406,7 @@ $(document).ready(function() {
                         <label for="team" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Assigned team</label>
                         <select name="team" placeholder="Select team" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
                             {% for team in teams %}
-                                {% if team.is_active %}
+                                {% if team.active_as %}
                                 <option value="{{team.asn}}" {{"selected" if rendezvous.team == team.asn }}>{{team.asn}}</option>
                                 {% endif %}
                             {% endfor %}

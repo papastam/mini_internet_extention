@@ -149,7 +149,11 @@
                         {{student.name}}
                     </td>
                     <td class="tw-px-6 tw-py-4">
+                        {% if student.email!="" %}
+                        <a href="mailto:{{student.email}}">{{student.email}}</a>
+                        {% else %}
                         {{student.email}}
+                        {% endif %}
                     </td>
                     <td class="tw-px-6 tw-py-4">
                         {{student.team if student.team != -1 else 'None'}}
@@ -255,7 +259,7 @@
                             {% for questionindex in range(1,6) %}
                             <div class="tw-w-[50px]">
                                 <label for="student_{{student.id}}_P{{phaseindex}}Q{{questionindex}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Q{{questionindex}}</label>
-                                <input type="text" name="p{{phaseindex}}q{{questionindex}}" id="student_{{student.id}}_P{{phaseindex}}Q{{questionindex}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" placeholder="/10">
+                                <input type="text" name="p{{phaseindex}}q{{questionindex}}" value="{{student}}" id="student_{{student.id}}_P{{phaseindex}}Q{{questionindex}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" placeholder="/10">
                             </div>
                             {% endfor %}
                         </div>

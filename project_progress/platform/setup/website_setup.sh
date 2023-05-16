@@ -18,6 +18,15 @@ set -o nounset
 
 DIRECTORY="$1"
 DOCKERHUB_USER="${2:-thomahol}"
+BUILD="false"
+
+if [ "$#" -gt 2 ]; then
+    if [ "$3" == "-b" ]; then
+        BUILD="true"
+    fi
+fi
+
+echo "Build: ${BUILD}"
 
 ######################################
 ### UPDATE THE FOLLOWING VARIABLES ###
@@ -41,7 +50,6 @@ PORT_KRILL="3000"
 # Put your timezone here.
 TZ="Europe/Athens"
 ######################################
-
 
 # Directories on host.
 DIRECTORY="$1"
@@ -144,18 +152,15 @@ docker run -itd --name="WEB" --cpus=2 \
     -e PROJECT_SERVER_CONFIG=/server/project_config.py \
     -e ADMIN_SERVER_CONFIG=/server/admin_config.py \
     -e TZ=${TZ} \
-    -e FLASK_DEBUG=1 \
     -e DATADIR_SERVER=${DATADIR_SERVER}\
     -e CONFIGDIR_SERVER=${CONFIGDIR_SERVER}\
+    -e BUILD=${BUILD}\
     -l traefik.enable=true \
     -l traefik.http.routers.web.entrypoints=web \
     -l traefik.http.routers.websecure.entrypoints=websecure \
     --hostname="web" \
     --privileged \
     "${DOCKERHUB_USER}/d_webserver"
-
-
-
 
 # Next start the proxy
 # Setup based on the following tutorials:

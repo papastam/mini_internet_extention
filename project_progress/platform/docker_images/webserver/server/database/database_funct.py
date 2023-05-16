@@ -12,6 +12,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from .build_db import create_test_db_snapshot
+
 db = SQLAlchemy()
 
 Base = declarative_base()
@@ -46,7 +48,6 @@ class AS_team(Base):
  
     asn         = db.Column(db.Integer, primary_key=True)
     password    = db.Column(db.String(20), nullable=False)
-    active_as   = db.Column(db.Boolean, nullable=False, default=False)
     # Members are addressed by their unique ID
     member1     = db.Column(db.Integer, ForeignKey("student.id"), nullable=True, default=None)
     member2     = db.Column(db.Integer, ForeignKey("student.id"), nullable=True, default=None)
@@ -54,7 +55,7 @@ class AS_team(Base):
     member4     = db.Column(db.Integer, ForeignKey("student.id"), nullable=True, default=None)
 
     # Needed to be a User class for Flask-Login
-    is_authenticated    = db.Column(db.Boolean, nullable=False, default=True)
+    is_authenticated    = db.Column(db.Boolean, nullable=False, default=False)
     is_active           = db.Column(db.Boolean, nullable=False, default=True)
     is_anonymous        = db.Column(db.Boolean, nullable=False, default=False)
 
@@ -99,11 +100,11 @@ class Period(Base):
  
     id          = db.Column(db.Integer, primary_key=True)
     name        = db.Column(db.String, nullable=False)
-    start       = db.Column(db.DateTime(timezone=True), nullable=False)
-    end         = db.Column(db.DateTime(timezone=True), nullable=False)
+    live        = db.Column(db.Boolean, nullable=False, default=False)
 
-def init_db():
+def init_db(build: bool = False):
     # Create the database
-    Base.metadata.create_all(engine)
+    if build:
+        Base.metadata.create_all(engine)
     session = Session()
     return session

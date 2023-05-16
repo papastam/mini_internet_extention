@@ -7,32 +7,34 @@ from multiprocessing import Process
 from database import init_db
 from routing_project_server import create_project_server
 from admin_server import create_admin_server
+import os
+import signal
+
+from utils import debug, reset_files
+
+project_server_run = None
+admin_server_run = None
 
 if __name__ == "__main__":
-
-
-    #Clear the databases
-    with open("/server/database/database.db",'r+') as file:
-        file.truncate(0)
-
-    #Clear the log files
-    with open("/server/routing_project_server/as.log",'r+') as file:
-        file.truncate(0)    
-    with open("/server/admin_server/admin_login.log",'r+') as file:
-        file.truncate(0)
     
-    # init the database and get a new session
-    db_session = init_db()
+    build=False
+    if os.getenv('BUILD')=="true":
+        debug("Building database...")
+        reset_files()
+        db_session = init_db(build=True)
+        build=True
+    else:
+        debug("Build environment variable not set. Not building database.")
+        db_session = init_db()
+    os.environ['BUILD']="false"
 
-
-
-    project_server = create_project_server(db_session)
+    project_server = create_project_server(db_session,build=build)
     project_host = project_server.config['HOST']
     project_port = project_server.config['PORT']
     
     # bjoern.run(project_server, project_host, project_port)
     
-    admin_server = create_admin_server(db_session)
+    admin_server = create_admin_server(db_session,build=build)
     admin_host = admin_server.config['HOST']
     admin_port = admin_server.config['PORT']
 
@@ -51,3 +53,11 @@ if __name__ == "__main__":
     )
     admin_server_run.start()
     print(f"\033[45mRunning admin server on `{admin_host}:{admin_port}`.\033[00m")
+
+def shutdown_handler(signum, frame):
+    print("Shutting down...")
+    project_server_run.terminate()
+    admin_server_run.terminate()
+    exit(1)
+
+signal.signal(signal.SIGINT, shutdown_handler)

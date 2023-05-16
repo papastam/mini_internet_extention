@@ -150,101 +150,104 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.5/flowbite.min.js"></script>
 
 <!-- Popups -->
-    <div id="new-team-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
-        <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
-            <!-- Modal content -->
-            <div class="tw-relative tw-bg-white tw-rounded-lg tw-shadow dark:tw-bg-gray-700">
-                <button type="button" class="tw-absolute tw-top-3 tw-right-2.5 tw-text-gray-400 tw-bg-transparent hover:tw-bg-gray-200 hover:tw-text-gray-900 tw-rounded-lg tw-text-sm tw-p-1.5 tw-ml-auto tw-inline-flex tw-items-center dark:hover:tw-bg-gray-800 dark:hover:tw-text-white" data-modal-hide="new-team-modal">
-                    <svg aria-hidden="true" class="tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    <span class="tw-sr-only">Close Popup</span>
-                </button>
-                <div class="tw-px-6 tw-py-6 lg:tw-px-8">
-                    <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">New team</h3>
-                    <form class="tw-space-y-6" action="#" method="POST">
+<!-- New team -->
+<div id="new-team-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
+    <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
+        <!-- Modal content -->
+        <div class="tw-relative tw-bg-white tw-rounded-lg tw-shadow dark:tw-bg-gray-700">
+            <button type="button" class="tw-absolute tw-top-3 tw-right-2.5 tw-text-gray-400 tw-bg-transparent hover:tw-bg-gray-200 hover:tw-text-gray-900 tw-rounded-lg tw-text-sm tw-p-1.5 tw-ml-auto tw-inline-flex tw-items-center dark:hover:tw-bg-gray-800 dark:hover:tw-text-white" data-modal-hide="new-team-modal">
+                <svg aria-hidden="true" class="tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                <span class="tw-sr-only">Close Popup</span>
+            </button>
+            <div class="tw-px-6 tw-py-6 lg:tw-px-8">
+                <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">New team</h3>
+                <form class="tw-space-y-6" action="#" method="POST">
+                    <div>
+                        <label for="asn" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select new team's as number</label>
+                        <select name="asn" id="new_team_asn" placeholder="new asn" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" required>
+                            {% for team in teams %}
+                                {% if team.active_as=="false"%}
+                                    <option value="{{team.asn}}">{{team.asn}}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="password" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Team password</label>
+                        <input type="text" name="password" id="password" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" placeholder="new password">
+                    </div>
+                    {% for i in range(4) %}
                         <div>
-                            <label for="asn" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Select new team's as number</label>
-                            <select name="asn" id="new_team_asn" placeholder="new asn" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" required>
-                                {% for team in teams %}
-                                    {% if team.active_as=="false"%}
-                                        <option value="{{team.asn}}">{{team.asn}}</option>
+                            <label for="member{{i+1}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Member {{i+1}}</label>
+                            <select name="member{{i+1}}" id="newteam_member{{i+1}}" placeholder="Select team member {{i}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
+                                {% for student in students %}
+                                    {% if student.team == -1 %}
+                                        <option value="{{student.id}}">{{student.name}}</option>
                                     {% endif %}
                                 {% endfor %}
+                                <option value='-1' selected>None</option>
                             </select>
                         </div>
-                        <div>
-                            <label for="password" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Team password</label>
-                            <input type="text" name="password" id="password" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" placeholder="new password">
-                        </div>
-                        {% for i in range(4) %}
-                            <div>
-                                <label for="member{{i+1}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Member {{i+1}}</label>
-                                <select name="member{{i+1}}" id="newteam_member{{i+1}}" placeholder="Select team member {{i}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
-                                    {% for student in students %}
-                                        {% if student.team == -1 %}
-                                            <option value="{{student.id}}">{{student.name}}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                    <option value='-1' selected>None</option>
-                                </select>
-                            </div>
-                        {% endfor %}
-                        <input id="new_team_active_hidden" type="hidden" name="active_as" type="checkbox" value="1" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800">
-                        <div class="tw-text-red-500">
-                            <p>
-                                Warrning! this will overwrite any previous configuration of the team info
-                            </p>
-                        </div>
-                        <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Add team</button>
-                    </form>
-                </div>
+                    {% endfor %}
+                    <input id="new_team_active_hidden" type="hidden" name="active_as" type="checkbox" value="1" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800">
+                    <div class="tw-text-red-500">
+                        <p>
+                            WARRNING! this will overwrite any previous configuration of the team info
+                        </p>
+                    </div>
+                    <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Add team</button>
+                </form>
             </div>
         </div>
-    </div> 
+    </div>
+</div> 
 
-    {% for team in teams %}
-    <div id="edit-team-{{team.asn}}-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
-        <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
-            <!-- Modal content -->
-            <div class="tw-relative tw-bg-white tw-rounded-lg tw-shadow dark:tw-bg-gray-700">
-                <button type="button" class="tw-absolute tw-top-3 tw-right-2.5 tw-text-gray-400 tw-bg-transparent hover:tw-bg-gray-200 hover:tw-text-gray-900 tw-rounded-lg tw-text-sm tw-p-1.5 tw-ml-auto tw-inline-flex tw-items-center dark:hover:tw-bg-gray-800 dark:hover:tw-text-white" data-modal-hide="edit-team-{{team.asn}}-modal">
-                    <svg aria-hidden="true" class="tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    <span class="tw-sr-only">Close Popup</span>
-                </button>
-                <div class="tw-px-6 tw-py-6 lg:tw-px-8">
-                    <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">Edit team {{team.asn}}</h3>
-                    <form class="tw-space-y-6" action="#" method="POST">
-                        <input type="hidden" id="asn" name="asn" value="{{team.asn}}">
+<!-- Edit team -->
+{% for team in teams %}
+<div id="edit-team-{{team.asn}}-modal" tabindex="-1" aria-hidden="true" class="tw-fixed tw-top-0 tw-left-0 tw-right-0 tw-z-50 hidden tw-w-full tw-p-4 tw-overflow-x-hidden tw-overflow-y-auto md:tw-inset-0 tw-h-[calc(100%-1rem)] tw-max-h-full">
+    <div class="tw-relative tw-w-full tw-max-w-md tw-max-h-full">
+        <!-- Modal content -->
+        <div class="tw-relative tw-bg-white tw-rounded-lg tw-shadow dark:tw-bg-gray-700">
+            <button type="button" class="tw-absolute tw-top-3 tw-right-2.5 tw-text-gray-400 tw-bg-transparent hover:tw-bg-gray-200 hover:tw-text-gray-900 tw-rounded-lg tw-text-sm tw-p-1.5 tw-ml-auto tw-inline-flex tw-items-center dark:hover:tw-bg-gray-800 dark:hover:tw-text-white" data-modal-hide="edit-team-{{team.asn}}-modal">
+                <svg aria-hidden="true" class="tw-w-5 tw-h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                <span class="tw-sr-only">Close Popup</span>
+            </button>
+            <div class="tw-px-6 tw-py-6 lg:tw-px-8">
+                <h3 class="tw-mb-4 tw-text-xl tw-font-medium tw-text-gray-900 dark:tw-text-white">Edit team {{team.asn}}</h3>
+                <form class="tw-space-y-6" action="#" method="POST">
+                    <input type="hidden" id="asn" name="asn" value="{{team.asn}}">
+                    <div>
+                        <label for="password" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Team password</label>
+                        <input type="text" name="password" id="password" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" placeholder="{{team.password}}">
+                    </div>
+                    {% for i in range(team.members|length) %}
                         <div>
-                            <label for="password" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Team password</label>
-                            <input type="text" name="password" id="password" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white" placeholder="{{team.password}}">
+                            <label for="member{{i+1}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Member {{i}}</label>
+                            <select name="member{{i+1}}" id="team{{team.asn}}_member{{i+1}}" placeholder="Select team member {{i+1}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
+                                {% for student in students %}
+                                    {% if student.team == -1 or team.members[i] == student.id %}
+                                    <option value="{{student.id}}" {{'selected="selected"' if team.members[i] == student.id else '' }}>{{student.name}}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                <option value='-1' {{'selected="selected"' if team.members[i] == -1 else '' }}>None</option>
+                            </select>
                         </div>
-                        {% for i in range(team.members|length) %}
-                            <div>
-                                <label for="member{{i+1}}" class="tw-block tw-mb-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-white">Member {{i}}</label>
-                                <select name="member{{i+1}}" id="team{{team.asn}}_member{{i+1}}" placeholder="Select team member {{i+1}}" class="tw-bg-gray-50 tw-border tw-border-gray-300 tw-text-gray-900 tw-text-sm tw-rounded-lg focus:tw-ring-blue-500 focus:tw-border-blue-500 tw-block tw-w-full tw-p-2.5 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:tw-placeholder-gray-400 dark:tw-text-white">
-                                    {% for student in students %}
-                                        {% if student.team == -1 or team.members[i] == student.id %}
-                                        <option value="{{student.id}}" {{'selected="selected"' if team.members[i] == student.id else '' }}>{{student.name}}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                    <option value='-1' {{'selected="selected"' if team.members[i] == -1 else '' }}>None</option>
-                                </select>
+                    {% endfor %}
+                    <div class="tw-flex tw-justify-between">
+                        <div class="tw-flex tw-items-start">
+                            <div class="tw-flex tw-items-center tw-h-5">
+                                <input id="{{team.asn}}_active" name="active_as" type="checkbox" value="1" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800" {{"checked" if team.active_as == "true"}}>
+                                <input id="{{team.asn}}_active_hidden" type="hidden" name="active_as" type="checkbox" value="0" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800" checked>
                             </div>
-                        {% endfor %}
-                        <div class="tw-flex tw-justify-between">
-                            <div class="tw-flex tw-items-start">
-                                <div class="tw-flex tw-items-center tw-h-5">
-                                    <input id="{{team.asn}}_active" name="active_as" type="checkbox" value="1" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800" {{"checked" if team.active_as == "true"}}>
-                                    <input id="{{team.asn}}_active_hidden" type="hidden" name="active_as" type="checkbox" value="0" class="tw-w-4 tw-h-4 tw-border tw-border-gray-300 rounded tw-bg-gray-50 focus:tw-ring-3 focus:tw-ring-blue-300 dark:tw-bg-gray-600 dark:tw-border-gray-500 dark:focus:tw-ring-blue-600 dark:tw-ring-offset-gray-800 dark:focus:tw-ring-offset-gray-800" checked>
-                                </div>
-                                <label for="remember" class="tw-ml-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-gray-300">Active Team</label>
-                            </div>
+                            <label for="remember" class="tw-ml-2 tw-text-sm tw-font-medium tw-text-gray-900 dark:tw-text-gray-300">Active Team</label>
                         </div>
-                        <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center dark:tw-bg-blue-600 dark:hover:tw-bg-blue-700 dark:focus:tw-ring-blue-800">Update team</button>
-                    </form>
-                </div>
+                    </div>
+                    <button type="submit" class="tw-w-full tw-text-white tw-bg-blue-700 hover:tw-bg-blue-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-blue-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center">Update team</button>
+                    <button type="submit" name="clear" value=1 class="tw-w-full tw-text-white tw-bg-red-700 hover:tw-bg-red-800 focus:tw-ring-4 focus:tw-outline-none focus:tw-ring-red-300 tw-font-medium tw-rounded-lg tw-text-sm tw-px-5 tw-py-2.5 tw-text-center">Clear Team</button>
+                </form>
             </div>
         </div>
-    </div> 
-    {% endfor %}
+    </div>
+</div> 
+{% endfor %}
 {% endblock %}

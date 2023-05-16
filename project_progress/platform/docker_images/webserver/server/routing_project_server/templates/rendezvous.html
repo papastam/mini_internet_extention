@@ -58,9 +58,10 @@
                         </div>
                     </div>
                 </div>
-                <form action="/rendezvous/{{configdict.booked_rendezvous.id}}/cancel" method="post">
-                    <input type="hidden" name="rendezvous_id" value="{{configdict.booked_rendezvous.id}}">
-                    <button type="submit" value="cancel" class="tw-ml-10 tw-mt-4 tw-py-2 tw-px-4 tw-bg-red-600 tw-text-white tw-font-semibold tw-rounded-lg tw-shadow-md hover:tw-bg-red-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-red-500 focus:tw-ring-opacity-50">
+                <form action="#" method="post">
+                    <input type="hidden" name="rend_id" value="{{configdict.booked_rendezvous.id}}">
+                    <input type="hidden" name="team_asn" value="{{current_user.asn}}">
+                    <button type="submit" name="cancel" value="1" class="tw-ml-10 tw-mt-4 tw-py-2 tw-px-4 tw-bg-red-600 tw-text-white tw-font-semibold tw-rounded-lg tw-shadow-md hover:tw-bg-red-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-red-500 focus:tw-ring-opacity-50" {{"disabled" if configdict.booked_rendezvous.datetime.past==1}}>
                         Cancel
                     </button>
             </div>
@@ -81,40 +82,44 @@
             </p>
         </div>
 
-        <div id="rendezvous-div" class=" tw-flex tw-flex-row">
-        {% for day in configdict.days %}
-            <div class="tw-m-5 rtw-rounded-md tw-shadow-md ">
-                {% for rendezvous in configdict.days[day] %}
-                    <a href="#">
+        <form action="#" method="POST">
+            <input type="hidden" name="team_asn" value="{{current_user.asn}}"> 
+            <div id="rendezvous-div" class=" tw-flex tw-flex-row">
+                {% for day in configdict.days %}
+                <div class="tw-m-5 tw-rounded-md ">
+                    {% for rendezvous in configdict.days[day] %}
+                    <button type="submit" name="rend_id" value="{{rendezvous.id}}" class="{{"tw-cursor-not-allowed tw-pointer-events-none" if rendezvous.available!=1}} tw-p-4">
                         <div id="rendezvous{{rendezvous.id}}" class="tw-font-medium">
                             <div class="tw-w-32 tw-flex-none tw-rounded-t lg:tw-rounded-t-none lg:tw-rounded-l tw-text-center tw-shadow-lg ">
                                 <div class="tw-block tw-rounded-t tw-overflow-hidden tw-text-center ">
-                                    <div class="{{'tw-bg-blue-950 ' if rendezvous.available!=1 else 'tw-bg-neutral-800 '}} tw-text-white tw-py-1">
+                                    <div class="{{'tw-bg-blue-950 ' if rendezvous.available==1 else 'tw-bg-neutral-800 '}} tw-text-white tw-py-1">
                                         {{rendezvous.datetime.month}}
                                     </div>
                                     <div class="tw-pt-1 tw-border-l tw-border-r tw-border-white tw-bg-white">
-                                    <span class="tw-text-5xl tw-font-bold tw-leading-tight">
-                                        {{rendezvous.datetime.day}}
-                                    </span>
+                                        <span class="tw-text-5xl tw-font-bold tw-leading-tight">
+                                            {{rendezvous.datetime.day}}
+                                        </span>
                                     </div>
                                     <div class="tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white tw--pt-2 tw--mb-1">
-                                    <span class="tw-text-sm">
-                                        {{rendezvous.datetime.day_str}}
-                                    </span>
+                                        <span class="tw-text-sm">
+                                            {{rendezvous.datetime.day_str}}
+                                        </span>
                                     </div>
                                     <div class="tw-pb-2 tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white">
-                                    <span class="tw-text-xs tw-leading-normal">
-                                        {{rendezvous.datetime.time}}
-                                    </span>
+                                        <span class="tw-text-xs tw-leading-normal">
+                                            {{rendezvous.datetime.time}}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </a>
+                    </button>
+                    {% endfor %}
+                </div>  
                 {% endfor %}
             </div>        
-        {% endfor %}
-        </div>
+        </form>
+    </div>
     </div>
     {% endif %}
 </div>
