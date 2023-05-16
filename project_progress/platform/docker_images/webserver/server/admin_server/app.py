@@ -176,11 +176,18 @@ def create_admin_server(db_session, config=None, build=False):
                     team = db_session.query(db.AS_team).get(form_args["asn"])
                     if ("clear" in form_args) and (form_args["clear"]=="1"):
                         '''Clear and deactivate the team'''
+                        for student in [team.member1, team.member2, team.member3, team.member4]:
+                            if student:
+                                student = db_session.query(db.Student).get(student)
+                                student.team = None
+                                db_session.add(student)
+                        
                         team.member1 = None
                         team.member2 = None
                         team.member3 = None
                         team.member4 = None
-                        team.is_authenticated = False
+                        team.is_authenticated = False                        
+                        
                         flash(f"Team {team.asn} cleared", "info")
 
                         db_session.add(team)
@@ -283,28 +290,45 @@ def create_admin_server(db_session, config=None, build=False):
                     flash("Please enter the student's full name (at least 2 words).", "error")
                 elif "id" in request_args:
                     '''Update existing student'''
-                    
+                    faulty_input = False
+
                     student = db_session.query(db.Student).get(request_args["id"])
                     student.name    = request_args["name"]
                     student.email   = request_args["email"]
 
-                    student.P1Q1        = request_args["p1q1"] if "p1q1" in request_args else None
-                    student.P1Q2        = request_args["p1q2"] if "p1q2" in request_args else None
-                    student.P1Q3        = request_args["p1q3"] if "p1q3" in request_args else None
-                    student.P1Q4        = request_args["p1q4"] if "p1q4" in request_args else None
-                    student.P1Q5        = request_args["p1q5"] if "p1q5" in request_args else None
-                    student.midterm1    = request_args["midterm1"] if "midterm1" in request_args else None
+                    grades = {}
+                    for grade in ["p1q1", "p1q2", "p1q3", "p1q4", "p1q5", "midterm1", "p2q1", "p2q2", "p2q3", "p2q4", "p2q5", "midterm2"]:
+                        if request_args[grade] == "":
+                            request_args[grade] = None
+                        elif not request_args[grade].isdigit():
+                            flash("Please enter a valid grade.", "error")
+                            faulty_input = True
+                            break
+                        elif int(request_args[grade]) < 0 or int(request_args[grade]) > 10:
+                            flash("Please enter a valid grade.", "error")
+                            faulty_input = True
+                            break
+                        
 
-                    student.P2Q1        = request_args["p2q1"] if "p2q1" in request_args else None
-                    student.P2Q2        = request_args["p2q2"] if "p2q2" in request_args else None
-                    student.P2Q3        = request_args["p2q3"] if "p2q3" in request_args else None
-                    student.P2Q4        = request_args["p2q4"] if "p2q4" in request_args else None
-                    student.P2Q5        = request_args["p2q5"] if "p2q5" in request_args else None
-                    student.midterm2    = request_args["midterm2"] if "midterm2" in request_args else None
+                    if not faulty_input:
+                        student.P1Q1        = request_args["p1q1"] if "p1q1" in request_args else None
+                        student.P1Q2        = request_args["p1q2"] if "p1q2" in request_args else None
+                        student.P1Q3        = request_args["p1q3"] if "p1q3" in request_args else None
+                        student.P1Q4        = request_args["p1q4"] if "p1q4" in request_args else None
+                        student.P1Q5        = request_args["p1q5"] if "p1q5" in request_args else None
+                        student.midterm1    = request_args["midterm1"] if "midterm1" in request_args else None
+
+                        student.P2Q1        = request_args["p2q1"] if "p2q1" in request_args else None
+                        student.P2Q2        = request_args["p2q2"] if "p2q2" in request_args else None
+                        student.P2Q3        = request_args["p2q3"] if "p2q3" in request_args else None
+                        student.P2Q4        = request_args["p2q4"] if "p2q4" in request_args else None
+                        student.P2Q5        = request_args["p2q5"] if "p2q5" in request_args else None
+                        student.midterm2    = request_args["midterm2"] if "midterm2" in request_args else None
+
+                        flash(f"Student {request_args['name']} updated successfully.", "success")
 
                     db_session.add(student)
                     db_session.commit()
-                    flash(f"Student {request_args['name']} updated successfully.", "success")
                 else:
                     '''Add new student'''
                     if db_session.query(db.Student).filter(db.Student.name==request_args["name"]).first():
