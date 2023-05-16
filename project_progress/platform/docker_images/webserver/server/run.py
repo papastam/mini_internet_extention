@@ -26,6 +26,7 @@ if __name__ == "__main__":
     else:
         debug("Build environment variable not set. Not building database.")
         db_session = init_db()
+    os.environ['BUILD']="false"
 
     project_server = create_project_server(db_session,build=build)
     project_host = project_server.config['HOST']

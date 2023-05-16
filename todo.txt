@@ -3,6 +3,6 @@ popup messages are not sticky
 generally test and fix students rendezvosus index page
 
 BUGS:
-clearing inactive as does not unassign students from groups
 error in grade assignment
 same day rendezvous dont stack in the same line in the student rendezvous index page
+cannot import values in th pop up input fields in the admin student_config
