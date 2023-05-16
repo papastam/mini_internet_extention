@@ -186,7 +186,12 @@ def create_admin_server(db_session, config=None, build=False):
                         team.member2 = None
                         team.member3 = None
                         team.member4 = None
-                        team.is_authenticated = False                        
+                        team.is_authenticated = False    
+
+                        '''Clear the team's rendezvous'''
+                        for rend in db_session.query(db.Rendezvous).filter(db.Rendezvous.team==team.asn).all():
+                            rend.team = None
+                            db_session.add(rend)
                         
                         flash(f"Team {team.asn} cleared", "info")
 
@@ -296,9 +301,8 @@ def create_admin_server(db_session, config=None, build=False):
                     student.name    = request_args["name"]
                     student.email   = request_args["email"]
 
-                    grades = {}
                     for grade in ["p1q1", "p1q2", "p1q3", "p1q4", "p1q5", "midterm1", "p2q1", "p2q2", "p2q3", "p2q4", "p2q5", "midterm2"]:
-                        if request_args[grade] == "":
+                        if (grade not in request_args) or (request_args[grade] == "") :
                             request_args[grade] = None
                         elif not request_args[grade].isdigit():
                             flash("Please enter a valid grade.", "error")

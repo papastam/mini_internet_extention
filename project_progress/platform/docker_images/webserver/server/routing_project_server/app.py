@@ -354,7 +354,7 @@ def create_project_server(db_session, config=None, build=False):
                 if "cancel" in request_dict:
                     debug(f"{requested_rendezvous.team} == {request_dict['team_asn']}")
 
-                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime < datetime.now():
+                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime < dt.now():
                         flash('You cannot cancel a rendezvous that has already passed.', 'error')
                     elif requested_rendezvous.team is None:
                         flash('This rendezvous is already cancelled.', 'error')
@@ -366,7 +366,7 @@ def create_project_server(db_session, config=None, build=False):
                         flash('You cannot cancel this rendezvous', 'error')
                 elif ("team_asn" in request_dict):
                     
-                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime < datetime.now():
+                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime < dt.now():
                         flash('You cannot book a rendezvous that has already passed.', 'error')
                     elif requested_rendezvous.team == int(request_dict["team_asn"]):
                         flash('This rendezvous is already booked by your team', 'error')

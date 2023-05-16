@@ -93,7 +93,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% set index = 0 %}
-    <div class="tw-w-1/6 tw-absolute tw-bottom-0 tw-right-0 tw-m-3">
+    <div class="tw-w-1/6 tw-fixed tw-bottom-0 tw-right-0 tw-m-3">
 
         <!-- Throw each message in the div -->
         {% for category, message in messages %}

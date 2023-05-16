@@ -1,8 +1,12 @@
-sidebar at config and rendezvous does not extend to the bottom of the screen
-popup messages are not sticky
-generally test and fix students rendezvosus index page
+TODO"
+generally test and fix students rendezvous index page
 
 BUGS:
-error in grade assignment
 same day rendezvous dont stack in the same line in the student rendezvous index page
 cannot import values in th pop up input fields in the admin student_config
+new rendezvous can create colliding rendezvous 
+
+Further checks to be implemented:
+A team can only book one rendezvous for a single period
+innactive teams cannot book rendezvous
+A rendezvous can only be cancelled by the team that booked it
