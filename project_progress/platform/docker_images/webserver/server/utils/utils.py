@@ -1,5 +1,6 @@
 from time import strftime, gmtime
 from datetime import datetime as dt
+from datetime import timedelta
 import os
 
 import database as db
@@ -84,3 +85,15 @@ def reset_files():
         file.truncate(0)    
     with open("/server/admin_server/admin_login.log",'r+') as file:
         file.truncate(0)
+
+def detect_rend_collision(db_session,date,duration,period):
+    """Check if the new rendezvous collides with an existing one."""
+    rends = db_session.query(db.Rendezvous).filter(db.Rendezvous.period==period).all()
+    for rend in rends:
+        if rend.datetime == date:
+            return True
+        if rend.datetime < date and rend.datetime + timedelta(minutes=rend.duration) > date:
+            return True
+        if rend.datetime > date and rend.datetime < date + timedelta(minutes=duration):
+            return True
+    return False

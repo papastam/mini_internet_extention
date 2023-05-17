@@ -1,10 +1,9 @@
-TODO"
+TODO:
 generally test and fix students rendezvous index page
 
 BUGS:
 same day rendezvous dont stack in the same line in the student rendezvous index page
 cannot import values in th pop up input fields in the admin student_config
-new rendezvous can create colliding rendezvous 
 
 Further checks to be implemented:
 A team can only book one rendezvous for a single period

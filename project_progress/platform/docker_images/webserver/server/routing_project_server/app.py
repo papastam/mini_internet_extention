@@ -515,7 +515,11 @@ def loop(function, freq, *args, **kwargs):
             traceback.print_exc()
         remaining_secs = freq - (dt.utcnow() - starttime).total_seconds()
         if remaining_secs > 0:
-            sleep(remaining_secs)
+            try:
+                sleep(remaining_secs)
+            except KeyboardInterrupt:
+                print(f"\033[32mStopping worker `{function.__name__}`.\033[00m")
+                exit()
 
 
 def prepare_matrix(config, worker=False):

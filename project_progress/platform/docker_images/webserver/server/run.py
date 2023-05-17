@@ -58,6 +58,9 @@ def shutdown_handler(signum, frame):
     print("Shutting down...")
     project_server_run.terminate()
     admin_server_run.terminate()
-    exit(1)
+    try:
+        exit(1)
+    except SystemExit:
+        os._exit(1)
 
 signal.signal(signal.SIGINT, shutdown_handler)
