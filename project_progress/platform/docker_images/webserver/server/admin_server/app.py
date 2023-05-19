@@ -217,7 +217,7 @@ def create_admin_server(db_session, config=None, build=False):
                             '''No active members'''
                             team.is_authenticated = False
                             team.member1 = team.member2 = team.member3 = team.member4 = None
-                            flash(f"Team {team.asn} is now inactive.", "info")
+                            flash(f"Team {team.asn} is now inactive because no members were specified.", "info")
                         else:
                             '''Team is active'''
                             team.is_authenticated = True if form_args["active_as"]=="1" else False
