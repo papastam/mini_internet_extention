@@ -18,6 +18,7 @@ from flask_bcrypt import Bcrypt
 from datetime import datetime, timedelta
 import database as db
 import psutil
+from math import isnan
 
 from utils import admin_log, debug, check_for_dupes, update_students, date_to_dict, detect_rend_collision
 
@@ -304,14 +305,19 @@ def create_admin_server(db_session, config=None, build=False):
                     for grade in ["p1q1", "p1q2", "p1q3", "p1q4", "p1q5", "midterm1", "p2q1", "p2q2", "p2q3", "p2q4", "p2q5", "midterm2"]:
                         if (grade not in request_args) or (request_args[grade] == "") :
                             request_args[grade] = None
-                        elif not request_args[grade].isdigit():
-                            flash("Please enter a valid grade.", "error")
-                            faulty_input = True
-                            break
-                        elif int(request_args[grade]) < 0 or int(request_args[grade]) > 10:
-                            flash("Please enter a valid grade.", "error")
-                            faulty_input = True
-                            break
+                        else:
+                            try:
+                                request_args[grade] = float(request_args[grade])
+                            except ValueError:
+                                flash(f"Please enter a valid grade. ('{request_args[grade]}' is not a number)", "error")
+                                faulty_input = True
+                                break 
+
+                            if request_args[grade] < 0 or request_args[grade] > 10:
+                                flash(f"Please enter a valid grade. ({request_args[grade]} is not in range 0-10)", "error")
+                                faulty_input = True
+                                break
+
                         
 
                     if not faulty_input:
@@ -356,20 +362,25 @@ def create_admin_server(db_session, config=None, build=False):
                 "name": student.name,
                 "email": student.email,
                 "team": student.team if student.team!=None else -1,
-                "grades": {
+                "grades": [
+                    {
                     "p1q1": student.P1Q1,
                     "p1q2": student.P1Q2,
                     "p1q3": student.P1Q3,
                     "p1q4": student.P1Q4,
                     "p1q5": student.P1Q5,
+                    },{
                     "midterm1": student.midterm1,
+                    },{
                     "p2q1": student.P2Q1,
                     "p2q2": student.P2Q2,
                     "p2q3": student.P2Q3,
                     "p2q4": student.P2Q4,
                     "p2q5": student.P2Q5,
+                    },{
                     "midterm2": student.midterm2,
-                }
+                    }
+                ]
             })
 
         return render_template("config_students.html", students=students)
