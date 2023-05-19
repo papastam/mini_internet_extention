@@ -7,8 +7,8 @@
 
 {% block body %}
 
-<div>
-    <aside id="default-sidebar" class="tw-drop-shadow-2xl tw-float-left tw-w-64 tw-h-screen tw-transition-transform tw--translate-x-full sm:tw-translate-x-0">
+<div class="tw-min-h-screen tw-items-stretch tw-flex tw-flex-column">
+    <div class="tw-drop-shadow-2xl tw-self-stretch tw-w-64 tw-h-screen tw-transition-transform tw--translate-x-full sm:tw-translate-x-0">
         <div class="tw-h-full tw-px-3 tw-py-4 tw-overflow-y-auto tw-bg-[#290D00] tw-text-white">
             <ul class="tw-space-y-2 tw-font-medium">
                 {% for period in configdict.periods %}
@@ -21,10 +21,10 @@
                 {% endfor %}
             </ul>
         </div>
-    </aside>
+    </div>
 
 
-    <div class="tw-flex tw-flex-col tw-justify-center">
+    <div class="tw-w-full tw-h-full tw-flex tw-flex-col tw-justify-center">
 
         <div class="tw-max-w-4xl tw-mx-auto tw-p-6">
             {{ h1("Book an exam rendezvous ") }}

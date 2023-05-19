@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 import database as db
 import psutil
 
-from utils import admin_log, debug, check_for_dupes, update_students, date_to_dict
+from utils import admin_log, debug, check_for_dupes, update_students, date_to_dict, detect_rend_collision
 
 
 # CAUTION: These default values are overwritten by the config file.
@@ -186,7 +186,12 @@ def create_admin_server(db_session, config=None, build=False):
                         team.member2 = None
                         team.member3 = None
                         team.member4 = None
-                        team.is_authenticated = False                        
+                        team.is_authenticated = False    
+
+                        '''Clear the team's rendezvous'''
+                        for rend in db_session.query(db.Rendezvous).filter(db.Rendezvous.team==team.asn).all():
+                            rend.team = None
+                            db_session.add(rend)
                         
                         flash(f"Team {team.asn} cleared", "info")
 
@@ -296,9 +301,8 @@ def create_admin_server(db_session, config=None, build=False):
                     student.name    = request_args["name"]
                     student.email   = request_args["email"]
 
-                    grades = {}
                     for grade in ["p1q1", "p1q2", "p1q3", "p1q4", "p1q5", "midterm1", "p2q1", "p2q2", "p2q3", "p2q4", "p2q5", "midterm2"]:
-                        if request_args[grade] == "":
+                        if (grade not in request_args) or (request_args[grade] == "") :
                             request_args[grade] = None
                         elif not request_args[grade].isdigit():
                             flash("Please enter a valid grade.", "error")
@@ -391,6 +395,8 @@ def create_admin_server(db_session, config=None, build=False):
                     period = db_session.query(db.Period).get(request_args["id"])
                                     
                     if "delete" in request_args:
+                        if "name" not in request_args:
+                            flash("Index \"name\" not found in the post request.", "error") 
                         count=0
                         for rendezvous in db_session.query(db.Rendezvous).filter(db.Rendezvous.period==period.id).all():
                             db_session.delete(rendezvous)
@@ -402,25 +408,37 @@ def create_admin_server(db_session, config=None, build=False):
                         flash(f"Period \"{request_args['name']}\" deleted successfully.", "success")
                     
                     else:
-                        period_with_name = db_session.query(db.Period).filter(db.Period.name==request_args["name"]).first()
-                        if period_with_name and (period_with_name.id != period.id):
-                            flash(f"Period with name: {request_args['name']} already exists.", "error")
+                        '''Faulty input check'''
+                        if "name" not in request_args:
+                            flash("Index \"name\" not found in the post request.", "error")
+                        elif "live" not in request_args:
+                            flash("Index \"live\" not found in the post request.", "error")
+                        elif request_args["name"] == "":
+                            flash("Period name cannot be empty.", "error")
                         else:
-                            period.live     = request_args["live"]=="1"
-                            period.name     = request_args["name"]
-                            db_session.add(period)
-                            flash(f"Period \"{request_args['name']}\" updated successfully.", "success")
+                            period_with_name = db_session.query(db.Period).filter(db.Period.name==request_args["name"]).first()
+                            if period_with_name and (period_with_name.id != period.id):
+                                flash(f"Period with name: {request_args['name']} already exists.", "error")
+                            else:
+                                period.live     = request_args["live"]=="1"
+                                period.name     = request_args["name"]
+                                db_session.add(period)
+                                flash(f"Period \"{request_args['name']}\" updated successfully.", "success")
 
                 elif request_args["type"] == "new-rendezvous":
                     '''Handle faulty input cases'''
-                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.period==request_args["period"]).filter(db.Rendezvous.datetime==datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M")).first():
-                        flash(f"Rendezvous for period: {db_session.query(db.Period).filter(db.Period.id==request_args['period']).first().name} and start: {request_args['start']} already exists.", "error")
+                    if "period" not in request_args:
+                        flash("Index \"period\" not found in the post request.", "error")
+                    elif "start" not in request_args:
+                        flash("Index \"start\" not found in the post request.", "error")
+                    elif "duration" not in request_args:
+                        flash("Index \"duration\" not found in the post request.", "error")
                     elif datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") < datetime.now():
                         flash(f"Rendezvous start time: {request_args['start']} is in the past.", "error")
-                    # elif datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") > datetime.strptime(request_args["end"],"%Y-%m-%dT%H:%M"):
-                    #     flash(f"Rendezvous start time: {request_args['start']} is after end time: {request_args['end']}.", "error")
                     elif int(request_args["duration"]) < 1:
                         flash(f"Rendezvous duration: {request_args['duration']} is less than 1 minute.", "error")
+                    elif detect_rend_collision(db_session,datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M"),int(request_args["duration"]),int(request_args["period"])):
+                        flash(f"Rendezvous for period: {db_session.query(db.Period).filter(db.Period.id==request_args['period']).first().name} and start: {request_args['start']} already exists.", "error")
                     else:
                         '''Add new rendezvous'''
                         rendezvous = db.Rendezvous(period=request_args["period"], datetime=datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M"), duration=request_args["duration"])
@@ -429,7 +447,15 @@ def create_admin_server(db_session, config=None, build=False):
 
                 elif request_args["type"] == "new-rendezvous-range":
                     '''Handle faulty input cases'''
-                    if datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") < datetime.now():
+                    if "period" not in request_args:
+                        flash("Index \"period\" not found in the post request.", "error")
+                    elif "start" not in request_args:
+                        flash("Index \"start\" not found in the post request.", "error")
+                    elif "end" not in request_args:
+                        flash("Index \"end\" not found in the post request.", "error")
+                    elif "duration" not in request_args:
+                        flash("Index \"duration\" not found in the post request.", "error")
+                    elif datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") < datetime.now():
                         flash(f"Rendezvous start time: {request_args['start']} is in the past.", "error")
                     elif datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") > datetime.strptime(request_args["end"],"%Y-%m-%dT%H:%M"):
                         flash(f"Rendezvous start time: {request_args['start']} is after end time: {request_args['end']}.", "error")
@@ -442,19 +468,30 @@ def create_admin_server(db_session, config=None, build=False):
                         end = datetime.strptime(request_args["end"],"%Y-%m-%dT%H:%M")
                         duration = int(request_args["duration"])
                         count=0
+                        collisions=False
                         while start < end:
+                            if detect_rend_collision(db_session, start, duration, period.id):
+                                start += timedelta(minutes=duration)
+                                collisions=True
+                                continue    
                             count+=1
                             rendezvous = db.Rendezvous(period=period.id, datetime=start, duration=duration)
                             db_session.add(rendezvous)
                             start += timedelta(minutes=duration)
-                    
+
                         flash(f"Added {count} rendezvous successfully.", "success")
+                        if collisions:
+                            flash(f"Some rendezvous were not added because of datetime collisions.", "info")
                 elif request_args["type"] == "edit-rendezvous":
                     '''Handle faulty input cases'''
-                    if datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") < datetime.now():
+                    if "id" not in request_args:
+                        flash("Index \"id\" not found in the post request.", "error")
+                    elif "start" not in request_args:
+                        flash("Index \"start\" not found in the post request.", "error")
+                    elif "duration" not in request_args:
+                        flash("Index \"duration\" not found in the post request.", "error")
+                    elif datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") < datetime.now():
                         flash(f"Rendezvous start time: {request_args['start']} is in the past.", "error")
-                    # elif datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") > datetime.strptime(request_args["end"],"%Y-%m-%dT%H:%M"):
-                    #     flash(f"Rendezvous start time: {request_args['start']} is after end time: {request_args['end']}.", "error")
                     elif int(request_args["duration"]) < 1:
                         flash(f"Rendezvous duration: {request_args['duration']} is less than 1 minute.", "error")
                     else:
@@ -464,9 +501,12 @@ def create_admin_server(db_session, config=None, build=False):
                             db_session.delete(rendezvous)
                             flash(f"Rendezvous deleted successfully.", "success")
                         else:
-                            rendezvous.team     = request_args["team"]
-                            db_session.add(rendezvous)
-                            flash(f"Rendezvous updated successfully.", "success")
+                            if "team" not in request_args:
+                                flash("Index \"team\" not found in the post request.", "error")
+                            else:
+                                rendezvous.team     = request_args["team"]
+                                db_session.add(rendezvous)
+                                flash(f"Rendezvous updated successfully.", "success")
 
                 db_session.commit()
             except Exception as e: 
@@ -565,7 +605,11 @@ def loop(function, freq, *args, **kwargs):
             traceback.print_exc()
         remaining_secs = freq - (dt.utcnow() - starttime).total_seconds()
         if remaining_secs > 0:
-            sleep(remaining_secs)
+            try:
+                sleep(remaining_secs)
+            except KeyboardInterrupt:
+                print(f"\033[32mStopping worker `{function.__name__}`.\033[00m")
+                exit()
 
 def measure_stats(config, app, db_session, worker=False):
 
