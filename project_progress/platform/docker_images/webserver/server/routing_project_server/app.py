@@ -314,7 +314,7 @@ def create_project_server(db_session, config=None, build=False):
         form = ChangePassForm()
         if form.is_submitted():
 
-            as_log("change pass request for AS " + current_user.asn + " from address: " + str(request.remote_addr))
+            as_log("change pass request for AS " + str(current_user.asn) + " from address: " + str(request.remote_addr))
             
             # The following faulty pass cases are handled in frontend, i
             # if orverriden dont react to change request and report to log file
@@ -340,7 +340,7 @@ def create_project_server(db_session, config=None, build=False):
 
         return render_template('change_pass.html', form=form)
 
-    @app.route("/rendezvous", methods=['GET', 'POST'])
+    @app.route("/rendezvous", methods=['GET'])
     @app.route("/rendezvous/<int:selected_period>", methods=['GET', 'POST'])
     @login_required
     def rendezvous(selected_period: Optional[int] = None):
@@ -348,29 +348,28 @@ def create_project_server(db_session, config=None, build=False):
 
         if request.method == 'POST':
             request_dict = request.form.to_dict()
-            debug(request_dict)
             if "rend_id" in request_dict:
                 requested_rendezvous = db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first()
                 if "cancel" in request_dict:
-                    debug(f"{requested_rendezvous.team} == {request_dict['team_asn']}")
 
-                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime - cancelation_block < dt.now():
+                    if requested_rendezvous.datetime - cancelation_block < dt.now():
                         flash(f'You cannot cancel a rendezvous {cancelation_block} before its start.', 'error')
-                    elif db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime < dt.now():
+                    elif requested_rendezvous.datetime < dt.now():
                         flash('You cannot cancel a rendezvous that has already passed.', 'error')
+                    elif requested_rendezvous.team != current_user.asn:
+                        flash("You cannot cancel a rendezvous booked by another team", "error")
                     elif requested_rendezvous.team is None:
                         flash('This rendezvous is already cancelled.', 'error')
-                    elif requested_rendezvous.team == int(request_dict["team_asn"]):
+                    else:
                         requested_rendezvous.team = None
                         db_session.commit()
                         flash('Rendezvous cancelled successfully.', 'success')
-                    else:
-                        flash('You cannot cancel this rendezvous', 'error')
+
                 elif ("team_asn" in request_dict):
                     
-                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime < dt.now():
+                    if requested_rendezvous.datetime < dt.now():
                         flash('You cannot book a rendezvous that has already passed.', 'error')
-                    elif requested_rendezvous.team == int(request_dict["team_asn"]):
+                    elif requested_rendezvous.team == current_user.asn:
                         flash('This rendezvous is already booked by your team', 'error')
                     elif requested_rendezvous.team:
                         flash('This rendezvous is already booked by another team', 'error')

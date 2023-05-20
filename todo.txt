@@ -3,9 +3,5 @@ repair dashboard
 display rendezvous in chronological order
 
 BUGS:
-same day rendezvous dont stack in the same line in the student rendezvous index page
 
 Further checks to be implemented:
-A team can only book one rendezvous for a single period
-innactive teams cannot book rendezvous
-A rendezvous can only be cancelled by the team that booked it

@@ -400,7 +400,8 @@ def create_admin_server(db_session, config=None, build=False):
                 elif request_args["type"] == "edit-period":
                     '''Edit existing period'''
                     period = db_session.query(db.Period).get(request_args["id"])
-                                    
+
+                    '''DELETE BUTTON'''   
                     if "delete" in request_args:
                         if "name" not in request_args:
                             flash("Index \"name\" not found in the post request.", "error") 
@@ -414,6 +415,7 @@ def create_admin_server(db_session, config=None, build=False):
                         db_session.delete(period)
                         flash(f"Period \"{request_args['name']}\" deleted successfully.", "success")
                     
+                    # UPDATE BUTTON   
                     else:
                         '''Faulty input check'''
                         if "name" not in request_args:
@@ -433,6 +435,7 @@ def create_admin_server(db_session, config=None, build=False):
                                 flash(f"Period \"{request_args['name']}\" updated successfully.", "success")
 
                 elif request_args["type"] == "new-rendezvous":
+                    # ADD BUTTON
                     '''Handle faulty input cases'''
                     if "period" not in request_args:
                         flash("Index \"period\" not found in the post request.", "error")
@@ -453,6 +456,7 @@ def create_admin_server(db_session, config=None, build=False):
                         flash(f"Rendezvous added successfully.", "success")
 
                 elif request_args["type"] == "new-rendezvous-range":
+                    # ADD BUTTON
                     '''Handle faulty input cases'''
                     if "period" not in request_args:
                         flash("Index \"period\" not found in the post request.", "error")
@@ -490,26 +494,43 @@ def create_admin_server(db_session, config=None, build=False):
                         if collisions:
                             flash(f"Some rendezvous were not added because of datetime collisions.", "info")
                 elif request_args["type"] == "edit-rendezvous":
-                    '''Handle faulty input cases'''
-                    if "id" not in request_args:
-                        flash("Index \"id\" not found in the post request.", "error")
-                    elif "team" not in request_args:
-                        flash("Index \"team\" not found in the post request.", "error")
 
-                    rendezvous = db_session.query(db.Rendezvous).get(request_args["id"])
-
-                    '''Determine if we are deleting or updating the rendezvous'''
+                    # DELETE BUTTON
                     if "delete" in request_args:
-                        db_session.delete(rendezvous)
-                        flash(f"Rendezvous deleted successfully.", "success")
-                    elif request_args["team"] == "-1" or request_args["team"] == "":
-                        rendezvous.team = None
-                        flash(f"Rendezvous cleared successfully.", "success")
+                        '''Handle faulty input cases'''
+                        if "id" not in request_args:
+                            flash("Index \"id\" not found in the post request.", "error")
+                        else:
+
+                            db_session.delete(db_session.query(db.Rendezvous).get(request_args["id"]))
+                            flash(f"Rendezvous deleted successfully.", "success")
+
+                    # UPDATE BUTTON
                     else:
-                        rendezvous.team = request_args["team"]
-                        flash(f"Rendezvous updated successfully.", "success")
+                        '''Handle faulty input cases'''
+                        if "id" not in request_args:
+                            flash("Index \"id\" not found in the post request.", "error")
+                        elif "team" not in request_args:
+                            flash("Index \"team\" not found in the post request", "error")
+                        else:
+
+                            rendezvous = db_session.query(db.Rendezvous).get(request_args["id"])
+                            team_booked = db_session.query(db.Rendezvous).filter(db.Rendezvous.team==int(request_args["team"])).all()
+                            
+                            booked_flag=False
+                            for rend in team_booked:
+                                if rend.period == rendezvous.period:
+                                    booked_flag=True
+
+                            if int(request_args["team"]) != -1 and  booked_flag:
+                                flash(f"Team {request_args['team']} has booked a rendezvous for this period already")
+                            elif db_session.query(db.AS_team).filter(db.AS_team.asn == int(request_args["team"])).first().is_authenticated == False:
+                                flash(f"Team {request_args['team']} is inactive")
+                            else:
+                                rendezvous.team = int(request_args["team"]) if int(request_args["team"])!=-1 else None
+                                flash(f"Rendezvous updated successfully.", "success")
                     
-                    db_session.add(rendezvous)
+                                db_session.add(rendezvous)
 
                 db_session.commit()
             except Exception as e: 
