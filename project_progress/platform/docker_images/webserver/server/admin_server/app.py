@@ -115,18 +115,18 @@ def create_admin_server(db_session, config=None, build=False):
     @fresh_login_required
     def dashboard():
         if 'stats' in request.args:
-            start = request.args.get('start', default=0)
-            start_datetime = datetime(int(start[0:4]), int(start[5:7]), int(start[8:10]), int(start[11:13]), int(start[14:16]))
+            request_args = dict(request.args)   
+            debug(f"Querying stats {request_args}")
+            start = datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M")
             
-            end = request.args.get('end', default=0)
-            if (end == '0') or (end == 0):
-                end_datetime = datetime.now()
+            if ("end" not in request_args) or (request_args["end"] == '0'):
+                end = datetime.now()
             else:
-                end_datetime = datetime(int(end[0:4]), int(end[5:7]), int(end[8:10]), int(end[11:13]), int(end[14:16]))
+                end = datetime.strptime(request_args["end"],"%Y-%m-%dT%H:%M")
             
-            debug(f"Querying measurements from {start_datetime} to {end_datetime}")
+            debug(f"Querying measurements from {start} to {end}")
 
-            res = db_session.query(db.Measurement).filter(db.Measurement.time.between(start_datetime, end_datetime)).all()
+            res = db_session.query(db.Measurement).filter(db.Measurement.time.between(start, end)).all()
 
             debug(f"Query returned {len(res)} measurements")
 
