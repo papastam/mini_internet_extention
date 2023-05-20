@@ -34,6 +34,9 @@
             <p class="tw-mb-4">
                 You can cancel your rendezvous by clicking on the "Cancel" button. Then you will be able to book a new one.
             </p>
+            <p class="tw-text-red-600 tw-mb-4">
+                <strong>Warning:</strong> You can only cancel your rendezvous {{cancelation_block}} before the rendezvous start. After that, you will not be able to book a new one.
+            </p>
 
             <div id="booked-rendezvous" class="tw-flex tw-flex-row tw-items-center">
                 <div class="tw-w-32 tw-flex-none tw-rounded-t lg:tw-rounded-t-none lg:tw-rounded-l tw-text-center tw-shadow-lg ">
@@ -61,9 +64,20 @@
                 <form action="#" method="post">
                     <input type="hidden" name="rend_id" value="{{configdict.booked_rendezvous.id}}">
                     <input type="hidden" name="team_asn" value="{{current_user.asn}}">
-                    <button type="submit" name="cancel" value="1" class="tw-ml-10 tw-mt-4 tw-py-2 tw-px-4 tw-bg-red-600 tw-text-white tw-font-semibold tw-rounded-lg tw-shadow-md hover:tw-bg-red-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-red-500 focus:tw-ring-opacity-50" {{"disabled" if configdict.booked_rendezvous.datetime.past==1}}>
+
+                    {% if configdict.booked_rendezvous.can_be_cancelled==1 %}
+                    <button type="submit" data-tooltip-target="cancel-tooltip-animation" name="cancel" value="1" class="tw-ml-10 tw-mt-4 tw-py-2 tw-px-4 tw-bg-neutral-600 tw-text-white tw-font-semibold tw-rounded-lg tw-shadow-md hover:tw-bg-neutral-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-neutral-500 focus:tw-ring-opacity-50 tw-cursor-not-allowed">
                         Cancel
                     </button>
+                    <div id="cancel-tooltip-animation" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                        You cannot cancel this rendezvous anymore.
+                        <div class="tooltip-arrow" data-popper-arrow></div>
+                    </div>
+                    {% else %}
+                    <button type="submit" name="cancel" value="1" class="tw-ml-10 tw-mt-4 tw-py-2 tw-px-4 tw-bg-red-600 tw-text-white tw-font-semibold tw-rounded-lg tw-shadow-md hover:tw-bg-red-700 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-red-500 focus:tw-ring-opacity-50">
+                        Cancel
+                    </button>
+                    {% endif %}
             </div>
         </div>
     </div>
@@ -73,50 +87,86 @@
         <div class="tw-max-w-4xl tw-mx-auto tw-p-6">
             {{ h1("Book Rendezvous for %s" % (configdict.selected.name)) }}
             <p>
-                This list shows all inter-AS connections. For each connection, it shows both involved ASes, the edge-routers at
-                which their networks are connected, as well as their business relationship.
+                In the table below you can see the list of the available rendezvous for {{configdict.selected.name}}. You can book a rendezvous by clicking on the "Book" button. Then you will be able to cancel it if needed.
             </p>
             <p class="tw-mb-4">
-                Initially, the interfaces are not yet configured.
-                When setting them up, use the IP addresses provided below.
+                If you don't see any available rendezvous, please contact the TAs in order to create more slots.
             </p>
         </div>
 
         <form action="#" method="POST">
             <input type="hidden" name="team_asn" value="{{current_user.asn}}"> 
-            <div id="rendezvous-div" class=" tw-flex tw-flex-row">
-                {% for day in configdict.days %}
-                <div class="tw-m-5 tw-rounded-md ">
-                    {% for rendezvous in configdict.days[day] %}
-                    <button type="submit" name="rend_id" value="{{rendezvous.id}}" class="{{"tw-cursor-not-allowed tw-pointer-events-none" if rendezvous.available!=1}} tw-p-4">
-                        <div id="rendezvous{{rendezvous.id}}" class="tw-font-medium">
-                            <div class="tw-w-32 tw-flex-none tw-rounded-t lg:tw-rounded-t-none lg:tw-rounded-l tw-text-center tw-shadow-lg ">
-                                <div class="tw-block tw-rounded-t tw-overflow-hidden tw-text-center ">
-                                    <div class="{{'tw-bg-blue-950 ' if rendezvous.available==1 else 'tw-bg-neutral-800 '}} tw-text-white tw-py-1">
-                                        {{rendezvous.datetime.month}}
+            <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                <table class="w-full text-sm text-left ">
+                    <thead class="text-xs text-gray-700 uppercase">
+                        <tr>
+                            {% for day in configdict.days %}
+                            <th scope="col" class="px-6 py-3 bg-gray-50">
+                                {{day}}
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-gray-200">
+                        {% for day in configdict.days %}
+                            <td class="px-6 py-4">
+                            {% for rendezvous in configdict.days[day] %}
+                                {% if rendezvous.available!=1 or rendezvous.datetime.past==1 %}
+                                <button type="submit" name="rend_id" value="{{rendezvous.id}}" data-tooltip-target="{{rendezvous.id}}-tooltip-animation" class="tw-cursor-not-allowed tw-p-4">
+                                {% else %}
+                                <button type="submit" name="rend_id" value="{{rendezvous.id}}" class="tw-p-4">
+                                {% endif %}
+                                    <div id="rendezvous{{rendezvous.id}}" class="tw-font-medium">
+                                        <div class="tw-w-32 tw-flex-none tw-rounded-t lg:tw-rounded-t-none lg:tw-rounded-l tw-text-center tw-shadow-lg ">
+                                            <div class="tw-block tw-rounded-t tw-overflow-hidden tw-text-center ">
+                                                {% if rendezvous.available!=1 %}
+                                                <div class="tw-bg-red-800 tw-text-white tw-py-1">
+                                                {% elif rendezvous.datetime.past==1 %}
+                                                <div class="tw-bg-neutral-800 tw-text-white tw-py-1">
+                                                {% else %}
+                                                <div class="tw-bg-blue-950 tw-text-white tw-py-1">
+                                                {% endif %}
+                                                    {{rendezvous.datetime.month}}
+                                                </div>
+                                                <div class="tw-pt-1 tw-border-l tw-border-r tw-border-white tw-bg-white">
+                                                    <span class="tw-text-5xl tw-font-bold tw-leading-tight">
+                                                        {{rendezvous.datetime.day}}
+                                                    </span>
+                                                </div>
+                                                <div class="tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white tw--pt-2 tw--mb-1">
+                                                    <span class="tw-text-sm">
+                                                        {{rendezvous.datetime.day_str}}
+                                                    </span>
+                                                </div>
+                                                <div class="tw-pb-2 tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white">
+                                                    <span class="tw-text-xs tw-leading-normal">
+                                                        {{rendezvous.datetime.time}}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="tw-pt-1 tw-border-l tw-border-r tw-border-white tw-bg-white">
-                                        <span class="tw-text-5xl tw-font-bold tw-leading-tight">
-                                            {{rendezvous.datetime.day}}
-                                        </span>
-                                    </div>
-                                    <div class="tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white tw--pt-2 tw--mb-1">
-                                        <span class="tw-text-sm">
-                                            {{rendezvous.datetime.day_str}}
-                                        </span>
-                                    </div>
-                                    <div class="tw-pb-2 tw-border-l tw-border-r tw-border-b tw-rounded-b-lg tw-text-center tw-border-white tw-bg-white">
-                                        <span class="tw-text-xs tw-leading-normal">
-                                            {{rendezvous.datetime.time}}
-                                        </span>
-                                    </div>
+                                </button>
+                                
+                                
+                                {% if rendezvous.available!=1 %}
+                                <div id="{{rendezvous.id}}-tooltip-animation" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                                    This rendezvous is already booked by another team.
+                                    <div class="tooltip-arrow" data-popper-arrow></div>
                                 </div>
-                            </div>
-                        </div>
-                    </button>
-                    {% endfor %}
-                </div>  
-                {% endfor %}
+                                {% elif rendezvous.datetime.past==1 %}
+                                <div id="{{rendezvous.id}}-tooltip-animation" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
+                                    This rendezvous is in the past.
+                                    <div class="tooltip-arrow" data-popper-arrow></div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                            </td>
+                        {% endfor %}
+                        </tr>
+                    </tbody>  
+                </table>
             </div>        
         </form>
     </div>

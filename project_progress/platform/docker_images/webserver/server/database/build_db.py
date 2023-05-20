@@ -69,7 +69,7 @@ def create_test_db_snapshot(db_session):
     periods =   {
                 1: {"id": 1, "name": "Phase 1", "live": True},
                 2: {"id": 2, "name": "Phase 2", "live": True},
-                3: {"id": 3, "name": "Phase 3", "live": True},
+                3: {"id": 3, "name": "Phase 3", "live": False}
                 }
     
     for period_id, info in periods.items():
@@ -78,15 +78,41 @@ def create_test_db_snapshot(db_session):
         db_session.commit()
 
     rendezvous =    {
-                    1: {"id": 1, "datetime": dt(year=2023,month=5,day=1,hour=12),"period": 1, "duration": 60, "team": 1},
-                    2: {"id": 2, "datetime": dt(year=2023,month=5,day=2,hour=13),"period": 1, "duration": 60, "team": 2},
-                    3: {"id": 3, "datetime": dt(year=2023,month=5,day=3,hour=14),"period": 1, "duration": 60},
-                    4: {"id": 4, "datetime": dt(year=2023,month=6,day=4,hour=15),"period": 2, "duration": 60, "team": 2},
-                    5: {"id": 5, "datetime": dt(year=2023,month=6,day=5,hour=16),"period": 2, "duration": 60},
-                    6: {"id": 6, "datetime": dt(year=2023,month=6,day=6,hour=17),"period": 2, "duration": 60},
-                    7: {"id": 7, "datetime": dt(year=2023,month=7,day=7,hour=18),"period": 3, "duration": 60, "team": 1},
-                    8: {"id": 8, "datetime": dt(year=2023,month=7,day=8,hour=19),"period": 3, "duration": 60, "team": 2},
-                    9: {"id": 9, "datetime": dt(year=2023,month=7,day=9,hour=20),"period": 3, "duration": 60},
+                    # Phase 1
+                    1: {"id": 1, "datetime": dt(year=2023,month=1,day=1,hour=10),"period": 1, "duration": 30},
+                    2: {"id": 2, "datetime": dt(year=2023,month=1,day=1,hour=10,minute=30),"period": 1, "duration": 30,"team": 1},
+                    3: {"id": 3, "datetime": dt(year=2023,month=1,day=1,hour=11),"period": 1, "duration": 30},
+                    4: {"id": 4, "datetime": dt(year=2023,month=1,day=1,hour=11,minute=30),"period": 1, "duration": 30},
+
+
+                    # Phase 2
+                    100: {"id": 100, "datetime": dt(year=2023,month=1,day=1,hour=10),"period": 2, "duration": 30},
+
+                    5: {"id": 5, "datetime": dt(year=2023,month=10,day=1,hour=10),"period": 2, "duration": 30, "team": 2},
+                    6: {"id": 6, "datetime": dt(year=2023,month=10,day=1,hour=10,minute=30),"period": 2, "duration": 30},
+                    7: {"id": 7, "datetime": dt(year=2023,month=10,day=1,hour=11),"period": 2, "duration": 30},
+                    8: {"id": 8, "datetime": dt(year=2023,month=10,day=1,hour=11,minute=30),"period": 2, "duration": 30},
+                    9: {"id": 9, "datetime": dt(year=2023,month=10,day=1,hour=12),"period": 2, "duration": 30},
+                    10: {"id": 10, "datetime": dt(year=2023,month=10,day=1,hour=12,minute=30),"period": 2, "duration": 30},
+                    11: {"id": 11, "datetime": dt(year=2023,month=10,day=1,hour=13),"period": 2, "duration": 30},
+                    12: {"id": 12, "datetime": dt(year=2023,month=10,day=1,hour=13,minute=30),"period": 2, "duration": 30},
+                    13: {"id": 13, "datetime": dt(year=2023,month=10,day=1,hour=14),"period": 2, "duration": 30},
+                    14: {"id": 14, "datetime": dt(year=2023,month=10,day=1,hour=14,minute=30),"period": 2, "duration": 30},
+                    15: {"id": 15, "datetime": dt(year=2023,month=10,day=1,hour=15),"period": 2, "duration": 30},
+                    16: {"id": 16, "datetime": dt(year=2023,month=10,day=1,hour=15,minute=30),"period": 2, "duration": 30},
+                    17: {"id": 17, "datetime": dt(year=2023,month=10,day=1,hour=16),"period": 2, "duration": 30},
+                    18: {"id": 18, "datetime": dt(year=2023,month=10,day=1,hour=16,minute=30),"period": 2, "duration": 30},
+                    19: {"id": 19, "datetime": dt(year=2023,month=10,day=1,hour=17),"period": 2, "duration": 30},
+                    20: {"id": 20, "datetime": dt(year=2023,month=10,day=1,hour=17,minute=30),"period": 2, "duration": 30},
+                    21: {"id": 21, "datetime": dt(year=2023,month=10,day=1,hour=18),"period": 2, "duration": 30},
+                    22: {"id": 22, "datetime": dt(year=2023,month=10,day=1,hour=18,minute=30),"period": 2, "duration": 30},
+                    
+                    23: {"id": 23, "datetime": dt(year=2023,month=10,day=2,hour=10),"period": 2, "duration": 30},
+                    24: {"id": 24, "datetime": dt(year=2023,month=10,day=2,hour=10,minute=30),"period": 2, "duration": 30},
+                    25: {"id": 25, "datetime": dt(year=2023,month=10,day=2,hour=11),"period": 2, "duration": 30},
+                    26: {"id": 26, "datetime": dt(year=2023,month=10,day=2,hour=11,minute=30),"period": 2, "duration": 30},
+                    27: {"id": 27, "datetime": dt(year=2023,month=10,day=2,hour=12),"period": 2, "duration": 30},
+                    28: {"id": 28, "datetime": dt(year=2023,month=10,day=2,hour=12,minute=30),"period": 2, "duration": 30},
                     }
 
     for rendezvous_id, info in rendezvous.items():

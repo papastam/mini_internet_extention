@@ -97,3 +97,28 @@ def detect_rend_collision(db_session,date,duration,period):
         if rend.datetime > date and rend.datetime < date + timedelta(minutes=duration):
             return True
     return False
+
+def change_pass(db_session, pipe_name, asn, newpass):
+    '''Faulty input checks'''
+    if not asn or not newpass:
+        raise ValueError("Invalid input")
+    elif ' ' in newpass:
+        raise ValueError("New password contains spaces")
+    elif '    ' in newpass:
+        raise ValueError("New password contains tabs")
+    elif '\n' in newpass:
+        raise ValueError("New password contains newlines")
+    elif '\t' in newpass:
+        raise ValueError("New password contains tabs")
+    elif len(newpass) < 8:
+        raise ValueError("New password is too short")
+    else:
+        """Change password of a student."""
+        with open(pipe_name, 'w') as pipe:
+            pipe.write(f"changepass {asn} {newpass}\n")
+            pipe.flush()
+            pipe.close()
+
+        # Change password in database
+        as_team = db_session.query(db.AS_team).filter(db.AS_team.asn == asn).first()
+        as_team.password = newpass

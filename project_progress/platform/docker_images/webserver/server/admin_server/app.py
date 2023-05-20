@@ -20,7 +20,7 @@ import database as db
 import psutil
 from math import isnan
 
-from utils import admin_log, debug, check_for_dupes, update_students, date_to_dict, detect_rend_collision
+from utils import admin_log, debug, error, check_for_dupes, update_students, date_to_dict, detect_rend_collision, change_pass
 
 
 # CAUTION: These default values are overwritten by the config file.
@@ -205,18 +205,12 @@ def create_admin_server(db_session, config=None, build=False):
                             '''No password change'''
                         elif  form_args["password"] == team.password:
                             '''No need to change password'''
-                        elif len(form_args["password"]) < 8:
-                            '''Password too short'''
-                            flash("Password must be at least 8 characters long. Password not updated", "info")
                         else:
-                            # Change password in database
-                            team.password = form_args["password"]
-                            
-                            # Change password in docker
-                            with open(app.config['LOCATIONS']['docker_pipe'], 'w') as pipe:
-                                pipe.write(f"changepass {team.asn} {form_args['password']}\n")
-                                pipe.flush()
-                                pipe.close()
+                            '''Change password'''
+                            try:
+                                change_pass(db_session, app.config['LOCATIONS']['docker_pipe'], team.asn, form_args["password"])
+                            except ValueError as e:
+                                flash(f"Error changing password: {e}", "error")
 
                         '''Check if team is active'''
                         if (form_args["member1"] == "-1") and (form_args["member2"] == "-1") and (form_args["member3"] == "-1") and (form_args["member4"] == "-1"):
@@ -388,6 +382,8 @@ def create_admin_server(db_session, config=None, build=False):
     @app.route("/config/rendezvous", methods=["GET", "POST"])
     @fresh_login_required
     def config_rendezvous():    
+        allow_parralel = app.config["ALLOW_PARALLEL_RENDEZVOUS"]
+
         if (request.method == "POST") and ("type" in dict(request.form)):
             request_args = dict(request.form)
             debug(f"POST request received: {request_args}")
@@ -448,7 +444,7 @@ def create_admin_server(db_session, config=None, build=False):
                         flash(f"Rendezvous start time: {request_args['start']} is in the past.", "error")
                     elif int(request_args["duration"]) < 1:
                         flash(f"Rendezvous duration: {request_args['duration']} is less than 1 minute.", "error")
-                    elif detect_rend_collision(db_session,datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M"),int(request_args["duration"]),int(request_args["period"])):
+                    elif not allow_parralel and detect_rend_collision(db_session,datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M"),int(request_args["duration"]),int(request_args["period"])):
                         flash(f"Rendezvous for period: {db_session.query(db.Period).filter(db.Period.id==request_args['period']).first().name} and start: {request_args['start']} already exists.", "error")
                     else:
                         '''Add new rendezvous'''
@@ -481,7 +477,7 @@ def create_admin_server(db_session, config=None, build=False):
                         count=0
                         collisions=False
                         while start < end:
-                            if detect_rend_collision(db_session, start, duration, period.id):
+                            if not allow_parralel and detect_rend_collision(db_session, start, duration, period.id):
                                 start += timedelta(minutes=duration)
                                 collisions=True
                                 continue    
@@ -497,27 +493,23 @@ def create_admin_server(db_session, config=None, build=False):
                     '''Handle faulty input cases'''
                     if "id" not in request_args:
                         flash("Index \"id\" not found in the post request.", "error")
-                    elif "start" not in request_args:
-                        flash("Index \"start\" not found in the post request.", "error")
-                    elif "duration" not in request_args:
-                        flash("Index \"duration\" not found in the post request.", "error")
-                    elif datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M") < datetime.now():
-                        flash(f"Rendezvous start time: {request_args['start']} is in the past.", "error")
-                    elif int(request_args["duration"]) < 1:
-                        flash(f"Rendezvous duration: {request_args['duration']} is less than 1 minute.", "error")
+                    elif "team" not in request_args:
+                        flash("Index \"team\" not found in the post request.", "error")
+
+                    rendezvous = db_session.query(db.Rendezvous).get(request_args["id"])
+
+                    '''Determine if we are deleting or updating the rendezvous'''
+                    if "delete" in request_args:
+                        db_session.delete(rendezvous)
+                        flash(f"Rendezvous deleted successfully.", "success")
+                    elif request_args["team"] == "-1" or request_args["team"] == "":
+                        rendezvous.team = None
+                        flash(f"Rendezvous cleared successfully.", "success")
                     else:
-                        '''Edit existing rendezvous'''
-                        rendezvous = db_session.query(db.Rendezvous).get(request_args["id"])
-                        if "delete" in request_args:
-                            db_session.delete(rendezvous)
-                            flash(f"Rendezvous deleted successfully.", "success")
-                        else:
-                            if "team" not in request_args:
-                                flash("Index \"team\" not found in the post request.", "error")
-                            else:
-                                rendezvous.team     = request_args["team"]
-                                db_session.add(rendezvous)
-                                flash(f"Rendezvous updated successfully.", "success")
+                        rendezvous.team = request_args["team"]
+                        flash(f"Rendezvous updated successfully.", "success")
+                    
+                    db_session.add(rendezvous)
 
                 db_session.commit()
             except Exception as e: 
@@ -632,9 +624,14 @@ def measure_stats(config, app, db_session, worker=False):
     #Add admin users
     # for user, password in admin_users.items():
     with app.app_context():
-        new_measurement = db.Measurement(cpu=cpu, memory=memory, disk=disk)
-        db_session.add(new_measurement)
-        db_session.commit()
-        print("\033[34mMeasured stats \033[03m(%s)\033[00m" % str(time))
+        try:
+            new_measurement = db.Measurement(cpu=cpu, memory=memory, disk=disk)
+            db_session.add(new_measurement)
+            db_session.commit()
+            print("\033[34mMeasured stats \033[03m(%s)\033[00m" % str(time))
+        except Exception as e:
+            error(e)
+            db_session.rollback()
+            return
 
     return (time, cpu, memory, disk)

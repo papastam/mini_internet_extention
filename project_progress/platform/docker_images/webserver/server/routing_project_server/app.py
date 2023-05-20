@@ -17,7 +17,7 @@ import os
 import pickle
 import traceback
 from datetime import datetime as dt
-from datetime import timezone
+from datetime import timezone, timedelta
 from multiprocessing import Process
 from pathlib import Path
 from time import sleep, strftime, gmtime
@@ -37,7 +37,7 @@ from flask_bcrypt import Bcrypt
 import database as db
 
 from utils import parsers
-from utils import as_log, date_to_dict, debug
+from utils import as_log, date_to_dict, debug, change_pass
 
 from . import bgp_policy_analyzer, matrix
 
@@ -132,6 +132,10 @@ def create_project_server(db_session, config=None, build=False):
         elif (seconds % 60) == 0:
             return f"{seconds // 60} minutes"
         return f"{seconds} seconds"
+    
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('404.html'), 404
 
     @app.route("/")
     def index():
@@ -306,7 +310,7 @@ def create_project_server(db_session, config=None, build=False):
     
     @app.route("/change_pass", methods=['GET', 'POST'])
     @login_required
-    def change_pass():
+    def change_pass_index():
         form = ChangePassForm()
         if form.is_submitted():
 
@@ -320,24 +324,18 @@ def create_project_server(db_session, config=None, build=False):
                 as_log(f"new pass != confirm pass ({form.confirm_pass.data} != {form.new_pass.data})")
             elif form.new_pass.data == form.old_pass.data:
                 as_log(f"new pass == old pass ({form.new_pass.data} == {form.old_pass.data})")
-            elif len(form.new_pass.data) < 8:
-                as_log(f"new pass length < 8 ({form.new_pass.data})")
             
             else:
                 password = form.new_pass.data
                 as_log(f"Changing password for {current_user.asn} to '{password}'")
 
-                # Change password in database
-                as_team = db_session.query(db.AS_team).filter(db.AS_team.asn == current_user.asn).first()
-                as_team.password = password
-                db_session.commit()
-                
-                # Change password in docker
-                with open(app.config['LOCATIONS']['docker_pipe'], 'w') as pipe:
-                    pipe.write(f"changepass {current_user.asn} {password}\n")
-                    pipe.flush()
-                    pipe.close()
-               
+                try:
+                    change_pass(db_session, app.config['LOCATIONS']['docker_pipe'], current_user.asn, password)
+                except ValueError as e:
+                    as_log(f"Error changing password for {current_user.asn} to '{password}'")
+                    flash(f"Error changing password: {e}", "error")
+                    return render_template('change_pass.html', form=form)
+
                 flash('Password changed successfully.', 'success') 
 
         return render_template('change_pass.html', form=form)
@@ -346,6 +344,8 @@ def create_project_server(db_session, config=None, build=False):
     @app.route("/rendezvous/<int:selected_period>", methods=['GET', 'POST'])
     @login_required
     def rendezvous(selected_period: Optional[int] = None):
+        cancelation_block = timedelta(minutes=int(app.config["CANCELLATION_BLOCKING_TIME"]))
+
         if request.method == 'POST':
             request_dict = request.form.to_dict()
             debug(request_dict)
@@ -354,7 +354,9 @@ def create_project_server(db_session, config=None, build=False):
                 if "cancel" in request_dict:
                     debug(f"{requested_rendezvous.team} == {request_dict['team_asn']}")
 
-                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime < dt.now():
+                    if db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime - cancelation_block < dt.now():
+                        flash(f'You cannot cancel a rendezvous {cancelation_block} before its start.', 'error')
+                    elif db_session.query(db.Rendezvous).filter(db.Rendezvous.id == request_dict["rend_id"]).first().datetime < dt.now():
                         flash('You cannot cancel a rendezvous that has already passed.', 'error')
                     elif requested_rendezvous.team is None:
                         flash('This rendezvous is already cancelled.', 'error')
@@ -378,7 +380,7 @@ def create_project_server(db_session, config=None, build=False):
                         flash('Rendezvous booked successfully.', 'success')
 
         #Period selection page    
-        if selected_period is None:
+        if (selected_period is None) or (db_session.query(db.Period).filter(db.Period.id == selected_period).first() is None) or (db_session.query(db.Period).filter(db.Period.id == selected_period).first().live == False):
             configdict = {"periods":[]}
             for period in db_session.query(db.Period).filter(db.Period.live==True).all():
                 configdict["periods"].append({
@@ -386,15 +388,17 @@ def create_project_server(db_session, config=None, build=False):
                     "name":period.name,
                     })
 
-            return render_template('rendezvous_basic.html', configdict=configdict)
+            if (selected_period is not None) and ((db_session.query(db.Period).filter(db.Period.id == selected_period).first() is None) or (db_session.query(db.Period).filter(db.Period.id == selected_period).first().live == False)):
+                flash('Invalid period selected', 'error')
+            return render_template('rendezvous_basic.html', configdict=configdict, cancelation_block=cancelation_block)
        
-        #Display the actual rendezvous page
         selected_period_obj = db_session.query(db.Period).filter(db.Period.id == selected_period).first()
         if selected_period_obj is None:
             # Invalid period selected
             flash('Invalid period selected', 'error')
             return redirect(url_for('rendezvous')) 
 
+        #Display the actual rendezvous page
         booked_rendezvous = db_session.query(db.Rendezvous).filter(db.Rendezvous.period == selected_period).filter(db.Rendezvous.team == current_user.asn).first()
         configdict = {"periods":[] }
 
@@ -403,6 +407,7 @@ def create_project_server(db_session, config=None, build=False):
             configdict["booked_rendezvous"] = {
                 "id":booked_rendezvous.id,
                 "period":booked_rendezvous.period,
+                "can_be_cancelled": 1 if (booked_rendezvous.datetime - cancelation_block < dt.now()) else 0,
                 "datetime": date_to_dict(booked_rendezvous.datetime),
                 "duration":booked_rendezvous.duration
                 }
@@ -413,10 +418,11 @@ def create_project_server(db_session, config=None, build=False):
             rendlist = db_session.query(db.Rendezvous).filter(db.Rendezvous.period == selected_period).all()
             
             for rendezvous in rendlist:
-                if str(rendezvous.datetime.date()) not in configdict["days"]:
-                    configdict["days"][str(rendezvous.datetime.date())] = []
+                date_str = rendezvous.datetime.date().strftime("%d %B, %Y")
+                if date_str not in configdict["days"]:
+                    configdict["days"][date_str] = []
 
-                configdict["days"][str(rendezvous.datetime.date())].append({
+                configdict["days"][date_str].append({
                     "id":rendezvous.id,
                     "period":rendezvous.period, 
                     "datetime": date_to_dict(rendezvous.datetime),
@@ -430,8 +436,7 @@ def create_project_server(db_session, config=None, build=False):
                     "datetime": date_to_dict(rendezvous.datetime),
                     "available": 1 if rendezvous.team == None else 0,
                     "duration":rendezvous.duration,
-                    })
-                
+                    })                
 
 
         #In any case, display the period selection and the selected period        
@@ -446,7 +451,7 @@ def create_project_server(db_session, config=None, build=False):
             configdict["selected"] = {} 
             configdict["selected"]["name"] = selected_period_obj.name
             
-        return render_template('rendezvous.html', configdict=configdict)
+        return render_template('rendezvous.html', configdict=configdict, cancelation_block=cancelation_block)
 
     @app.route("/traceroute")
     @login_required
