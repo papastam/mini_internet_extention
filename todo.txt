@@ -1,6 +1,6 @@
 TODO:
-generally test and fix students rendezvous index page
 repair dashboard
+display rendezvous in chronological order
 
 BUGS:
 same day rendezvous dont stack in the same line in the student rendezvous index page
