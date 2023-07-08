@@ -1,6 +1,6 @@
 # Objectives
 ## 1. Restore mechanism from configuration file for Hosts, Switches, Routers
-   - [ ] [./restore_configs.sh](https://github.com/nsg-ethz/mini_internet_project/pull/19) Pull Request
+   - [X] [./restore_configs.sh](https://github.com/nsg-ethz/mini_internet_project/pull/19) Pull Request
 
 ## 2. Visualization tool
    - Tools:
@@ -14,13 +14,15 @@
    - [ ] tracerouteall
 
 ## 4. Auto grading and auto debuging tools for TA use
-   - [ ] Admin page on the webserver containing auto grading and auto debuging tools for TA use
+   - [ ] Create script which will parese all configurations of a specified AS and check if they are correct
+   - [ ] False pattern detection for debuging purposes
 
 ## 5. Improvements on the website
    - [X] Add AS login 
       - [X] Automate the account creation based on the AS passwords
       - [X] Password changing option
          - Password storing and communicating between frontend and backend is not encrypted
+         - [ ] Change passwords in the passwords text file @server host as well
 
    - Admin Server 
       - [X] Login page **(Example)[https://github.com/arpanneupane19/Python-Flask-Authentication-Tutorial]**
@@ -31,6 +33,12 @@
       - [ ] BGP updates monitoring
       - [ ] Inpact on performance (periodical ping between hosts)
 
-## 6. Decentralized or Cluster-based architecture - Interconnection between clusters
+## 6. Create a platform containing the __Artemis__ tool for the 4th assignment of the HY436 course
+
+   - [ ] Check on the implementation of the __Artemis__ tool in GO 
+   - [ ] Create a docker container where the __Artemis__ tool will be running
    
-   - Waiting for confirmation from Okeanos
+   - [ ] Examine the ExaBGP monitoring tool [exabgp-monitor](https://hub.docker.com/r/mavromat/exabgp-monitor)
+   - [ ] Create a docker container where the ExaBGP tool will be running
+
+   - [ ] Create a pipe between the ExaBGP and the __Artemis__ tool 
