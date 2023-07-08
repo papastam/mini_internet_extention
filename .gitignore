@@ -1,7 +1,7 @@
 #Types
-*.db #Database files
-*.log #Log files
-*.csv #CSV files can get big
+*.db 
+*.log 
+artemis_go/*.csv
 project_progress/platform/docker_images/webserver/server/database/database.db
 .gitignore
 nohup.out
