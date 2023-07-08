@@ -1,6 +1,7 @@
 #Types
 *.db #Database files
 *.log #Log files
+*.csv #CSV files can get big
 project_progress/platform/docker_images/webserver/server/database/database.db
 .gitignore
 nohup.out
