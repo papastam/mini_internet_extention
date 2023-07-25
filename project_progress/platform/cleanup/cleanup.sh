@@ -8,7 +8,8 @@ set -o pipefail
 set -o nounset
 
 if [ "$#" != 1 ]; then
-  echo "usage: ${0##*/} directory" 2>&1
+  echo "Invalid Syntax" 2>&1
+  echo "Use: ${0##*/} <directory>" 2>&1
   exit 1
 fi
 
@@ -27,6 +28,7 @@ echo -n "ovs-vsctl " > ovs_command.txt
 ./cleanup/internal_links_cleanup.sh "${DIRECTORY}"
 ./cleanup/external_links_cleanup.sh "${DIRECTORY}"
 ./cleanup/measurement_cleanup.sh "${DIRECTORY}"
+./cleanup/exabgp_monitor_cleanup.sh "${DIRECTORY}"
 ./cleanup/matrix_cleanup.sh "${DIRECTORY}"
 ./cleanup/dns_cleanup.sh "${DIRECTORY}"
 ./cleanup/ssh_cleanup.sh "${DIRECTORY}"

@@ -103,6 +103,10 @@ add_port () {
                 GATEWAY=${1#*=}
                 shift
                 ;;
+            --route=*)
+                ROUTE=${1#*=}
+                shift
+                ;;
             --mtu=*)
                 MTU=${1#*=}
                 shift
@@ -187,6 +191,11 @@ add_port () {
     if [ -n "$GATEWAY" ]; then
         echo "ip netns exec "$PID" ip route add default via "$GATEWAY"" >> groups/ip_setup.sh
         echo "  ip netns exec "$PID" ip route add default via "$GATEWAY"" >> groups/restart_container.sh
+    fi
+
+    if [ -n "$ROUTE" ]; then
+        echo "ip netns exec "$PID" ip route add "$ROUTE" dev "$INTERFACE"" >> groups/ip_setup.sh
+        echo "  ip netns exec "$PID" ip route add "$ROUTE" dev "$INTERFACE"" >> groups/restart_container.sh
     fi
 
     if [ -n "$DELAY" ]; then

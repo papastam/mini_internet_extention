@@ -241,3 +241,26 @@ subnet_sshContainer_groupContainer () {
 
   fi
 }
+
+# TODO: Decide weather one or more monitors need to be deployed
+subnet_router_EXABGP_MONITOR () {
+  local n_grp="$1" device="$2"
+
+  if [ "${device}" = "group" ] ; then
+
+    echo "${n_grp}"".0.197.1/24"
+
+  elif [ "${device}" = "monitor" ] ; then
+
+    echo "${n_grp}"".0.197.2/24"
+
+  elif [ "${device}" = "bridge" ] ; then
+
+    echo "${n_grp}"".0.197.0/24"
+
+  elif [ "${device}" = "config" ] ; then
+
+    echo "${n_grp}"".0.197.1"
+
+  fi
+}

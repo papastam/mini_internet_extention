@@ -40,5 +40,10 @@
    
    - [ ] Examine the ExaBGP monitoring tool [exabgp-monitor](https://hub.docker.com/r/mavromat/exabgp-monitor)
    - [ ] Create a docker container where the ExaBGP tool will be running
+      - Process of the startup needs to follow these steps
+         - Generate the config file based on the configuration
+         - Create the docker container
+         - Wait for the inteface and ports initialization 
+         - Start the ExaBGP tool
 
    - [ ] Create a pipe between the ExaBGP and the __Artemis__ tool 

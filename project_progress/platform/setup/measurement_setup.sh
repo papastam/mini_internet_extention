@@ -15,7 +15,7 @@ source "${DIRECTORY}"/config/subnet_config.sh
 readarray groups < "${DIRECTORY}"/config/AS_config.txt
 group_numbers=${#groups[@]}
 
-# Check if there is a DNS server
+# Check if there is a Measurement container 
 is_msm=0
 for ((k=0;k<group_numbers;k++)); do
     group_k=(${groups[$k]})
@@ -29,7 +29,7 @@ for ((k=0;k<group_numbers;k++)); do
     fi
 done
 
-# Stop the script if there is no DNS server
+# Stop the script if there is no measurement container
 if [[ "$is_msm" -eq 0 ]]; then
     echo "There is no measurement container, skipping measurement_setup.sh"
 else

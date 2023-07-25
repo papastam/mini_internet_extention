@@ -1,2 +1,2 @@
-LOND    MATRIX 			host:miniinterneteth/d_host vtysh
-ZURI    MATRIX_TARGET 			host:miniinterneteth/d_host vtysh
+LOND    BGP_MONITOR 			host:miniinterneteth/d_host vtysh
+ZURI    MEASUREMENT 			host:miniinterneteth/d_host vtysh

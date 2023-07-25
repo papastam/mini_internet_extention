@@ -142,6 +142,14 @@ time ./setup/measurement_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
 echo ""
 echo ""
 
+echo "echo \"exabgp_monitor links\"" >> "${DIRECTORY}"/groups/ip_setup.sh
+echo "exabgp_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
+echo "exabgp_setup.sh: "
+time ./setup/exabgp_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
+
+echo ""
+echo ""
+
 echo "echo \"ssh links\"" >> "${DIRECTORY}"/groups/ip_setup.sh
 echo "ssh_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 echo "ssh_setup.sh: "
@@ -277,6 +285,13 @@ time ./groups/throughput.sh
 
 echo "Run ./groups/open_vpn_ports.sh to open the ports used by the vpn servers."
 echo "END $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
+
+echo ""
+echo ""
+
+echo "portforwarding.sh: "
+echo "portforwarding.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
+time ./utils/ssh/portforwarding.sh
 
 echo ""
 echo ""

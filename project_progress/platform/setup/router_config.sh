@@ -439,6 +439,42 @@ for ((k=0;k<group_numbers;k++)); do
     fi
 done
 
+# measurement
+for ((k=0;k<group_numbers;k++)); do
+    group_k=(${groups[$k]})
+    group_number="${group_k[0]}"
+    group_as="${group_k[1]}"
+    group_config="${group_k[2]}"
+    group_router_config="${group_k[3]}"
+    group_internal_links="${group_k[4]}"
+
+    if [ "${group_as}" != "IXP" ];then
+
+        readarray routers < "${DIRECTORY}"/config/$group_router_config
+        n_routers=${#routers[@]}
+
+        for ((i=0;i<n_routers;i++)); do
+            router_i=(${routers[$i]})
+            rname="${router_i[0]}"
+            property1="${router_i[1]}"
+
+            if [ "${property1}" = "BGP_MONITOR"  ];then
+                location="${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_conf.sh
+                {
+                    echo "#!/bin/bash"
+                    echo "vtysh  -c 'conf t' \\"
+                    echo " -c 'interface exabgp' \\"
+                    echo " -c 'ip address "$(subnet_router_EXABGP_MONITOR "${group_number}" "group")"' \\"
+                    echo " -c 'exit' \\"
+                    echo " -c 'router ospf' \\"
+                    echo " -c '"network "$(subnet_router_EXABGP_MONITOR "${group_number}" "group")" area 0"' \\"
+                    echo " -c 'exit' \\"
+                } >> "${location}"
+            fi
+        done
+    fi
+done
+
 # matrix
 for ((k=0;k<group_numbers;k++)); do
     group_k=(${groups[$k]})
