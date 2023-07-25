@@ -439,7 +439,7 @@ for ((k=0;k<group_numbers;k++)); do
     fi
 done
 
-# measurement
+# exabgp
 for ((k=0;k<group_numbers;k++)); do
     group_k=(${groups[$k]})
     group_number="${group_k[0]}"
@@ -469,6 +469,8 @@ for ((k=0;k<group_numbers;k++)); do
                     echo " -c 'router ospf' \\"
                     echo " -c '"network "$(subnet_router_EXABGP_MONITOR "${group_number}" "group")" area 0"' \\"
                     echo " -c 'exit' \\"
+                    echo " -c 'router bgp "${group_number}"' \\"
+                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address")" remote-as 10000' \\"
                 } >> "${location}"
             fi
         done

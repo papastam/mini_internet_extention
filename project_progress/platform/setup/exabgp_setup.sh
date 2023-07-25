@@ -56,9 +56,25 @@ if [[ "$has_monitor" -eq 0 ]]; then
 else
     # create the config file
     for as in ${as_array[@]}; do
-        echo neighbor $(subnet_router_EXABGP_MONITOR "${as}" "config" ) {\
-	local-address $(subnet_router_EXABGP_MONITOR "${as}" "config" )\;\
+        echo neighbor $(subnet_router_EXABGP_MONITOR "${as}" "neighbor" ) {\
+	local-address $(subnet_router_EXABGP_MONITOR "${as}" "local-address" )\;\
+    local-as 10000\;\
+    peer-as "${as}"\;\
+    family {\
+        ipv4 unicast\;\
+        ipv6 unicast\;\
+    }\
     } >> ${EXA_DIR}/exabgp.conf
+    
+    # process message-logger {\
+    #     run python3 /server/server.py\;\
+    #     encoder json\;\
+    #     receive {\
+    #         parsed\;\
+    #         update\;\
+    #         neighbor-changes\;\
+    #     }\
+    # }\
 
     done
 
@@ -107,12 +123,10 @@ else
                     subnet_group="$(subnet_router_EXABGP_MONITOR "${group_number}" "group")"
 
                     if [[ "$has_gw" -eq 0 ]]; then
-                        ./setup/ovs-docker.sh add-port exabgp_monitor group_"${group_number}" EXABGP_MONITOR --ipaddress="${subnet_bridge}" --gateway="${subnet_bridge%.*}.1"
+                        ./setup/ovs-docker.sh add-port exabgp_monitor group_"${group_number}" EXABGP_MONITOR --ipaddress="${subnet_exabgp_monitor}" --gateway="${subnet_bridge%.*}.1" --route="${group_number}.0.0.0/8"
                         has_gw=1
-                        echo "./setup/ovs-docker.sh add-port exabgp_monitor group_"${group_number}" EXABGP_MONITOR --ipaddress="${subnet_bridge}" --gateway="${subnet_bridge%.*}.1""
                     else
                         ./setup/ovs-docker.sh add-port exabgp_monitor group_"${group_number}" EXABGP_MONITOR --ipaddress="${subnet_exabgp_monitor}" --route="${group_number}.0.0.0/8"
-                        echo "./setup/ovs-docker.sh add-port exabgp_monitor group_"${group_number}" EXABGP_MONITOR --ipaddress="${subnet_exabgp_monitor}" --route="${group_number}.0.0.0/8""
                     fi
 
                     mod=$((${group_number} % 100))

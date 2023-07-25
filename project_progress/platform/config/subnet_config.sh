@@ -258,9 +258,13 @@ subnet_router_EXABGP_MONITOR () {
 
     echo "${n_grp}"".0.197.0/24"
 
-  elif [ "${device}" = "config" ] ; then
+  elif [ "${device}" = "neighbor" ] ; then
 
     echo "${n_grp}"".0.197.1"
+
+  elif [ "${device}" = "local-address" ] ; then
+
+    echo "${n_grp}"".0.197.2"
 
   fi
 }
