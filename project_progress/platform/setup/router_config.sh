@@ -469,10 +469,27 @@ for ((k=0;k<group_numbers;k++)); do
                     echo " -c 'router ospf' \\"
                     echo " -c '"network "$(subnet_router_EXABGP_MONITOR "${group_number}" "group")" area 0"' \\"
                     echo " -c 'exit' \\"
+                    echo " -c 'bgp community-list 1 permit $group_k:10' \\"
+                    echo " -c 'route-map LOCAL_PREF_IN_EXA deny 10' \\"
+                    # echo " -c 'set community $group_k:20' \\"
+                    # echo " -c 'set local-preference 50' \\"
+                    echo " -c 'exit' \\"
+                    echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 5' \\"
+                    # echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                    echo " -c 'exit' \\"
+                    echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 10' \\"
+                    # echo " -c 'match community 1' \\"
+                    echo " -c 'exit' \\"
                     echo " -c 'router bgp "${group_number}"' \\"
                     echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address")" remote-as 10000' \\"
+                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address")" route-map LOCAL_PREF_IN_EXA in' \\"
+                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address")" route-map LOCAL_PREF_OUT_EXA out' \\"
+                    echo " -c 'exit' \\"
                 } >> "${location}"
+            
+
             fi
+
         done
     fi
 done

@@ -11,16 +11,10 @@ EXA_DIR="${IMAGESDIR}/exabgp_monitor"
 UTILSDIR="${DIRECTORY}/utils"
 
 #Clear config file
-# echo "process message-logger {
-#     run python3 /server/server.py;
-#     encoder json;
-#     receive {
-#         parsed;
-#         update;
-#         neighbor-changes;
-#     }
-# }" > ${EXA_DIR}/exabgp.conf
-echo "" > ${EXA_DIR}/exabgp.conf
+echo "process message-logger {
+    run python3 /server/server.py;
+    encoder json;
+}" > ${EXA_DIR}/exabgp.conf
 
 set -o errexit
 set -o pipefail
@@ -56,26 +50,15 @@ if [[ "$has_monitor" -eq 0 ]]; then
 else
     # create the config file
     for as in ${as_array[@]}; do
-        echo neighbor $(subnet_router_EXABGP_MONITOR "${as}" "neighbor" ) {\
-	local-address $(subnet_router_EXABGP_MONITOR "${as}" "local-address" )\;\
-    local-as 10000\;\
-    peer-as "${as}"\;\
-    family {\
-        ipv4 unicast\;\
-        ipv6 unicast\;\
-    }\
-    } >> ${EXA_DIR}/exabgp.conf
+        echo "neighbor $(subnet_router_EXABGP_MONITOR "${as}" "neighbor" ) {
+	local-address $(subnet_router_EXABGP_MONITOR "${as}" "local-address" );
+    local-as 10000;
+    peer-as "${as}";
+    family {
+        ipv4 unicast;
+    }
+    }" >> ${EXA_DIR}/exabgp.conf
     
-    # process message-logger {\
-    #     run python3 /server/server.py\;\
-    #     encoder json\;\
-    #     receive {\
-    #         parsed\;\
-    #         update\;\
-    #         neighbor-changes\;\
-    #     }\
-    # }\
-
     done
 
     # start EXABGP_MONITOR container

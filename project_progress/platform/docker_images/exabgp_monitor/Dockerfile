@@ -48,6 +48,6 @@ ENV PATH /home/exabgp/bin:/home/exabgp/sbin:$PATH
 
 
 ENTRYPOINT [ \
-    "/usr/bin/dumb-init", "--", \ 
+    "/usr/bin/dumb-init", "--",\ 
     "/opt/exabgp/sbin/exabgp" \
 ]

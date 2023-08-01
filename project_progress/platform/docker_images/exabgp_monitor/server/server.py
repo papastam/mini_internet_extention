@@ -38,7 +38,6 @@ hostname = ''
 thread = None
 lock = Lock()
 
-
 def message_parser(line):
     try:
         temp_message = json.loads(line)
@@ -180,4 +179,8 @@ if __name__ == '__main__':
         app.run(ssl_context='adhoc', host='0.0.0.0')
     else:
         log.info('Starting Socket.io server..')
-        app.run(host='0.0.0.0')
+        app.run(host='0.0.0.0', debug=True)
+
+    # while True:
+    #     input = stdin.readline().strip()
+    #     log.info(input)
