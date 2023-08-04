@@ -12,9 +12,11 @@ UTILSDIR="${DIRECTORY}/utils"
 
 #Clear config file
 echo "process message-logger {
-    run python3 /server/server.py;
+    run python3 /parser/parser.py;
     encoder json;
 }" > ${EXA_DIR}/exabgp.conf
+echo "" > ${EXA_DIR}/parser/parser.log
+echo "" > ${EXA_DIR}/parser/output.csv
 
 set -o errexit
 set -o pipefail
@@ -57,13 +59,24 @@ else
     family {
         ipv4 unicast;
     }
-    }" >> ${EXA_DIR}/exabgp.conf
+    api {
+        processes [ message-logger ];
+        receive {
+            parsed;
+            update;
+        }
+    }
+
+}
+" >> ${EXA_DIR}/exabgp.conf
     
     done
 
     # start EXABGP_MONITOR container
     docker run -itd --net='none' --name="EXABGP_MONITOR"  \
         -v ${EXA_DIR}/exabgp.conf:/exabgp.conf \
+        -v ${EXA_DIR}/parser/parser.log:/parser/parser.log \
+        -v ${EXA_DIR}/parser/output.csv:/parser/output.csv \
         --hostname="EXABGP_MONITOR" --cpus=2 --pids-limit 100 \
         exabgp_monitor exabgp.conf
     

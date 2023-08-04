@@ -117,6 +117,9 @@ func main() {
 			break
 		}
 
+		// An example string:
+		// 2a09:10c0::/29|6886|34927|34927 13249 6886|ris|rrc03|A|"[{""asn"":34927
+		// PREFIX | ORIGIN AS | PEER AS | PATH | COLLECTOR | PEER | MESSAGE TYPE | MESSAGE
 		var updateMessage BGPUpdate
 		updateMessage.prefix = updateRecord[0]
 		updateMessage.origin_as = updateRecord[1]

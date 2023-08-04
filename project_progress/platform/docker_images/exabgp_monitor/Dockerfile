@@ -1,25 +1,14 @@
-# syntax=docker/dockerfile:1.4
-
-# how to build and run exabgp using docker (using the local copy)
-# this dockerfile install exabgp in the container /opt
-
-# docker build -t exabgp-main ./
-# docker run -p 179:1790 --mount type=bind,source=`pwd`/etc/exabgp,target=/etc/exabgp exabgp-main version
-# docker run -it exabgp-main version
-# docker run -it exabgp-main etc/exabgp/exabgp.conf
-
-# debug the build
-# docker build --progress=plain --no-cache -t exabgp ./
-
 FROM python:3-slim
 
 # install deps
 RUN apt-get update \
-    && apt-get install -y net-tools iproute2 git dumb-init \
+    && apt-get install -y dumb-init \
     && apt-get clean
 
-RUN apt install -y traceroute iputils-ping gcc libffi-dev libssl-dev
-RUN pip install --no-cache-dir --upgrade pip
+# install debug tools
+# RUN apt-get install -y net-tools iproute2 \
+#     && apt-get clean
+# RUN apt install -y traceroute iputils-ping
 
 # Add ExaBGP
 ADD ./exabgp /opt/exabgp
@@ -38,14 +27,9 @@ RUN echo "[exabgp.daemon]" > /opt/exabgp/etc/exabgp/exabgp.env \
 ENV PYTHONPATH=/opt/exabgp/src
 ENV PATH=$PATH:/opt/exabgp/sbin/
 
-COPY ./server /server
-
-# RUN apk update && apk add --no-cache openssl-dev; libffi-dev py-openssl
-RUN pip install --no-cache-dir -r /server/requirements.txt
-
+COPY ./parser /parser
 
 ENV PATH /home/exabgp/bin:/home/exabgp/sbin:$PATH
-
 
 ENTRYPOINT [ \
     "/usr/bin/dumb-init", "--",\ 
