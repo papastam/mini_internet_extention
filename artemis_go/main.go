@@ -83,15 +83,15 @@ func main() {
 	withdrawalsMap = make(map[string]Hijack)
 
 	//argCount := (len(os.Args) - 2) / 2
-	fmt.Println("")
-	fmt.Println("Generating Peer Graph...")
-	peerGraph := generatePeerGraph(cmd.RelationsFile)
 	//hijackFile := os.Args[len(os.Args)-1]
-
+	
 	//for i := 0; i < argCount; i++ {
 	updatesFilename := cmd.UpdateFile
 	prefixMapFilename := cmd.PrefixFile
-
+		
+	fmt.Println("")
+	fmt.Println("Generating Peer Graph...")
+	peerGraph := generatePeerGraph(prefixMapFilename)
 	fmt.Println("Generating Patricia Tree...")
 	prefixASMap, prefixTree := generatePatriciaTree(prefixMapFilename)
 
@@ -342,9 +342,10 @@ func getHijackDetectionStatus(updateMessage BGPUpdate, prefixTree *string_tree.T
 
 func printHijacks() {
 	fmt.Printf("We have detected %d hijacks\n", len(detectedHijackMap))
-	fmt.Printf("We have detected %d hijacks\n", len(ongoingHijackMap))
-	file, err := os.OpenFile(cmd.HijackFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-
+	fmt.Printf("We have detected %d origin hijacks\n", len(ongoingHijackMap))
+	// file, err := os.OpenFile(cmd.HijackFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	
+	file, err := os.Create(cmd.HijackFile)
 	if err != nil {
 		log.Fatalf("failed creating file: %s", err)
 	}

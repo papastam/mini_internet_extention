@@ -115,9 +115,10 @@ func generatePatriciaTree(filename string) (map[string][]string, *string_tree.Tr
 	}(f)
 
 	csvReader := csv.NewReader(f)
+	csvReader.Comma = '|'
 	_, err2 := csvReader.Read()
 	if err2 != nil {
-		log.Fatal(err)
+		log.Fatal(err2)
 	}
 
 	prefixTree := string_tree.NewTreeV4()

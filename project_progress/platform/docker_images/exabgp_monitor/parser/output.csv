@@ -1,0 +1,6 @@
+1.0.0.0/8|1|1|1 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1]}}, 'med': 0}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '1.0.0.0/8'}]}}}|1691397711.5479913
+2.0.0.0/8|2|2|2 |exabgp|2|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [2]}}, 'med': 0}, 'announce': {'ipv4 unicast': {'2.0.197.1': [{'nlri': '2.0.0.0/8'}]}}}|1691397711.814109
+1.0.0.0/8|1|1|1 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1]}}, 'med': 0}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '1.0.0.0/8'}]}}}|1691397713.9366484
+2.0.0.0/8|2|2|2 |exabgp|2|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [2]}}, 'med': 0}, 'announce': {'ipv4 unicast': {'2.0.197.1': [{'nlri': '2.0.0.0/8'}]}}}|1691397715.140499
+2.0.0.0/8|2|1|1 2 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1, 2]}}, 'community': [[1, 20]]}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '2.0.0.0/8'}]}}}|1691397715.1926124
+1.0.0.0/8|1|2|2 1 |exabgp|2|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [2, 1]}}, 'community': [[2, 20]]}, 'announce': {'ipv4 unicast': {'2.0.197.1': [{'nlri': '1.0.0.0/8'}]}}}|1691397715.3033462

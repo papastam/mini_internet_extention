@@ -65,7 +65,7 @@ func init() {
 
 	rootCmd.MarkPersistentFlagRequired("updates")
 	rootCmd.MarkPersistentFlagRequired("prefixes")
-	rootCmd.MarkPersistentFlagRequired("relations")
+	// rootCmd.MarkPersistentFlagRequired("relations")
 }
 
 // initConfig reads in config file and ENV variables if set.

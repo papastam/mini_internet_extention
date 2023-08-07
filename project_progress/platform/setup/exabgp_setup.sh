@@ -11,12 +11,17 @@ EXA_DIR="${IMAGESDIR}/exabgp_monitor"
 UTILSDIR="${DIRECTORY}/utils"
 
 #Clear config file
+umask 666 
 echo "process message-logger {
     run python3 /parser/parser.py;
     encoder json;
 }" > ${EXA_DIR}/exabgp.conf
-echo "" > ${EXA_DIR}/parser/parser.log
-echo "" > ${EXA_DIR}/parser/output.csv
+
+# Clear the two files
+rm -f ${EXA_DIR}/parser/parser.log 
+umask 000; touch ${EXA_DIR}/parser/parser.log
+rm -f ${EXA_DIR}/parser/output.csv
+umask 000; touch ${EXA_DIR}/parser/output.csv
 
 set -o errexit
 set -o pipefail
