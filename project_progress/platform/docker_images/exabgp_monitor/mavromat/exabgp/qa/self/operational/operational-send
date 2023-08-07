@@ -1,3 +1,0 @@
-#!/bin/sh
-
-env exabgp.tcp.port=1790 ../../../sbin/exabgp -p -d operational-send.conf $*
