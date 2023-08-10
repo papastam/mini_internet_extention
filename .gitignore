@@ -8,3 +8,5 @@ nohup.out
 
 # Directories
 old_version*
+platform/setup/router_config.sh
+.gitignore
