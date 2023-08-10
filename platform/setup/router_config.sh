@@ -18,7 +18,7 @@ readarray l2_switches < "${DIRECTORY}"/config/l2_switches.txt
 readarray l2_links < "${DIRECTORY}"/config/l2_links.txt
 readarray l2_hosts < "${DIRECTORY}"/config/l2_hosts.txt
 
-declare -A hijack_groups
+declare -a hijack_groups
 
 group_numbers=${#groups[@]}
 n_extern_links=${#extern_links[@]}
@@ -48,15 +48,15 @@ for ((k=0;k<group_numbers;k++));do
         idtmp=1
         for ((i=0;i<n_routers;i++)); do
             router_i=(${routers[$i]})
+            property1="${router_i[1]}"
             property2="${router_i[2]}"
             if [[ "${property2}" == *L2* ]];then
                 l2_id[$property2]=0
             fi
-            if [[ "${property2}" == "HIJACK" ]];then
+            if [[ "${property1}" == "HIJACK" ]];then
                 hijack_groups+=("${group_number}")
             fi
         done
-        echo "found ${#hijack_groups[@]} hijack groups"
         for ((i=0;i<n_routers;i++)); do
             router_i=(${routers[$i]})
             property2="${router_i[2]}"
@@ -243,6 +243,18 @@ for ((i=0;i<n_extern_links;i++)); do
         fi
     done
 
+    # Check if the the source as is a hijack
+    hijacker=0
+    for as in "${hijack_groups[@]}"; do
+        if [ "${grp_1}" = "${as}" ];then
+            echo "Configuting hijacker AS${grp_1}"
+            hijacker=1
+        elif [ "${grp_2}" = "${as}" ];then
+            echo "Configuting hijacker AS${grp_2}"
+            hijacker=2
+        fi
+    done
+
     if [ "${group_as_1}" = "IXP" ] || [ "${group_as_2}" = "IXP" ];then
         if [ "${group_as_1}" = "IXP" ];then
             grp_1="${row_i[3]}"
@@ -274,14 +286,19 @@ for ((i=0;i<n_extern_links;i++)); do
                 str_tmp=${str_tmp}${grp_2}:${peer}" "
             done
 
+            # if grp_1 is a hijack as skip this
             echo " -c 'bgp community-list 1 permit $grp_1:10' \\"
             echo " -c 'route-map IXP_OUT_${grp_2} permit 10' \\"
             echo " -c 'set community $str_tmp' \\"
-            echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+            if [ "${hijacker}" != 1 ];then
+                echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+            fi
             echo " -c 'exit' \\"
             echo " -c 'route-map IXP_OUT_${grp_2} permit 20' \\"
             echo " -c 'set community $str_tmp' \\"
-            echo " -c 'match community 1' \\"
+            if [ "${hijacker}" != 1 ];then
+                echo " -c 'match community 1' \\"
+            fi
             echo " -c 'exit' \\"
             echo " -c 'route-map IXP_IN_${grp_2} permit 10' \\"
             echo " -c 'set community $grp_1:20' \\"
@@ -312,6 +329,7 @@ for ((i=0;i<n_extern_links;i++)); do
             echo " -c 'network "$(subnet_group "${grp_1}")"' \\"
             echo " -c 'exit' \\"
 
+            # if grp_1 is a hijack as skip this
             if [ $relation_grp_1 == 'Provider' ]; then
                 echo " -c 'bgp community-list 2 permit $grp_1:10' \\"
                 echo " -c 'bgp community-list 2 permit $grp_1:20' \\"
@@ -321,10 +339,14 @@ for ((i=0;i<n_extern_links;i++)); do
                 echo " -c 'set local-preference 100' \\"
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_2} permit 5' \\"
+                if [ "${hijacker}" != 1 ];then
                 echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                fi
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_2} permit 10' \\"
+                if [ "${hijacker}" != 1 ];then
                 echo " -c 'match community 2' \\"
+                fi
                 echo " -c 'exit' \\"
             elif [ $relation_grp_1 == 'Customer' ]; then
                 echo " -c 'bgp community-list 1 permit $grp_1:10' \\"
@@ -333,10 +355,14 @@ for ((i=0;i<n_extern_links;i++)); do
                 echo " -c 'set local-preference 20' \\"
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_2} permit 5' \\"
-                echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                if [ "${hijacker}" != 1 ];then
+                    echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                fi
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_2} permit 10' \\"
-                echo " -c 'match community 1' \\"
+                if [ "${hijacker}" != 1 ];then
+                    echo " -c 'match community 1' \\"
+                fi
                 echo " -c 'exit' \\"
             elif [ $relation_grp_1 == 'Peer' ]; then
                 echo " -c 'bgp community-list 1 permit $grp_1:10' \\"
@@ -345,15 +371,20 @@ for ((i=0;i<n_extern_links;i++)); do
                 echo " -c 'set local-preference 50' \\"
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_2} permit 5' \\"
-                echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                if [ "${hijacker}" != 1 ];then
+                    echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                fi
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_2} permit 10' \\"
-                echo " -c 'match community 1' \\"
+                if [ "${hijacker}" != 1 ];then
+                    echo " -c 'match community 1' \\"
+                fi
                 echo " -c 'exit' \\"
             fi
         } >> "${location1}"
 
         location2="${DIRECTORY}"/groups/g"${grp_2}"/"${router_grp_2}"/init_full_conf.sh
+        echo "3. ${hijacker}"
         {
             echo " -c 'interface ext_"${grp_1}"_"${router_grp_1}"' \\"
             echo " -c 'ip address "${subnet2}"' \\"
@@ -365,6 +396,7 @@ for ((i=0;i<n_extern_links;i++)); do
             echo " -c 'network "$(subnet_group "${grp_2}")"' \\"
             echo " -c 'exit' \\"
 
+            # if grp_2 is a hijack as skip this
             if [ $relation_grp_2 == 'Provider' ]; then
                 echo " -c 'bgp community-list 2 permit $grp_2:10' \\"
                 echo " -c 'bgp community-list 2 permit $grp_2:20' \\"
@@ -374,10 +406,14 @@ for ((i=0;i<n_extern_links;i++)); do
                 echo " -c 'set local-preference 100' \\"
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_1} permit 5' \\"
-                echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                if [ "${hijacker}" != 2 ];then
+                    echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                fi
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_1} permit 10' \\"
-                echo " -c 'match community 2' \\"
+                if [ "${hijacker}" != 2 ];then
+                    echo " -c 'match community 2' \\"
+                fi
                 echo " -c 'exit' \\"
             elif [ $relation_grp_2 == 'Customer' ]; then
                 echo " -c 'bgp community-list 1 permit $grp_2:10' \\"
@@ -386,10 +422,14 @@ for ((i=0;i<n_extern_links;i++)); do
                 echo " -c 'set local-preference 20' \\"
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_1} permit 5' \\"
-                echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                if [ "${hijacker}" != 2 ];then
+                    echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                fi
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_1} permit 10' \\"
-                echo " -c 'match community 1' \\"
+                if [ "${hijacker}" != 2 ];then
+                    echo " -c 'match community 1' \\"
+                fi
                 echo " -c 'exit' \\"
             elif [ $relation_grp_2 == 'Peer' ]; then
                 echo " -c 'bgp community-list 1 permit $grp_2:10' \\"
@@ -398,10 +438,14 @@ for ((i=0;i<n_extern_links;i++)); do
                 echo " -c 'set local-preference 50' \\"
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_1} permit 5' \\"
-                echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                if [ "${hijacker}" != 2 ];then
+                    echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
+                fi
                 echo " -c 'exit' \\"
                 echo " -c 'route-map LOCAL_PREF_OUT_${grp_1} permit 10' \\"
-                echo " -c 'match community 1' \\"
+                if [ "${hijacker}" != 2 ];then
+                    echo " -c 'match community 1' \\"
+                fi
                 echo " -c 'exit' \\"
             fi
         } >> "${location2}"
@@ -501,40 +545,40 @@ for ((k=0;k<group_numbers;k++)); do
 done
 
 # hijack
-for ((k=0;k<group_numbers;k++)); do
-    group_k=(${groups[$k]})
-    group_number="${group_k[0]}"
-    group_as="${group_k[1]}"
-    group_config="${group_k[2]}"
-    group_router_config="${group_k[3]}"
-    group_internal_links="${group_k[4]}"
+# for ((k=0;k<group_numbers;k++)); do
+#     group_k=(${groups[$k]})
+#     group_number="${group_k[0]}"
+#     group_as="${group_k[1]}"
+#     group_config="${group_k[2]}"
+#     group_router_config="${group_k[3]}"
+#     group_internal_links="${group_k[4]}"
 
-    if [ "${group_as}" != "IXP" ];then
+#     if [ "${group_as}" != "IXP" ];then
 
-        readarray routers < "${DIRECTORY}"/config/$group_router_config
-        n_routers=${#routers[@]}
+#         readarray routers < "${DIRECTORY}"/config/$group_router_config
+#         n_routers=${#routers[@]}
 
-        for ((i=0;i<n_routers;i++)); do
-            router_i=(${routers[$i]})
-            rname="${router_i[0]}"
-            property1="${router_i[1]}"
+#         for ((i=0;i<n_routers;i++)); do
+#             router_i=(${routers[$i]})
+#             rname="${router_i[0]}"
+#             property1="${router_i[1]}"
 
-            if [ "${property1}" = "BGP_MONITOR"  ];then
-                location="${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_conf.sh
-                {
-                    echo "#!/bin/bash"
-                    echo "vtysh  -c 'conf t' \\"
-                    echo " -c 'route-map LOCAL_PREF_OUT_${group_k} permit 5' \\"
-                    echo " -c 'no match ip address prefix-list OWN_PREFIX' \\"
-                    echo " -c 'exit' \\"
-                    echo " -c 'route-map LOCAL_PREF_OUT_${group_k} permit 10' \\"
-                    echo " -c 'no match community {group_k}' \\"
-                    echo " -c 'exit' \\"
-                } >> "${location}"
-            fi
-        done
-    fi
-done
+#             if [ "${property1}" = "BGP_MONITOR"  ];then
+#                 location="${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_conf.sh
+#                 {
+#                     echo "#!/bin/bash"
+#                     echo "vtysh  -c 'conf t' \\"
+#                     echo " -c 'route-map LOCAL_PREF_OUT_${group_k} permit 5' \\"
+#                     echo " -c 'no match ip address prefix-list OWN_PREFIX' \\"
+#                     echo " -c 'exit' \\"
+#                     echo " -c 'route-map LOCAL_PREF_OUT_${group_k} permit 10' \\"
+#                     echo " -c 'no match community {group_k}' \\"
+#                     echo " -c 'exit' \\"
+#                 } >> "${location}"
+#             fi
+#         done
+#     fi
+# done
 
 
 # matrix
