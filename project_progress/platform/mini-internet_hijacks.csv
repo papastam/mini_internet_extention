@@ -1,2 +1,2 @@
 prefix,origin as,hijack type,hijacker asn,time started,time of last update,time ended,state,duration
-2.0.0.0/8,2,S|0|-|-,2,1691318623.772216,1691318656.000000,1691319256.000000,Dormant,10.550000,3,[],[%!d(string=2) %!d(string=1)]
+5.0.0.0/8,6,E|0|-|-,6,1691505585.370261,1691505585.370261,1691506185.370261,Dormant,10.000000,1,[],[%!d(string=1)]

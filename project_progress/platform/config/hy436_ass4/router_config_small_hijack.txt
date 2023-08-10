@@ -1,0 +1,2 @@
+LOND    HIJACK                  host:miniinterneteth/d_host vtysh
+ZURI    N/A 			        host:miniinterneteth/d_host vtysh

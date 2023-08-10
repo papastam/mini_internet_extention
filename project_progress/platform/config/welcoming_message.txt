@@ -3,6 +3,7 @@
 |   Communication Networks 20XX  - Routing Project     |
 |             Build your mini-Internet!                |
 |                                                      |
+|                      papastam                        |
 |                                                      |
 |   You can modify this welcoming message by           |
 |   modifying the file welcoming_message.txt           |
@@ -11,6 +12,6 @@
 |   From here, you can access your virtual devices     |
 |   with the goto.sh script. For instance:             |
 |                                                      |
-|   ./goto.sh MIAM router                              |
+|   ./goto.sh LOND router                              |
 |                                                      |
 +------------------------------------------------------+

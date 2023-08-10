@@ -14,3 +14,4 @@ readarray groups < "${DIRECTORY}"/config/AS_config.txt
 group_numbers=${#groups[@]}
 
 echo -n "-- --if-exists del-br exabgp_monitor " >> "${DIRECTORY}"/ovs_command.txt
+echo -n "-- --if-exists del-br hijack_lo " >> "${DIRECTORY}"/ovs_command.txt

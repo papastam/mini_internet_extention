@@ -18,6 +18,8 @@ readarray l2_switches < "${DIRECTORY}"/config/l2_switches.txt
 readarray l2_links < "${DIRECTORY}"/config/l2_links.txt
 readarray l2_hosts < "${DIRECTORY}"/config/l2_hosts.txt
 
+declare -A hijack_groups
+
 group_numbers=${#groups[@]}
 n_extern_links=${#extern_links[@]}
 n_l2_switches=${#l2_switches[@]}
@@ -50,7 +52,11 @@ for ((k=0;k<group_numbers;k++));do
             if [[ "${property2}" == *L2* ]];then
                 l2_id[$property2]=0
             fi
+            if [[ "${property2}" == "HIJACK" ]];then
+                hijack_groups+=("${group_number}")
+            fi
         done
+        echo "found ${#hijack_groups[@]} hijack groups"
         for ((i=0;i<n_routers;i++)); do
             router_i=(${routers[$i]})
             property2="${router_i[2]}"
@@ -493,6 +499,43 @@ for ((k=0;k<group_numbers;k++)); do
         done
     fi
 done
+
+# hijack
+for ((k=0;k<group_numbers;k++)); do
+    group_k=(${groups[$k]})
+    group_number="${group_k[0]}"
+    group_as="${group_k[1]}"
+    group_config="${group_k[2]}"
+    group_router_config="${group_k[3]}"
+    group_internal_links="${group_k[4]}"
+
+    if [ "${group_as}" != "IXP" ];then
+
+        readarray routers < "${DIRECTORY}"/config/$group_router_config
+        n_routers=${#routers[@]}
+
+        for ((i=0;i<n_routers;i++)); do
+            router_i=(${routers[$i]})
+            rname="${router_i[0]}"
+            property1="${router_i[1]}"
+
+            if [ "${property1}" = "BGP_MONITOR"  ];then
+                location="${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_conf.sh
+                {
+                    echo "#!/bin/bash"
+                    echo "vtysh  -c 'conf t' \\"
+                    echo " -c 'route-map LOCAL_PREF_OUT_${group_k} permit 5' \\"
+                    echo " -c 'no match ip address prefix-list OWN_PREFIX' \\"
+                    echo " -c 'exit' \\"
+                    echo " -c 'route-map LOCAL_PREF_OUT_${group_k} permit 10' \\"
+                    echo " -c 'no match community {group_k}' \\"
+                    echo " -c 'exit' \\"
+                } >> "${location}"
+            fi
+        done
+    fi
+done
+
 
 # matrix
 for ((k=0;k<group_numbers;k++)); do

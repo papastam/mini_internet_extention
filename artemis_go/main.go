@@ -21,8 +21,8 @@ import (
 type HijackType string
 
 const (
-	SubPrefix   HijackType = "E|0|-|-"
-	ExactPrefix HijackType = "S|0|-|-"
+	SubPrefix   HijackType = "S|0|-|-"
+	ExactPrefix HijackType = "E|0|-|-"
 	Valid       HijackType = "valid"
 	Undefined   HijackType = "undefined"
 )
@@ -95,7 +95,7 @@ func main() {
 	fmt.Println("Generating Patricia Tree...")
 	prefixASMap, prefixTree := generatePatriciaTree(prefixMapFilename)
 
-	fileUpdates, err := os.Open(updatesFilename) // "UPDATES_START_2021-11-12 00:00:00-END_2021-12-12 00:00:00.csv")
+	fileUpdates, err := os.Open(updatesFilename)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -139,7 +139,6 @@ func main() {
 		if strings.Contains(updateMessage.prefix, ":") || strings.Contains(updateRecord[1], "{") {
 			continue
 		}
-
 		hijackType, hijackerAs, _, updateMessage, asnOrigin, prefixMatched := getHijackDetectionStatus(updateMessage, prefixTree, prefixASMap, peerGraph)
 
 		if hijackType == Undefined {
@@ -341,9 +340,8 @@ func getHijackDetectionStatus(updateMessage BGPUpdate, prefixTree *string_tree.T
 }
 
 func printHijacks() {
-	fmt.Printf("We have detected %d hijacks\n", len(detectedHijackMap))
-	fmt.Printf("We have detected %d origin hijacks\n", len(ongoingHijackMap))
-	// file, err := os.OpenFile(cmd.HijackFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	fmt.Printf("We have detected %d withdrawn hijacks\n", len(detectedHijackMap))
+	fmt.Printf("We have detected %d ongoing hijacks\n", len(ongoingHijackMap))
 	
 	file, err := os.Create(cmd.HijackFile)
 	if err != nil {
@@ -366,14 +364,16 @@ func printHijacks() {
 		_, _ = datawriter.WriteString(hijackLine)
 	}
 
+	// Print ongoing hijacks
 	for _, hijack := range ongoingHijackMap {
 		hijack.state = Dormant
 		hijack.time_ended = hijack.time_last + 600
-		if hijack.time_started != hijack.time_last {
-			hijackLine := fmt.Sprintf("%s,%s,%s,%s,%f,%f,%f,%s,%f,%d,%d,%d\n", hijack.prefix, hijack.origin_as, hijack.hj_type, hijack.hijack_as, hijack.time_started,
-				hijack.time_last, hijack.time_ended, hijack.state, getTimeDiffInSeconds(hijack.time_started, hijack.time_ended)/60, hijack.messageCount, hijack.peers_withdrawn, hijack.peers_seen)
-			_, _ = datawriter.WriteString(hijackLine)
-		}
+		// WHY IS THIS NEEDED?
+		// if hijack.time_started != hijack.time_last {
+		hijackLine := fmt.Sprintf("%s,%s,%s,%s,%f,%f,%f,%s,%f,%d,%d,%d\n", hijack.prefix, hijack.origin_as, hijack.hj_type, hijack.hijack_as, hijack.time_started,
+			hijack.time_last, hijack.time_ended, hijack.state, getTimeDiffInSeconds(hijack.time_started, hijack.time_ended)/60, hijack.messageCount, hijack.peers_withdrawn, hijack.peers_seen)
+		_, _ = datawriter.WriteString(hijackLine)
+		// }
 	}
 	datawriter.Flush()
 }
