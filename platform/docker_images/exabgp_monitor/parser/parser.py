@@ -70,6 +70,8 @@ def message_parser(line):
                 if 'ipv6 unicast' in withdraw_msg:
                     prefixes.extend(withdraw_msg['ipv6 unicast'])
                 for prefix in prefixes:
+                    if type(prefix) == dict:
+                        prefix = list(prefix.values())[0]
                     message['prefix'].append(prefix)
                     
     except Exception:

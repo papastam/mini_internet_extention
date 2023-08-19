@@ -384,7 +384,6 @@ for ((i=0;i<n_extern_links;i++)); do
         } >> "${location1}"
 
         location2="${DIRECTORY}"/groups/g"${grp_2}"/"${router_grp_2}"/init_full_conf.sh
-        echo "3. ${hijacker}"
         {
             echo " -c 'interface ext_"${grp_1}"_"${router_grp_1}"' \\"
             echo " -c 'ip address "${subnet2}"' \\"

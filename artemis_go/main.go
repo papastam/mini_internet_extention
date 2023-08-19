@@ -58,7 +58,7 @@ const (
 	Withdrawn HijackState = "Withdrawn"
 )
 
-const messageCountThreshold = 2
+const messageCountThreshold = 0
 
 var ongoingHijackMap map[string]Hijack
 
@@ -182,7 +182,7 @@ func handleWithdrawal(updateMessage BGPUpdate, prefixMatched string) {
 		}
 
 		if isSubset(h.peers_seen, h.peers_withdrawn) {
-			if getTimeDiffInSeconds(h.time_last, updateMessage.timestamp) > 600 {
+			if getTimeDiffInSeconds(h.time_last, updateMessage.timestamp) > 60 {
 				markHijackTermination(hijackKey, h)
 			} else {
 				h.state = Withdrawn
@@ -336,6 +336,7 @@ func getHijackDetectionStatus(updateMessage BGPUpdate, prefixTree *string_tree.T
 		}
 	}
 
+	validPrefix = updateMessage.prefix
 	return hijackType, hijackerAs, isHijack, updateMessage, asnOrigin, validPrefix
 }
 
