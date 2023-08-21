@@ -98,7 +98,14 @@ fi
 echo "Hijacking ${prefix} for ${duration} minute(s)"
 
 # Sleep for the duration of the hijack
-sleep "${duration}m"
+for (( i=duration; i>0; i-- )); do
+    if [ "$i" -eq 1 ]; then
+        echo "1 minute remaining"
+    else
+        echo "$((i)) minutes Remaining"
+    fi
+    sleep 1m
+done
 
 # Withdraw the prefix
 {

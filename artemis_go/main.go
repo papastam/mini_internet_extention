@@ -140,7 +140,7 @@ func main() {
 			continue
 		}
 		hijackType, hijackerAs, _, updateMessage, asnOrigin, prefixMatched := getHijackDetectionStatus(updateMessage, prefixTree, prefixASMap, peerGraph)
-
+		// fmt.Println(getHijackDetectionStatus(updateMessage, prefixTree, prefixASMap, peerGraph))
 		if hijackType == Undefined {
 			continue
 		}
@@ -148,6 +148,8 @@ func main() {
 		if updateMessage.messageType == "A" {
 			if hijackType != Valid {
 				handleAnnouncement(updateMessage, hijackType, hijackerAs, asnOrigin, prefixMatched)
+			} else {
+				handleCorrectionAnnouncement(updateMessage, hijackType, hijackerAs, asnOrigin, prefixMatched)
 			}
 		} else { // Withdrawal message
 			handleWithdrawal(updateMessage, prefixMatched)
@@ -245,6 +247,31 @@ func handleAnnouncement(updateMessage BGPUpdate, hijack_type HijackType, hijack_
 		h.messageCount = 1
 		prefixMap[prefixMatched] = hijackKey
 		ongoingHijackMap[hijackKey] = h
+	}
+}
+
+func handleCorrectionAnnouncement(updateMessage BGPUpdate, hijack_type HijackType, hijack_as string, asnOrigin string, prefixMatched string) {
+	markHijackTermination := func(hijackKey string, hijack Hijack) {
+		hijack.state = Withdrawn
+		hijack.time_ended = hijack.time_last
+		//withdrawalKey := fmt.Sprintf("%s_%s_%s", updateMessage.prefix, hijack_as, hijack_type)
+
+		withdrawalsMap[hijackKey] = hijack
+		if hijack.messageCount > messageCountThreshold {
+			detectedHijackMap[hijackKey+"_"+fmt.Sprintf("%f", hijack.time_started)] = hijack
+		}
+		delete(ongoingHijackMap, hijackKey)
+		delete(prefixMap, updateMessage.prefix)
+	}
+	
+	for key, _ := range ongoingHijackMap {
+		split := strings.Split(key, "_")
+		prefix := split[0]
+
+		// If the route is valid for an ongoing hijack then we terminate the hijack
+		if prefix == prefixMatched{
+			markHijackTermination(key, ongoingHijackMap[key])
+		}
 	}
 }
 
