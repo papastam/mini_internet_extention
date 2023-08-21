@@ -3,11 +3,10 @@
 *.log 
 artemis_go/*.csv
 platform/docker_images/webserver/server/database/database.db
-.gitignore
+platform/setup/router_config.sh
 nohup.out
+platform/log.txt
 
 # Directories
 old_version*
-platform/setup/router_config.sh
-.gitignore
 platform/groups*
