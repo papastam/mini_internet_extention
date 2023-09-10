@@ -352,6 +352,7 @@ func getHijackDetectionStatus(updateMessage BGPUpdate, prefixTree *string_tree.T
 			hijackerAs = updateMessage.origin_as
 			isHijack = true
 		}
+		validPrefix = updateMessage.prefix
 	}
 
 	asnOrigin := ""
@@ -363,7 +364,6 @@ func getHijackDetectionStatus(updateMessage BGPUpdate, prefixTree *string_tree.T
 		}
 	}
 
-	validPrefix = updateMessage.prefix
 	return hijackType, hijackerAs, isHijack, updateMessage, asnOrigin, validPrefix
 }
 

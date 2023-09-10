@@ -1,0 +1,4 @@
+NORTH   MATRIX                  host:miniinterneteth/d_host vtysh
+EAST    HIJACK                  host:miniinterneteth/d_host vtysh
+SOUTH   MATRIX_TARGET           host:miniinterneteth/d_host vtysh
+WEST    EXABGP_MONITOR          host:miniinterneteth/d_host vtysh
