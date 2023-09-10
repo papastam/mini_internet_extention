@@ -543,6 +543,44 @@ for ((k=0;k<group_numbers;k++)); do
     fi
 done
 
+
+# hijack
+for ((k=0;k<group_numbers;k++)); do
+    group_k=(${groups[$k]})
+    group_number="${group_k[0]}"
+    group_as="${group_k[1]}"
+    group_config="${group_k[2]}"
+    group_router_config="${group_k[3]}"
+    group_internal_links="${group_k[4]}"
+
+    if [ "${group_as}" != "IXP" ];then
+
+        readarray routers < "${DIRECTORY}"/config/$group_router_config
+        n_routers=${#routers[@]}
+
+        for ((i=0;i<n_routers;i++)); do
+            router_i=(${routers[$i]})
+            rname="${router_i[0]}"
+            property1="${router_i[1]}"
+
+            if [ "${property1}" = "HIJACK"  ];then
+
+                echo -n "-- add-br ${group_k}_${rname}_hijack_lo " >> "${DIRECTORY}"/groups/add_bridges.sh
+                echo "ip link set dev ${group_k}_${rname}_hijack_lo up" >> "${DIRECTORY}"/groups/ip_setup.sh
+                                                
+                ./setup/ovs-docker.sh add-port ${group_k}_${rname}_hijack_lo hijack \
+                "${group_number}"_"${rname}"router
+
+                ./setup/ovs-docker.sh connect-ports ${group_k}_${rname}_hijack_lo \
+                group_"${group_number}" hijack \
+                group_"${group_number}" hijack
+
+            fi
+        done
+    fi
+done
+
+
 # hijack
 # for ((k=0;k<group_numbers;k++)); do
 #     group_k=(${groups[$k]})

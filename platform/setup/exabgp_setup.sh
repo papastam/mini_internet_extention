@@ -148,17 +148,17 @@ else
                     group_"${group_number}" EXABGP_MONITOR \
                     exabgp "${group_number}"_"${rname}"router
                 
-                elif [ "${property1}" = "HIJACK"  ];then
+                # elif [ "${property1}" = "HIJACK"  ];then
 
-                    echo -n "-- add-br hijack_lo " >> "${DIRECTORY}"/groups/add_bridges.sh
-                    echo "ip link set dev hijack_lo up" >> "${DIRECTORY}"/groups/ip_setup.sh
+                #     echo -n "-- add-br hijack_lo " >> "${DIRECTORY}"/groups/add_bridges.sh
+                #     echo "ip link set dev hijack_lo up" >> "${DIRECTORY}"/groups/ip_setup.sh
                                                     
-                    ./setup/ovs-docker.sh add-port hijack_lo hijack \
-                    "${group_number}"_"${rname}"router
+                #     ./setup/ovs-docker.sh add-port hijack_lo hijack \
+                #     "${group_number}"_"${rname}"router
 
-                    ./setup/ovs-docker.sh connect-ports hijack_lo \
-                    group_"${group_number}" hijack \
-                    group_"${group_number}" hijack
+                #     ./setup/ovs-docker.sh connect-ports hijack_lo \
+                #     group_"${group_number}" hijack \
+                #     group_"${group_number}" hijack
 
 
                 fi

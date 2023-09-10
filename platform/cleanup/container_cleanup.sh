@@ -44,6 +44,11 @@ for ((k=0;k<group_numbers;k++)); do
             property2="${router_i[2]}"
             dname=$(echo $property2 | cut -s -d ':' -f 2)
 
+            # If its a hijack router, kill the hijack bridge
+            if [[ "${property1}" == "HIJACK" ]];then
+                echo -n "-- --if-exists del-br ${group_k}_${rname}_hijack_lo " >> "${DIRECTORY}"/ovs_command.txt
+            fi
+
             # kill router router
             docker kill "${group_number}""_""${rname}""router" &>/dev/null || true &
 
