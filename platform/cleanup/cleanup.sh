@@ -14,6 +14,7 @@ if [ "$#" != 1 ]; then
 fi
 
 DIRECTORY="$1"
+echo -n "ovs-vsctl " > ovs_command.txt
 
 # kill all container
 ./cleanup/container_cleanup.sh "${DIRECTORY}"
@@ -21,7 +22,6 @@ DIRECTORY="$1"
 # remove all container & restart docker
 docker system prune -f
 
-echo -n "ovs-vsctl " > ovs_command.txt
 
 ./cleanup/host_links_cleanup.sh "${DIRECTORY}"
 ./cleanup/layer2_cleanup.sh "${DIRECTORY}"
