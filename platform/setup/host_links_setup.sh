@@ -88,13 +88,13 @@ for ((k=0;k<group_numbers;k++)); do
             fi
             if [ "${property1}" = "HIJACK"  ];then
 
-                echo -n "-- add-br ${group_k}_${rname}_hijack_lo " >> "${DIRECTORY}"/groups/add_bridges.sh
-                echo "ip link set dev ${group_k}_${rname}_hijack_lo up" >> "${DIRECTORY}"/groups/ip_setup.sh
+                echo -n "-- add-br $${group_k}_${rname}_hj " >> "${DIRECTORY}"/groups/add_bridges.sh
+                echo "ip link set dev $${group_k}_${rname}_hj up" >> "${DIRECTORY}"/groups/ip_setup.sh
                                                 
-                ./setup/ovs-docker.sh add-port ${group_k}_${rname}_hijack_lo hijack \
+                ./setup/ovs-docker.sh add-port $${group_k}_${rname}_hj hijack \
                 "${group_number}"_"${rname}"router
 
-                # ./setup/ovs-docker.sh connect-ports ${group_k}_${rname}_hijack_lo \
+                # ./setup/ovs-docker.sh connect-ports $${group_k}_${rname}_hj \
                 # hijack "${group_number}"_"${rname}"router \
                 # hijack "${group_number}"_"${rname}"router
 

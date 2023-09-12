@@ -46,7 +46,7 @@ for ((k=0;k<group_numbers;k++)); do
 
             # If its a hijack router, kill the hijack bridge
             if [[ "${property1}" == "HIJACK" ]];then
-                echo -n "-- --if-exists del-br ${group_k}_${rname}_hijack_lo " >> "${DIRECTORY}"/ovs_command.txt
+                echo -n "-- --if-exists del-br ${group_k}_${rname}_hj " >> "${DIRECTORY}"/ovs_command.txt
             fi
 
             # kill router router
