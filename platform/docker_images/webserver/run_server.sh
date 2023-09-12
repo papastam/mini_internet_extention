@@ -1,4 +1,4 @@
-DIRECTORY='/home/chris/Classes/mini_internet_extention/project_progress/platform'
+DIRECTORY='/home/chris/Classes/mini_internet_extention/platform'
 DOCKERHUB_USER="miniinterneteth"
 
 # docker build --tag="miniinterneteth/d_webserver" "."
