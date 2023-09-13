@@ -17,11 +17,13 @@ echo "process message-logger {
     encoder json;
 }" > ${EXA_DIR}/exabgp.conf
 
-# Clear the two files
+# Clear the parser.log, output.csv and as_prefixes.csv
 rm -f ${EXA_DIR}/parser/parser.log 
 umask 000; touch ${EXA_DIR}/parser/parser.log
 rm -f ${EXA_DIR}/parser/output.csv
 umask 000; touch ${EXA_DIR}/parser/output.csv
+rm -f ${EXA_DIR}/as_prefixes.csv
+umask 000; touch ${EXA_DIR}/as_prefixes.csv
 
 set -o errexit
 set -o pipefail
@@ -109,6 +111,9 @@ else
         group_router_config="${group_k[3]}"
 
         if [ "${group_as}" != "IXP" ];then
+
+            # Create as_prefixes.csv, format is: IP|AS|AS_NAME
+            echo "${group_number}.0.0.0/8|${group_number}|${group_number}" >> ${EXA_DIR}/as_prefixes.csv
 
             readarray routers < "${DIRECTORY}"/config/$group_router_config
             n_routers=${#routers[@]}

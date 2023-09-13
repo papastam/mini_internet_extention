@@ -3,6 +3,8 @@
 *.log 
 artemis_go/*.csv
 platform/docker_images/webserver/server/database/database.db
+platform/docker_images/exabgp_monitor/parser/output.csv
+platform/docker_images/exabgp_monitor/as_prefixex.csv
 platform/setup/router_config.sh
 nohup.out
 platform/log.txt
