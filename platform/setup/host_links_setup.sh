@@ -98,7 +98,7 @@ for ((k=0;k<group_numbers;k++)); do
                 # hijack "${group_number}"_"${rname}"router \
                 # hijack "${group_number}"_"${rname}"router
 
-                ./setup/ovs-docker.sh connect-ports hijack_lo \
+                ./setup/ovs-docker.sh connect-ports ${group_k}_${rname}_hj \
                 "${group_number}"_"${rname}"router hijack \
                 "${group_number}"_"${rname}"router hijack
 
