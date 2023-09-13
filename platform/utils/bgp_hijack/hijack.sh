@@ -1,3 +1,4 @@
+#!/bin/bash
 # Description: Hijack a BGP route
 
 while getopts 'a:r:p:t:' OPTION; do
@@ -22,7 +23,7 @@ while getopts 'a:r:p:t:' OPTION; do
 done
 shift "$(($OPTIND -1))"
 
-if [ -z "$duration" ];then
+if [ -z "$duration" ]; then
     # Pick a random number to detirmine the duration of the hijack
     duration=$(( ( RANDOM % 9 ) + 1 )) # Random number between 1 and 10
 elif [[ ! $duration =~ ^[0-9]+$ ]]; then
