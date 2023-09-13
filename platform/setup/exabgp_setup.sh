@@ -6,8 +6,7 @@
 DIRECTORY="$1"
 DATADIR="${DIRECTORY}/groups"
 CONFIGDIR="${DIRECTORY}/config"
-IMAGESDIR="${DIRECTORY}/dock
-er_images"
+IMAGESDIR="${DIRECTORY}/docker_images"
 EXA_DIR="${IMAGESDIR}/exabgp_monitor"
 UTILSDIR="${DIRECTORY}/utils"
 
