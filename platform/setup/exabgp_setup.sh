@@ -6,7 +6,8 @@
 DIRECTORY="$1"
 DATADIR="${DIRECTORY}/groups"
 CONFIGDIR="${DIRECTORY}/config"
-IMAGESDIR="${DIRECTORY}/docker_images"
+IMAGESDIR="${DIRECTORY}/dock
+er_images"
 EXA_DIR="${IMAGESDIR}/exabgp_monitor"
 UTILSDIR="${DIRECTORY}/utils"
 
@@ -18,11 +19,11 @@ echo "process message-logger {
 }" > ${EXA_DIR}/exabgp.conf
 
 # Clear the parser.log, output.csv and as_prefixes.csv
-rm -f ${EXA_DIR}/parser/parser.log 
+rm -f ${EXA_DIR}/parser/parser.log | true
 umask 000; touch ${EXA_DIR}/parser/parser.log
-rm -f ${EXA_DIR}/parser/output.csv
+rm -f ${EXA_DIR}/parser/output.csv | true
 umask 000; touch ${EXA_DIR}/parser/output.csv
-rm -f ${EXA_DIR}/as_prefixes.csv
+rm -f ${EXA_DIR}/as_prefixes.csv | true
 umask 000; touch ${EXA_DIR}/as_prefixes.csv
 
 set -o errexit
