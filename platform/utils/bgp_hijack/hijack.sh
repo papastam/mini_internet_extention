@@ -70,14 +70,14 @@ else
 fi
 
 # Check wether the router name is a valid router name or not
-if [[ ! $(docker ps -a --format '{{.Names}}' | grep "${as_number}_${router_name}router") ]] then
+if [[ ! $(docker ps -a --format '{{.Names}}' | grep "${as_number}_${router_name}router") ]]; then
     echo "AS ${as_number} does not have a router named ${router_name}router"
     echo "Please check the AS number and router name"
     exit 1
 fi 
 
 # Check wether the router has the ability to hijack a prefix or not
-if [[ ! $(docker exec -it "${as_number}_${router_name}router" vtysh -c 'show interface brief' | grep "hijack          up") ]] then
+if [[ ! $(docker exec -it "${as_number}_${router_name}router" vtysh -c 'show interface brief' | grep "hijack          up") ]]; then
     echo "Router ${router_name}router does not have the ability to hijack a prefix"
     echo "Please check the router name"
     exit 1
