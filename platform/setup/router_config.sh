@@ -247,10 +247,8 @@ for ((i=0;i<n_extern_links;i++)); do
     hijacker=0
     for as in "${hijack_groups[@]}"; do
         if [ "${grp_1}" = "${as}" ];then
-            echo "Configuting hijacker AS${grp_1}"
             hijacker=1
         elif [ "${grp_2}" = "${as}" ];then
-            echo "Configuting hijacker AS${grp_2}"
             hijacker=2
         fi
     done
