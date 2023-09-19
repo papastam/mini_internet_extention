@@ -63,7 +63,7 @@
 16  EAST    Peer    9   EAST    Peer    179.0.15.2/24
 10  SOUTH   Peer    9   NORTH   Peer    179.0.16.2/24
 15  EAST    Peer    10  EAST    Peer    179.0.17.2/24
-15  SOUTH   Peer    10  NORTH   Peer    179.0.18.2/24
+11  SOUTH   Peer    10  NORTH   Peer    179.0.18.2/24
 14  EAST    Peer    11  EAST    Peer    179.0.19.2/24
 12  EAST    Peer    11  NORTH   Peer    179.0.20.2/24
 13  SOUTH   Peer    12  NORTH   Peer    179.0.21.2/24
