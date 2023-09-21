@@ -178,7 +178,9 @@ for ((k=0;k<group_numbers;k++));do
         
             # Create a empty route-map
             {
-                echo " -c 'route-map empty permit 10' \\"
+                echo " -c 'route-map empty_in permit 10' \\"
+                echo " -c 'exit' \\"
+                echo " -c 'route-map empty_out permit 10' \\"
                 echo " -c 'exit' \\"
             } >> "${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_no_rules_conf.sh
         done
@@ -423,8 +425,8 @@ for ((i=0;i<n_extern_links;i++)); do
             echo " -c 'exit' \\"
             echo " -c 'router bgp "${grp_1}"' \\"
             echo " -c 'neighbor "${subnet2%???}" remote-as "${grp_2}"' \\"
-            echo " -c 'neighbor "${subnet2%???}" route-map empty in' \\"
-            echo " -c 'neighbor "${subnet2%???}" route-map empty out' \\"
+            echo " -c 'neighbor "${subnet2%???}" route-map empty_in in' \\"
+            echo " -c 'neighbor "${subnet2%???}" route-map empty_out out' \\"
             echo " -c 'network "$(subnet_group "${grp_1}")"' \\"
             echo " -c 'exit' \\"
         } >> "${nr_location1}"
@@ -491,8 +493,8 @@ for ((i=0;i<n_extern_links;i++)); do
             echo " -c 'exit' \\"
             echo " -c 'router bgp "${grp_2}"' \\"
             echo " -c 'neighbor "${subnet1%???}" remote-as "${grp_1}"' \\"
-            echo " -c 'neighbor "${subnet1%???}" route-map empty in' \\"
-            echo " -c 'neighbor "${subnet1%???}" route-map empty out' \\"
+            echo " -c 'neighbor "${subnet1%???}" route-map empty_in in' \\"
+            echo " -c 'neighbor "${subnet1%???}" route-map empty_out out' \\"
             echo " -c 'network "$(subnet_group "${grp_2}")"' \\"
             echo " -c 'exit' \\"
         } >> "${nr_location2}"
@@ -689,6 +691,7 @@ for ((k=0;k<group_numbers;k++)); do
 
             #run initial config
             echo " -c 'exit' -c 'write' " >> "${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_full_conf.sh
+            echo " -c 'exit' -c 'write' " >> "${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_no_rules_conf.sh
 
             docker cp "${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_conf.sh "${group_number}"_"${rname}"router:/home/init_conf.sh
             docker exec -d "${group_number}"_"${rname}"router bash ./home/init_conf.sh &
