@@ -2,10 +2,6 @@
 *.db 
 *.log 
 artemis_go/*.csv
-platform/docker_images/webserver/server/database/database.db
-platform/setup/router_config.sh
-nohup.out
-platform/log.txt
 
 # Directories
 old_version*
@@ -15,3 +11,10 @@ platform/groups*
 platform/docker_images/exabgp_monitor/parser/output.csv
 platform/docker_images/exabgp_monitor/as_prefixes.csv
 platform/docker_images/exabgp_monitor/exabgp.conf
+
+# Specific files
+platform/docker_images/webserver/server/database/database.db
+platform/setup/router_config.sh
+nohup.out
+platform/log.txt
+goto_server.sh
