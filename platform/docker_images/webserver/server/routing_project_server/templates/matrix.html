@@ -31,10 +31,15 @@ style="background-image: repeating-linear-gradient(45deg, transparent, transpare
 		This connectivity matrix indicates the networks that each group
 	</p>
 	<ul class="tw-list-disc tw-list-inside tw-mb-2">
+		{% if gao_rexford %}
 		<li>can reach with a valid AS-level path (<span class="tw-bg-[#56c157]">&nbsp;&nbsp;&nbsp;</span>);
 		</li>
 		<li>can reach with an invalid AS-level path (<span class="tw-bg-[#f0ad4e]">&nbsp;&nbsp;&nbsp;</span>);
 		</li>
+		{% else %}
+		<li>can reach (<span class="tw-bg-[#56c157]">&nbsp;&nbsp;&nbsp;</span>);
+		</li>
+		{% endif %}
 		<li>cannot reach (<span class="tw-bg-[#d5605e]">&nbsp;&nbsp;&nbsp;</span>). </li>
 	</ul>
 	<p class="tw-mb-2">
@@ -55,10 +60,12 @@ style="background-image: repeating-linear-gradient(45deg, transparent, transpare
 			title="Reachable with valid path: {{valid}}%" {{stripes(not valid)}}>
 			{{valid}}%
 		</div>
+		{% if gao_rexford %}
 		<div class="tw-basis-[{{invalid}}%] tw-px-2 tw-p-1 tw-bg-[#f0ad4e] tw-border-x-2 tw-border-white/50"
 			title="Reachable with invalid path: {{invalid}}%" {{stripes(not invalid)}}>
 			{{invalid}}%
 		</div>
+		{% endif %}
 		<div class="tw-basis-[{{failure}}%] tw-px-2 tw-p-1 tw-rounded-r-lg tw-bg-[#d5605e]" title="Not reachable: {{failure}}%"
 			{{stripes(not failure)}}>
 			{{failure}}%
@@ -93,38 +100,38 @@ style="background-image: repeating-linear-gradient(45deg, transparent, transpare
 		<!-- header row. -->
 		<div class="tw-border tw-border-white/50 tw-text-center tw-self-end">AS</div>
 		{% for asn in (connectivity|sort) %}
-		<div class="tw-border tw-border-white/50 tw-text-center even:tw-bg-neutral-200 tw-flex tw-flex-col tw-justify-end">
-			{{ stacknumber(asn) }}
-		</div>
+			<div class="tw-border tw-border-white/50 tw-text-center even:tw-bg-neutral-200 tw-flex tw-flex-col tw-justify-end">
+				{{ stacknumber(asn) }}
+			</div>
 		{% endfor %}
 		<!-- content rows -->
 		<!-- Add a little padding to ASN to make it look nicer. -->
 		{% for asn in connectivity|sort %}
-		<div class="tw-border tw-border-white/50 even:tw-bg-neutral-200 tw-text-right tw-pr-1">{{asn}}</div>
-		{% for asn_dst in connectivity[asn]|sort %}
-		{% if not connectivity[asn][asn_dst] %}
-		<div class="tw-border tw-border-white/50 tw-bg-[#d5605e]" title="AS{{asn}}&rarr;AS{{asn_dst}}: Not Reachable"
-			style="padding-bottom: 80%;">
-		</div>
-		{% else %}
-		{% if validity and (asn in validity) and (asn_dst in validity[asn]) %}
-		{% if validity[asn][asn_dst] %}
-		<div class="tw-border tw-border-white/50 tw-bg-[#56c157]" title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable with valid path"
-			style="padding-bottom: 80%;">
-		</div>
-		{% else %}
-		<div class="tw-border tw-border-white/50 tw-bg-[#f0ad4e]"
-			title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable with invalid path" style="padding-bottom: 80%;">
-		</div>
-		{% endif %}
-		{% else %}
-		<div class="tw-border tw-border-white/50 tw-bg-[#56c157]"
-			title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable, but validity of path could not be verified."
-			style="padding-bottom: 80%;">
-		</div>
-		{% endif %}
-		{% endif %}
-		{% endfor %}
+			<div class="tw-border tw-border-white/50 even:tw-bg-neutral-200 tw-text-right tw-pr-1">{{asn}}</div>
+			{% for asn_dst in connectivity[asn]|sort %}
+				{% if not connectivity[asn][asn_dst] %}
+					<div class="tw-border tw-border-white/50 tw-bg-[#d5605e]" title="AS{{asn}}&rarr;AS{{asn_dst}}: Not Reachable"
+						style="padding-bottom: 80%;">
+					</div>
+				{% else %}
+					{% if validity and (asn in validity) and (asn_dst in validity[asn]) %}
+						{% if validity[asn][asn_dst] or not gao_rexford %}
+							<div class="tw-border tw-border-white/50 tw-bg-[#56c157]" title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable with valid path"
+								style="padding-bottom: 80%;">
+							</div>
+						{% else %}
+							<div class="tw-border tw-border-white/50 tw-bg-[#f0ad4e]"
+								title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable with invalid path" style="padding-bottom: 80%;">
+							</div>
+						{% endif %}
+					{% else %}
+						<div class="tw-border tw-border-white/50 tw-bg-[#56c157]"
+							title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable, but validity of path could not be verified."
+							style="padding-bottom: 80%;">
+						</div>
+					{% endif %}
+				{% endif %}
+			{% endfor %}
 		{% endfor %}
 	</div>
 </div>

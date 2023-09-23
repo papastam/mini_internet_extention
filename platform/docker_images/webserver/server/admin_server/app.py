@@ -164,7 +164,36 @@ def create_admin_server(db_session, config=None, build=False):
     @app.route("/config")
     @fresh_login_required
     def config():
-        return redirect(url_for("config_teams"))
+        return redirect(url_for("config_general"))
+
+    @app.route("/config/general", methods=["GET", "POST"])
+    @fresh_login_required
+    def config_general():
+        if request.method == "POST":
+            form_args = dict(request.form)
+            debug(f"POST request received: {form_args}")
+
+            try:
+                if "name" in form_args:
+                    if "value" not in form_args:
+                        flash("Index \"value\" not found in the post request.", "error")
+                    else:
+                        if form_args["name"] == "ALLOW_PARALLEL_RENDEZVOUS":
+                            app.config["ALLOW_PARALLEL_RENDEZVOUS"] = True if form_args["value"]=="1" else False
+                            flash(f"ALLOW_PARALLEL_RENDEZVOUS set to {app.config['ALLOW_PARALLEL_RENDEZVOUS']}", "success")
+                        elif form_args["name"] == "BACKGROUND_WORKERS":
+                            app.config["BACKGROUND_WORKERS"] = True if form_args["value"]=="1" else False
+                            flash(f"BACKGROUND_WORKERS set to {app.config['BACKGROUND_WORKERS']}", "success")
+                        elif form_args["name"] == "AUTO_START_WORKERS":
+                            app.config["AUTO_START_WORKERS"] = True if form_args["value"]=="1" else False
+                            flash(f"AUTO_START_WORKERS set to {app.config['AUTO_START_WORKERS']}", "success")
+                        else:
+                            flash(f"Unknown config parameter: {form_args['name']}", "error")
+            except Exception as e:
+                flash(f"Error: {e}", "error")
+                db_session.rollback()
+
+        return render_template("config_general.html", config=app.config)
 
     @app.route("/config/teams", methods=["GET", "POST"])
     @fresh_login_required
