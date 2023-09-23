@@ -102,9 +102,31 @@ class Period(Base):
     name        = db.Column(db.String, nullable=False)
     live        = db.Column(db.Boolean, nullable=False, default=False)
 
+class Settings(Base):
+    __tablename__ = "settings"
+ 
+    id          = db.Column(db.Integer, primary_key=True)
+    name        = db.Column(db.String, nullable=False)
+    value       = db.Column(db.String, nullable=False)
+
 def init_db(build: bool = False):
     # Create the database
     if build:
         Base.metadata.create_all(engine)
     session = Session()
+    
+    # Init settings table
+    if not session.query(Settings).all():
+        settings =  {
+                    1: {"name": "enable_GaoRexford", "value": "0"},
+                    2: {"name": "enable_LookingGlass", "value": "1"},
+                    3: {"name": "enable_Connections", "value": "1"},
+                    4: {"name": "enable_Rendezvous", "value": "1"},
+                    4: {"name": "Inactive_as_login", "value": "0"},
+        }
+        for setting_id, info in settings.items():
+            new_setting = Settings(id=setting_id, name=info["name"], value=info["value"])
+            session.add(new_setting)
+            session.commit()
+    
     return session

@@ -144,6 +144,9 @@ def create_project_server(db_session, config=None, build=False):
 
     @app.route("/matrix")
     def connectivity_matrix():
+        # Check if Gao-Rexford is enabled.
+        gao_rexford = db_session.query(db.Settings).filter(db.Settings.name == "enable_GaoRexford").first() == '1'
+        
         """Create the connectivity matrix."""
         # Prepare matrix data (or load if using background workers).
         updated, frequency, connectivity, validity = prepare_matrix(app.config)
@@ -170,15 +173,19 @@ def create_project_server(db_session, config=None, build=False):
                     failure += 1
         total = valid + invalid + failure
         if total:
-            invalid = math.ceil(invalid / total * 100)
             failure = math.ceil(failure / total * 100)
-            valid = 100 - invalid - failure
+            if gao_rexford:
+                invalid = math.ceil(invalid / total * 100)
+                valid = 100 - invalid - failure
+            else:
+                invalid = 0
+                valid = 100 - failure
 
         return render_template(
             'matrix.html',
             connectivity=connectivity, validity=validity,
             valid=valid, invalid=invalid, failure=failure,
-            last_updated=updated, update_frequency=frequency
+            last_updated=updated, update_frequency=frequency, gao_rexford=gao_rexford
         )
 
     #TODO: Move it to the admin side
