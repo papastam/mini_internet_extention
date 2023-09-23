@@ -88,7 +88,7 @@ docker run -itd --net='none' --name="EXABGP_MONITOR"  \
     -v ${EXA_DIR}/parser/output.csv:/parser/output.csv \
     -e "CLEAR_TO_START=0" \
     --hostname="EXABGP_MONITOR" --cpus=2 --pids-limit 100 \
-    exabgp_monitor /bin/bash
+    exabgp_monitor exabgp /exabgp.conf
 
 
 # cache the docker pid for ovs-docker.sh

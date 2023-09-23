@@ -239,12 +239,12 @@ echo ""
 echo ""
 
 
-echo "run_exabgp.sh: "
-echo "run_exabgp.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
-time ./setup/run_exabgp.sh "${DIRECTORY}"
+# echo "run_exabgp.sh: "
+# echo "run_exabgp.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
+# time ./setup/run_exabgp.sh "${DIRECTORY}"
 
-echo ""
-echo ""
+# echo ""
+# echo ""
 
 echo "Waiting 60sec for RPKI CA and proxy to startup.."
 # sleep 60
