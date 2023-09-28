@@ -321,7 +321,7 @@ def create_project_server(db_session, config=None, build=False):
             as_team = db_session.query(db.AS_team).filter(db.AS_team.asn == form.asn.data).first()
 
             if as_team and (as_team.password==form.password.data):
-                if as_team.is_authenticated == False:
+                if as_team.is_authenticated == False and allow_inactive == "0":
                     flash('Login unsuccessful. Your account is not active', 'error')
                     as_log(f"Unsuccessful attempt for {form.asn.data} with password {form.password.data} - account not active -")
                 else:
