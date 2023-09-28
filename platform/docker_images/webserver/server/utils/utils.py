@@ -80,11 +80,13 @@ def reset_files():
         with open("/server/database/database.db",'r+') as file:
             file.truncate(0)
 
-    #Clear the log files
-    with open("/server/routing_project_server/as.log",'r+') as file:
-        file.truncate(0)    
-    with open("/server/admin_server/admin_login.log",'r+') as file:
-        file.truncate(0)
+    #Clear the log files if they exist
+    if os.path.isfile("/server/routing_project_server/as.log"):
+        with open("/server/routing_project_server/as.log",'r+') as file:
+            file.truncate(0)    
+    if os.path.isfile("/server/admin_server/admin_login.log"):
+        with open("/server/admin_server/admin_login.log",'r+') as file:
+            file.truncate(0)
 
 def detect_rend_collision(db_session,date,duration,period):
     """Check if the new rendezvous collides with an existing one."""
