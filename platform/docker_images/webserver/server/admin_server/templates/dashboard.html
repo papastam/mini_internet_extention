@@ -90,10 +90,8 @@ $(document).ready(function() {
     $("#refreshSwitch").change(function() {
         console.log("refreshSwitch changed")
         if ((this.checked==true)){
-            startCheckingForStats();
             $("#stats_end").prop("disabled", true);
         } else {
-            stopCheckingForStats();
             $("#stats_end").prop("disabled", false);
         }
     });

@@ -179,7 +179,6 @@ def create_admin_server(db_session, config=None, build=False):
 
         if request.method == "POST":
             form_args = dict(request.form)
-            debug(f"POST request received: {form_args}")
 
             try:
                 enable_GaoRexford.value = 1 if "enable_GaoRexford" in form_args else 0
@@ -675,7 +674,7 @@ def loop(function, freq, *args, **kwargs):
 
 def measure_stats(config, app, db_session, worker=False):
 
-    time = strftime("%d-%m-%y %H:%M:%S", gmtime())
+    time = datetime.now().strftime("%d-%m-%y %H:%M:%S")
     cpu = psutil.cpu_percent()
     memory = psutil.virtual_memory()[2]
     disk = psutil.disk_usage('/')[3]
