@@ -115,6 +115,18 @@ def create_project_server(db_session, config=None, build=False):
         db.create_as_login(db_session,app.config['LOCATIONS']['as_passwords'])
         db.create_test_db_snapshot(db_session)
 
+    def create_index_list(db_session):
+        index_list = {"connectivity_matrix": "matrix"}
+        if db_session.query(db.Settings).filter(db.Settings.name == "enable_LookingGlass").first().value == "1":
+            index_list["looking_glass"] = "looking glass"
+        if db_session.query(db.Settings).filter(db.Settings.name == "enable_Connections").first().value == "1":
+            index_list["as_connections"] = "connections"
+        if db_session.query(db.Settings).filter(db.Settings.name == "enable_Rendezvous").first().value == "1":
+            index_list["rendezvous"] = "rendezvous"
+        if db_session.query(db.Settings).filter(db.Settings.name == "enable_ChangePassword").first().value == "1":
+            index_list["change_pass_index"] = "change password"
+        return index_list
+
     @app.template_filter()
     def format_datetime(utcdatetime, format='%Y-%m-%d at %H:%M'):
         if utcdatetime.tzinfo is None:  # Attach tzinfo if needed
@@ -135,7 +147,7 @@ def create_project_server(db_session, config=None, build=False):
     
     @app.errorhandler(404)
     def page_not_found(e):
-        return render_template('404.html'), 404
+        return render_template('404.html', navigation_bar=create_index_list(db_session)), 404
 
     @app.route("/")
     def index():
@@ -145,7 +157,7 @@ def create_project_server(db_session, config=None, build=False):
     @app.route("/matrix")
     def connectivity_matrix():
         # Check if Gao-Rexford is enabled.
-        gao_rexford = db_session.query(db.Settings).filter(db.Settings.name == "enable_GaoRexford").first() == '1'
+        gao_rexford = db_session.query(db.Settings).filter(db.Settings.name == "enable_GaoRexford").first().value
         
         """Create the connectivity matrix."""
         # Prepare matrix data (or load if using background workers).
@@ -174,7 +186,7 @@ def create_project_server(db_session, config=None, build=False):
         total = valid + invalid + failure
         if total:
             failure = math.ceil(failure / total * 100)
-            if gao_rexford:
+            if gao_rexford == "1":
                 invalid = math.ceil(invalid / total * 100)
                 valid = 100 - invalid - failure
             else:
@@ -185,7 +197,8 @@ def create_project_server(db_session, config=None, build=False):
             'matrix.html',
             connectivity=connectivity, validity=validity,
             valid=valid, invalid=invalid, failure=failure,
-            last_updated=updated, update_frequency=frequency, gao_rexford=gao_rexford
+            last_updated=updated, update_frequency=frequency,
+            gao_rexford=gao_rexford, navigation_bar=create_index_list(db_session)
         )
 
     #TODO: Move it to the admin side
@@ -196,7 +209,7 @@ def create_project_server(db_session, config=None, build=False):
         updated, freq, messages = prepare_bgp_analysis(app.config)
         return render_template(
             "bgp_analysis.html", messages=messages,
-            last_updated=updated, update_frequency=freq
+            last_updated=updated, update_frequency=freq, navigation_bar=create_index_list(db_session)
         )
 
     @app.route("/looking-glass")
@@ -208,6 +221,13 @@ def create_project_server(db_session, config=None, build=False):
         looking_glass_files = parsers.find_looking_glass_textfiles(
             app.config['LOCATIONS']['groups']
         )
+        # Check if looking glass is enabled.
+        looking_glass_enabled = db_session.query(db.Settings).filter(db.Settings.name == "enable_LookingGlass").first().value        
+        if looking_glass_enabled == "0":
+            return render_template('404.html', navigation_bar=create_index_list(db_session)), 404
+        
+
+        gao_rexford = db_session.query(db.Settings).filter(db.Settings.name == "enable_GaoRexford").first().value
         need_redirect = False
 
         if (group is None) or (group not in looking_glass_files):
@@ -242,13 +262,18 @@ def create_project_server(db_session, config=None, build=False):
             bgp_hints=messages,
             group=group, router=router,
             dropdown_groups=dropdown_groups, dropdown_routers=dropdown_routers,
-            last_updated=updated, update_frequency=freq
+            last_updated=updated, update_frequency=freq, gao_rexford=gao_rexford, navigation_bar=create_index_list(db_session)
         )
 
     @app.route("/as-connections")
     @app.route("/as-connections/<int:group>")
     @app.route("/as-connections/<int:group>/<int:othergroup>")
     def as_connections(group: int = None, othergroup: int = None):
+        # Check if connections are enabled.
+        enable_Connections = db_session.query(db.Settings).filter(db.Settings.name == "enable_Connections").first().value        
+        if enable_Connections == "0":
+            return render_template('404.html', navigation_bar=create_index_list(db_session)), 404        
+
         """Show the AS connections, optionally for selected groups only."""
         connections = parsers.parse_public_as_connections(
             app.config['LOCATIONS']['as_connections_public'])
@@ -276,14 +301,19 @@ def create_project_server(db_session, config=None, build=False):
             # All ASes
             dropdown_groups=all_ases,
             # Only matching ASes for first one.
-            dropdown_others={conn[1]['asn'] for conn in selected_connections}
+            dropdown_others={conn[1]['asn'] for conn in selected_connections}, navigation_bar=create_index_list(db_session)
         )
     
     @app.route("/as_login", methods=['GET', 'POST'])
     def as_login():
         login_choices.clear()
-        for as_team in db_session.query(db.AS_team).filter(db.AS_team.is_authenticated==True).all():
-            login_choices.append((as_team.asn, as_team.asn))    
+        allow_inactive = db_session.query(db.Settings).filter(db.Settings.name == "allow_InactiveASLogin").first().value
+        if allow_inactive == "1":
+            for as_team in db_session.query(db.AS_team).all():
+                login_choices.append((as_team.asn, as_team.asn))
+        else:
+            for as_team in db_session.query(db.AS_team).filter(db.AS_team.is_authenticated==True).all():
+                login_choices.append((as_team.asn, as_team.asn))    
 
         form = LoginForm()
         next_url = request.form.get("next")
@@ -313,11 +343,16 @@ def create_project_server(db_session, config=None, build=False):
                 as_log(f"Unsuccessful attempt for {form.asn.data} with password {form.password.data}")
                 flash('Login unsuccessful. Please check username and password', 'error')
 
-        return render_template('as_login.html', form=form)
+        return render_template('as_login.html', form=form, navigation_bar=create_index_list(db_session))
     
     @app.route("/change_pass", methods=['GET', 'POST'])
     @login_required
     def change_pass_index():
+        # Check if connections are enabled.
+        enable_ChangePassword = db_session.query(db.Settings).filter(db.Settings.name == "enable_ChangePassword").first().value        
+        if enable_ChangePassword == "0":
+            return render_template('404.html', navigation_bar=create_index_list(db_session)), 404         
+
         form = ChangePassForm()
         if form.is_submitted():
 
@@ -341,16 +376,21 @@ def create_project_server(db_session, config=None, build=False):
                 except ValueError as e:
                     as_log(f"Error changing password for {current_user.asn} to '{password}'")
                     flash(f"Error changing password: {e}", "error")
-                    return render_template('change_pass.html', form=form)
+                    return render_template('change_pass.html', form=form, navigation_bar=create_index_list(db_session))
 
                 flash('Password changed successfully.', 'success') 
 
-        return render_template('change_pass.html', form=form)
+        return render_template('change_pass.html', form=form, navigation_bar=create_index_list(db_session))
 
     @app.route("/rendezvous", methods=['GET'])
     @app.route("/rendezvous/<int:selected_period>", methods=['GET', 'POST'])
     @login_required
     def rendezvous(selected_period: Optional[int] = None):
+        # Check if connections are enabled.
+        enable_Rendezvous = db_session.query(db.Settings).filter(db.Settings.name == "enable_Rendezvous").first().value        
+        if enable_Rendezvous == "0":
+            return render_template('404.html', navigation_bar=create_index_list(db_session)), 404      
+        
         cancelation_block = timedelta(minutes=int(app.config["CANCELLATION_BLOCKING_TIME"]))
 
         if request.method == 'POST':
@@ -396,7 +436,7 @@ def create_project_server(db_session, config=None, build=False):
 
             if (selected_period is not None) and ((db_session.query(db.Period).filter(db.Period.id == selected_period).first() is None) or (db_session.query(db.Period).filter(db.Period.id == selected_period).first().live == False)):
                 flash('Invalid period selected', 'error')
-            return render_template('rendezvous_basic.html', configdict=configdict, cancelation_block=cancelation_block)
+            return render_template('rendezvous_basic.html', configdict=configdict, cancelation_block=cancelation_block, navigation_bar=create_index_list(db_session))
        
         selected_period_obj = db_session.query(db.Period).filter(db.Period.id == selected_period).first()
         if selected_period_obj is None:
@@ -457,12 +497,7 @@ def create_project_server(db_session, config=None, build=False):
             configdict["selected"] = {} 
             configdict["selected"]["name"] = selected_period_obj.name
             
-        return render_template('rendezvous.html', configdict=configdict, cancelation_block=cancelation_block)
-
-    @app.route("/traceroute")
-    @login_required
-    def traceroute():
-        return render_template('traceroute.html')
+        return render_template('rendezvous.html', configdict=configdict, cancelation_block=cancelation_block, navigation_bar=create_index_list(db_session))
 
     @app.route("/logout")
     @login_required
