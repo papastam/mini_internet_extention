@@ -116,7 +116,7 @@ style="background-image: repeating-linear-gradient(45deg, transparent, transpare
 				{% else %}
 					{% if validity and (asn in validity) and (asn_dst in validity[asn]) %}
 						{% if validity[asn][asn_dst] or not gao_rexford == "1" %}
-							<div class="tw-border tw-border-white/50 tw-bg-[#56c157]" title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable with valid path"
+							<div class="tw-border tw-border-white/50 tw-bg-[#56c157]" title="AS{{asn}}&rarr;AS{{asn_dst}}: Reachable{{ " with valid path" if gao_rexford == "1"}}"
 								style="padding-bottom: 80%;">
 							</div>
 						{% else %}
