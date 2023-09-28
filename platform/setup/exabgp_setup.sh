@@ -38,7 +38,7 @@ readarray groups < "${DIRECTORY}"/config/AS_config.txt
 group_numbers=${#groups[@]}
 
 # Check if there is a BGP_MONITOR container 
-is_msm=0
+has_monitor=0
 as_array=()
 for ((k=0;k<group_numbers;k++)); do
     group_k=(${groups[$k]})
