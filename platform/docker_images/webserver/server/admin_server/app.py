@@ -169,31 +169,40 @@ def create_admin_server(db_session, config=None, build=False):
     @app.route("/config/general", methods=["GET", "POST"])
     @fresh_login_required
     def config_general():
+        # Get current settings values
+        enable_GaoRexford = db_session.query(db.Settings).filter(db.Settings.name=="enable_GaoRexford").first()
+        allow_InactiveASLogin = db_session.query(db.Settings).filter(db.Settings.name=="allow_InactiveASLogin").first()
+        enable_LookingGlass = db_session.query(db.Settings).filter(db.Settings.name=="enable_LookingGlass").first()
+        enable_Connections = db_session.query(db.Settings).filter(db.Settings.name=="enable_Connections").first()
+        enable_ChangePassword = db_session.query(db.Settings).filter(db.Settings.name=="enable_ChangePassword").first()
+        enable_Rendezvous = db_session.query(db.Settings).filter(db.Settings.name=="enable_Rendezvous").first()
+
         if request.method == "POST":
             form_args = dict(request.form)
             debug(f"POST request received: {form_args}")
 
             try:
-                if "name" in form_args:
-                    if "value" not in form_args:
-                        flash("Index \"value\" not found in the post request.", "error")
-                    else:
-                        if form_args["name"] == "ALLOW_PARALLEL_RENDEZVOUS":
-                            app.config["ALLOW_PARALLEL_RENDEZVOUS"] = True if form_args["value"]=="1" else False
-                            flash(f"ALLOW_PARALLEL_RENDEZVOUS set to {app.config['ALLOW_PARALLEL_RENDEZVOUS']}", "success")
-                        elif form_args["name"] == "BACKGROUND_WORKERS":
-                            app.config["BACKGROUND_WORKERS"] = True if form_args["value"]=="1" else False
-                            flash(f"BACKGROUND_WORKERS set to {app.config['BACKGROUND_WORKERS']}", "success")
-                        elif form_args["name"] == "AUTO_START_WORKERS":
-                            app.config["AUTO_START_WORKERS"] = True if form_args["value"]=="1" else False
-                            flash(f"AUTO_START_WORKERS set to {app.config['AUTO_START_WORKERS']}", "success")
-                        else:
-                            flash(f"Unknown config parameter: {form_args['name']}", "error")
+                enable_GaoRexford.value = 1 if "enable_GaoRexford" in form_args else 0
+                allow_InactiveASLogin.value = 1 if "allow_InactiveASLogin" in form_args else 0
+                enable_LookingGlass.value = 1 if "enable_LookingGlass" in form_args else 0
+                enable_Connections.value = 1 if "enable_Connections" in form_args else 0
+                enable_ChangePassword.value = 1 if "enable_ChangePassword" in form_args else 0
+                enable_Rendezvous.value = 1 if "enable_Rendezvous" in form_args else 0
+
+                db_session.add(enable_GaoRexford)
+                db_session.add(allow_InactiveASLogin)
+                db_session.add(enable_LookingGlass)
+                db_session.add(enable_Connections)
+                db_session.add(enable_ChangePassword)
+                db_session.add(enable_Rendezvous)
+                                
+                db_session.commit()
             except Exception as e:
                 flash(f"Error: {e}", "error")
                 db_session.rollback()
 
-        return render_template("config_general.html", config=app.config)
+
+        return render_template("config_general.html", config=app.config, enable_GaoRexford=enable_GaoRexford.value, enable_LookingGlass=enable_LookingGlass.value, enable_Connections=enable_Connections.value, enable_Rendezvous=enable_Rendezvous.value, allow_InactiveASLogin=allow_InactiveASLogin.value, enable_ChangePassword=enable_ChangePassword.value)
 
     @app.route("/config/teams", methods=["GET", "POST"])
     @fresh_login_required

@@ -79,19 +79,21 @@
     <pre id="code"
         class="tw-box-border tw-w-48 tw-text-sm tw-px-4 tw-py-2 tw-rounded tw-border tw-border-neutral-300 tw-bg-neutral-100 tw-overflow-x-auto tw-mb-6">{{filecontent|safe}}</pre>
 
-    {{ h1("policy analysis") }}
-    {{ update_message(update_frequency, last_updated)}}
-    {% if not bgp_hints %}
-    <p>
-        The BGP advertisements of <b>AS {{group}}</b> do not seem to violate any policies.
-    </p>
-    {% else %}
-    <p class="tw-mb-2">The BGP advertisements of <b>AS {{group}}</b> violate policies:</p>
-    <ul class="tw-list-disc tw-list-inside">
-        {% for msg in bgp_hints %}
-        <li>{{msg}}</li>
-        {% endfor %}
-    </ul>
+    {% if gao_rexford == "1" %}
+        {{ h1("policy analysis") }}
+        {{ update_message(update_frequency, last_updated)}}
+        {% if not bgp_hints %}
+        <p>
+            The BGP advertisements of <b>AS {{group}}</b> do not seem to violate any policies.
+        </p>
+        {% else %}
+        <p class="tw-mb-2">The BGP advertisements of <b>AS {{group}}</b> violate policies:</p>
+        <ul class="tw-list-disc tw-list-inside">
+            {% for msg in bgp_hints %}
+            <li>{{msg}}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
     {% endif %}
 </div>
 {% endblock %}
