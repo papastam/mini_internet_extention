@@ -31,7 +31,7 @@ style="background-image: repeating-linear-gradient(45deg, transparent, transpare
 		This connectivity matrix indicates the networks that each group
 	</p>
 	<ul class="tw-list-disc tw-list-inside tw-mb-2">
-		{% if gao_rexford %}
+		{% if gao_rexford == "1" %}
 		<li>can reach with a valid AS-level path (<span class="tw-bg-[#56c157]">&nbsp;&nbsp;&nbsp;</span>);
 		</li>
 		<li>can reach with an invalid AS-level path (<span class="tw-bg-[#f0ad4e]">&nbsp;&nbsp;&nbsp;</span>);
@@ -60,7 +60,7 @@ style="background-image: repeating-linear-gradient(45deg, transparent, transpare
 			title="Reachable with valid path: {{valid}}%" {{stripes(not valid)}}>
 			{{valid}}%
 		</div>
-		{% if gao_rexford %}
+		{% if gao_rexford == "1" %}
 		<div class="tw-basis-[{{invalid}}%] tw-px-2 tw-p-1 tw-bg-[#f0ad4e] tw-border-x-2 tw-border-white/50"
 			title="Reachable with invalid path: {{invalid}}%" {{stripes(not invalid)}}>
 			{{invalid}}%
