@@ -9,6 +9,7 @@ from time import sleep, strftime, gmtime
 from flask import Flask, jsonify, redirect, render_template, request, url_for, flash
 from flask_basicauth import BasicAuth
 from jinja2 import StrictUndefined
+from typing import Optional
 
 from flask_login import login_user, login_required, fresh_login_required, LoginManager, logout_user, current_user
 from wtforms.validators import InputRequired
@@ -615,6 +616,35 @@ def create_admin_server(db_session, config=None, build=False):
             })
 
         return render_template("config_rendezvous.html", periods=periods_list, rendezvous_list=rendezvous_list, teams=teams_list, students=students_list)
+
+    @app.route("/logs")
+    @app.route("/logs/<string:container>")
+    @fresh_login_required
+    def logs(container: Optional[str] = None):
+        # Make a list of all the running containers
+        containers = []
+        for cont in os.listdir(f"{app.config['LOCATIONS']['groups']}/docker_logs"):
+            containers.append(cont.split(".")[0])
+        
+        output = ""
+        if container:
+            # send a command to refresh in the docker pipe
+            with open(app.config['LOCATIONS']['docker_pipe'], "w") as pipe:
+                pipe.write(f"docker logs {container}\n")
+                debug(f"Sending command to docker pipe: docker logs {container}")
+                pipe.flush()
+                pipe.close()
+        
+            with open(f"{app.config['LOCATIONS']['groups']}/docker_logs/{container}.log", "r") as f:
+                output = f.read()
+        else:
+            with open(app.config['LOCATIONS']['docker_pipe'], "w") as pipe:
+                pipe.write(f"docker logs all\n")
+                pipe.flush()
+                pipe.close()
+            
+
+        return render_template("logs.html", logs=output, containers=containers, container=container)
 
     @app.route("/logout")
     @fresh_login_required

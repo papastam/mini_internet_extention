@@ -57,6 +57,8 @@ for ((k=0;k<group_numbers;k++)); do
     fi
 done
 
+mkdir "${DIRECTORY}"/groups/docker_logs
+
 location="${DIRECTORY}"/groups
 
 echo "#!/bin/bash" > "${location}"/ip_setup.sh
