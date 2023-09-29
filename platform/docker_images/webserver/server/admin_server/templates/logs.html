@@ -1,0 +1,24 @@
+{% extends "admin_base.html" %}
+
+{% block body %}
+<div id="lg-body" class="tw-max-w-4xl tw-mx-auto tw-px-6 tw-pt-6 tw-mb-16">
+    <div class="tw-flex tw-items-center tw-justify-center">
+        <div class="tw-mr-8 tw-mb-4">
+            <span class="tw-font-bold">Container</span>
+            <select class="tw-bg-transparent tw-border-0 tw-border-b-2 tw-border-neutral-400 hover:tw-border-[#ff7e79]"
+                onchange="if (this.value) window.location.href=this.value">
+                {% for _container in containers|sort %}
+                <option {% if _container==container %}selected{%endif%}
+                    value="{{url_for('logs', container=_container)}}">
+                    {{_container}}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <pre id="code"
+        class="tw-box-border tw-w-48 tw-text-sm tw-px-4 tw-py-2 tw-rounded tw-border tw-border-neutral-300 tw-bg-neutral-100 tw-overflow-x-auto tw-mb-6">{{logs|safe}}</pre>
+</div>
+
+
+{% endblock %}

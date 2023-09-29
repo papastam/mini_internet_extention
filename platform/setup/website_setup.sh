@@ -185,3 +185,11 @@ docker run -d --name='PROXY' \
     "--entrypoints.web.address=:${SERVER_PORT_HTTP}" \
     "--entrypoints.websecure.address=:${SERVER_PORT_HTTPS}" \
     "--entrypoints.krill.address=:${PORT_KRILL}"
+
+# Create a file for each running container
+# This is used by the webserver to get the status of the containers
+# and to get the logs.
+readarray -t containers < <(docker ps --format "{{.Names}}")
+for container in "${containers[@]}"; do
+    touch "${DATADIR}/docker_logs/${container}.log"
+done
