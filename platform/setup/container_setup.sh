@@ -40,6 +40,7 @@ for ((k=0;k<group_numbers;k++)); do
         group_layer2_hosts="${group_k[6]}"
         group_layer2_links="${group_k[7]}"
 
+
         declare -a CONTAINERS
         declare -a KRILL_CONTAINERS
         declare -a ROUTINATOR_CONTAINERS
@@ -55,23 +56,53 @@ for ((k=0;k<group_numbers;k++)); do
             n_l2_switches=${#l2_switches[@]}
             n_l2_hosts=${#l2_hosts[@]}
 
+            has_monitor=0
+            for ((i=0;i<n_routers;i++)); do
+                router_i=(${routers[$i]})
+                rname="${router_i[0]}"
+                property1="${router_i[1]}"
+                property2="${router_i[2]}"
+
+                if [[ "${property1}" == "BGP_MONITOR" ]];then
+                    has_monitor=1
+                    break
+                fi
+            done
+
             location="${DIRECTORY}"/groups/g"${group_number}"
             subnet_dns="$(subnet_router_DNS "${group_number}" "dns")"
 
             # start ssh container
-            docker run -itd --net='none'  --name="${group_number}""_ssh" \
-                --cpus=2 --pids-limit 100 --hostname="g${group_number}-proxy" --cap-add=NET_ADMIN \
-                -v "${location}"/goto.sh:/root/goto.sh  \
-                -v "${location}"/save_configs.sh:/root/save_configs.sh \
-                -v "${location}"/restore_configs.sh:/root/restore_configs.sh \
-                -v "${location}"/restart_ospfd.sh:/root/restart_ospfd.sh \
-                -v /etc/timezone:/etc/timezone:ro \
-                -v /etc/localtime:/etc/localtime:ro \
-                -v "${DIRECTORY}"/config/welcoming_message.txt:/etc/motd:ro \
-                --log-opt max-size=1m --log-opt max-file=3 \
-                "${DOCKERHUB_USER}/d_ssh"
+            if [[ "$has_monitor" -eq 1 ]]; then
+                docker run -itd --net='none'  --name="${group_number}""_ssh" \
+                    --cpus=2 --pids-limit 100 --hostname="g${group_number}-proxy" --cap-add=NET_ADMIN \
+                    -v "${location}"/goto.sh:/root/goto.sh  \
+                    -v "${location}"/save_configs.sh:/root/save_configs.sh \
+                    -v "${location}"/restore_configs.sh:/root/restore_configs.sh \
+                    -v "${location}"/restart_ospfd.sh:/root/restart_ospfd.sh \
+                    -v /etc/timezone:/etc/timezone:ro \
+                    -v /etc/localtime:/etc/localtime:ro \
+                    -v "${DIRECTORY}"/config/welcoming_message.txt:/etc/motd:ro \
+                    -v "${DIRECTORY}"/groups/exabgp_monitor/output:/root/exabgp_output \
+                    --log-opt max-size=1m --log-opt max-file=3 \
+                    "${DOCKERHUB_USER}/d_ssh"
 
-            CONTAINERS+=("${group_number}_ssh")
+                CONTAINERS+=("${group_number}_ssh")
+            else
+                docker run -itd --net='none'  --name="${group_number}""_ssh" \
+                    --cpus=2 --pids-limit 100 --hostname="g${group_number}-proxy" --cap-add=NET_ADMIN \
+                    -v "${location}"/goto.sh:/root/goto.sh  \
+                    -v "${location}"/save_configs.sh:/root/save_configs.sh \
+                    -v "${location}"/restore_configs.sh:/root/restore_configs.sh \
+                    -v "${location}"/restart_ospfd.sh:/root/restart_ospfd.sh \
+                    -v /etc/timezone:/etc/timezone:ro \
+                    -v /etc/localtime:/etc/localtime:ro \
+                    -v "${DIRECTORY}"/config/welcoming_message.txt:/etc/motd:ro \
+                    --log-opt max-size=1m --log-opt max-file=3 \
+                    "${DOCKERHUB_USER}/d_ssh"
+
+                CONTAINERS+=("${group_number}_ssh")
+            fi
 
             # start switches
             for ((l=0;l<n_l2_switches;l++)); do
