@@ -1,9 +1,9 @@
 FROM python:3-slim
 
-# # install deps
-# RUN apt-get update \
-#     && apt-get install -y dumb-init \
-#     && apt-get clean
+# install deps
+RUN apt-get update \
+    && apt-get install -y dumb-init \
+    && apt-get clean
 
 # # install debug tools
 # RUN apt-get install -y net-tools iproute2 \
