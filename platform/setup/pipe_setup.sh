@@ -18,7 +18,8 @@ while true; do
 	elif [ "${CMD_ARR[0]}" == "docker" ]; then
 		if [ "${CMD_ARR[2]}" == all ]; then
 			echo "Executing command: docker logs for all containers"
-			readarray containers < "docker ps -a --format '{{.Names}}'"
+			docker ps -a --format '{{.Names}}' > "$1/groups/docker_logs/containers.txt"
+			readarray containers < "$1/groups/docker_logs/containers.txt"
 			for ((i=0;i<${#containers[@]};i++)); do
 				docker logs "${containers[$i]}" > "$1/groups/docker_logs/${containers[$i]}.log" 2>&1
 			done
