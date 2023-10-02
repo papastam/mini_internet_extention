@@ -13,5 +13,13 @@ source "${DIRECTORY}"/config/subnet_config.sh
 readarray groups < "${DIRECTORY}"/config/AS_config.txt
 group_numbers=${#groups[@]}
 
-echo -n "-- --if-exists del-br exabgp_monitor " >> "${DIRECTORY}"/ovs_command.txt
-echo -n "-- --if-exists del-br hijack_lo " >> "${DIRECTORY}"/ovs_command.txt
+for ((k=0;k<group_numbers;k++)); do
+    as_k=(${groups[$k]})
+    as_number="${as_k[0]}"
+    property="${as_k[1]}"
+
+    if [ "${as_number}" != "IXP" ];then
+        echo -n "-- --if-exists del-br ${as_number}_exabgp " >> "${DIRECTORY}"/ovs_command.txt
+        echo -n "-- --if-exists del-br hijack_lo " >> "${DIRECTORY}"/ovs_command.txt
+    fi
+done

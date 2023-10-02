@@ -37,6 +37,9 @@ for ((k=0;k<group_numbers;k++)); do
         # kill ssh container
         docker kill "${group_number}""_ssh" &>/dev/null || true
 
+        # kill exabgp if exists
+        docker kill ${group_number}_EXABGP_MONITOR &>/dev/null || true 
+
         for ((i=0;i<n_routers;i++)); do
             router_i=(${routers[$i]})
             rname="${router_i[0]}"
@@ -95,7 +98,6 @@ docker kill MEASUREMENT &>/dev/null || true &
 docker kill MATRIX &>/dev/null || true &
 docker kill WEB &>/dev/null || true &
 docker kill PROXY &>/dev/null || true &
-docker kill EXABGP_MONITOR &>/dev/null || true &
 
 wait
 docker system prune -f --volumes
