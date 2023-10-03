@@ -13,7 +13,7 @@ while true; do
 			continue
 		fi
 		echo "Changing password for AS: ${CMD_ARR[1]} (new password: ${CMD_ARR[2]})"
-		${CHANGEPASS_SCRIPT} "${CMD_ARR[1]}" "${CMD_ARR[2]}"
+		${CHANGEPASS_SCRIPT} "${CMD_ARR[1]}" "${CMD_ARR[2]}" "$1"
 	
 	elif [ "${CMD_ARR[0]}" == "docker" ]; then
 		if [ "${CMD_ARR[2]}" == all ]; then
@@ -21,6 +21,7 @@ while true; do
 			docker ps -a --format '{{.Names}}' > "$1/groups/docker_logs/containers.txt"
 			readarray containers < "$1/groups/docker_logs/containers.txt"
 			for ((i=0;i<${#containers[@]};i++)); do
+				containers[$i]="${containers[$i]%$'\n'}"
 				docker logs "${containers[$i]}" > "$1/groups/docker_logs/${containers[$i]}.log" 2>&1
 			done
 		else
@@ -36,5 +37,4 @@ while true; do
 		echo "Unknown command: ${CMD_ARR[@]}"
 	fi
 
-	# eval "${COMMAND}"
 done
