@@ -60,7 +60,7 @@ for ((k=0;k<group_numbers;k++)); do
     if [ "${group_as}" != "IXP" ];then
 
         # Create as_prefixes.csv, format is: IP|AS|AS_NAME
-        echo "${group_number}.0.0.0/8|${group_number}|${group_number}" >> ${GROUPSDIR}/as_prefixes.csv
+        echo "${group_number}.0.0.0/8|${group_number}|${group_number}" >> ${GROUPSDIR}/output/as_prefixes.csv
 
         readarray routers < "${DIRECTORY}"/config/$group_router_config
         n_routers=${#routers[@]}
@@ -73,11 +73,8 @@ for ((k=0;k<group_numbers;k++)); do
             if [ "${property1}" = "BGP_MONITOR"  ];then
 
                 # Create the files if they don't exist
-                rm -f ${GROUPSDIR}/configs/${group_k}_exabgp.conf | true
                 umask 000; touch ${GROUPSDIR}/configs/${group_k}_exabgp.conf
-                rm -f ${GROUPSDIR}/output/${group_k}_parser.log | true
                 umask 000; touch ${GROUPSDIR}/logs/${group_k}_parser.log
-                rm -f ${GROUPSDIR}/logs/${group_k}_output.csv | true
                 umask 000; touch ${GROUPSDIR}/output/${group_k}_output.csv
 
                 #Clear config file
