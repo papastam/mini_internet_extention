@@ -34,6 +34,8 @@ docker system prune -f
 ./cleanup/ssh_cleanup.sh "${DIRECTORY}"
 ./cleanup/vpn_cleanup.sh "${DIRECTORY}"
 
+# Stop the pipe listener
+ps -ef | grep "pipe_listener.sh" | grep -v grep | awk '{print $2}' | xargs kill -9 || true
 
 bash  < ovs_command.txt || true
 rm -f ovs_command.txt
