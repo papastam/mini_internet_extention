@@ -21,8 +21,7 @@ import database as db
 import psutil
 from math import isnan
 
-from utils import admin_log, debug, error, check_for_dupes, update_students, date_to_dict, detect_rend_collision, change_pass
-
+from utils import admin_log, info, debug, error, check_for_dupes, update_students, date_to_dict, detect_rend_collision, change_pass
 
 # CAUTION: These default values are overwritten by the config file.
 config_defaults = {
@@ -710,7 +709,7 @@ def measure_stats(config, app, db_session, worker=False):
     # for user, password in admin_users.items():
     with app.app_context():
         try:
-            new_measurement = db.Measurement(cpu=cpu, memory=memory, disk=disk)
+            new_measurement = db.Measurement(cpu=cpu, memory=memory, disk=disk, time=datetime.now())
             db_session.add(new_measurement)
             db_session.commit()
             print("\033[34mMeasured stats \033[03m(%s)\033[00m" % str(time))

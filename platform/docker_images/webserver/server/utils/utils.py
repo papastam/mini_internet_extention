@@ -5,6 +5,9 @@ import os
 
 import database as db
 
+def info(message):
+    print("\033[43mINFO: " + str(message) + "\033[0m")
+
 def debug(message):
     print("\033[35mDEBUG: " + str(message) + "\033[0m")
 

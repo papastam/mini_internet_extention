@@ -4,7 +4,6 @@
 {{ super() }}
 
 <script>
-let updateIntervalId = -1; // -1 means not running
 
 function addData(chart, label, data) {
     chart.data.labels.push(label);
@@ -29,21 +28,6 @@ function clearData(chart){
         dataset.data = [];
     });
     chart.update();
-}
-
-function stopCheckingForStats() {
-    clearInterval(updateIntervalId);
-    updateIntervalId = -1
-    return 1;
-}
-
-function startCheckingForStats(){
-    // Call get_updates every 1 minute
-    if (updateIntervalId != -1){
-        console.log("Already running")
-        return -1;
-    }
-    return updateIntervalId = setInterval(get_stats(-1,-1), 60000);
 }
 
 function get_stats(start, end){
@@ -75,11 +59,6 @@ function get_stats(start, end){
         }
     };
 
-    //TODO: Implement a "pull only latest" strategy on updates
-    if(start==-1 && end==-1){
-        start = 0;
-    }
-
     xhr.open('GET', '?stats=true&start=' + start + '&end=' + end, true);
     xhr.setRequestHeader('Content-type','application/json');
     xhr.send();
@@ -87,24 +66,23 @@ function get_stats(start, end){
 
 $(document).ready(function() {
     
-    $("#refreshSwitch").change(function() {
-        console.log("refreshSwitch changed")
+    $("#latest_stats").change(function() {
         if ((this.checked==true)){
             $("#stats_end").prop("disabled", true);
+            $("#stats_end").addClass("tw-bg-gray-300");
         } else {
             $("#stats_end").prop("disabled", false);
+            $("#stats_end").removeClass("tw-bg-gray-300");
         }
     });
 
     $("#pull_btn").click(function(){
-        stopCheckingForStats();
         console.log("DEBUG: Pulling stats")
         
         start = $("#stats_start").val();
         end = $("#stats_end").val();
-        if ($("#refreshSwitch").prop("checked")){
+        if ($("#latest_stats").prop("checked")){
             end = 0;
-            startCheckingForStats();
         }
 
         console.log("DEBUG: start: " + start + " end: " + end);
@@ -131,8 +109,8 @@ $(document).ready(function() {
             <label for="stats_end">End Date/Time: </label>
             <input class="" id="stats_end" name="end_date" type="datetime-local">
             <div class="tw-border-solid tw-border-b-1 hover:tw-font-bold">
-                <input type="checkbox" class="" id="refreshSwitch">
-                <label class="" for="refreshSwitch">Pull latest statistics</label>
+                <input type="checkbox" class="" id="latest_stats">
+                <label class="" for="latest_stats">Pull latest statistics</label>
             </div>
         </div>
         <div class="tw-w-full tw-block tw-flex-grow lg:tw-flex lg:tw-items-center lg:tw-w-auto"></div>
