@@ -19,7 +19,7 @@ DIRECTORY="$1"
 DOCKERHUB_USER="${2:-thomahol}"
 source "${DIRECTORY}"/config/subnet_config.sh
 
-mkdir -p GROUPSDIR
+mkdir -p ${GROUPSDIR}
 mkdir -p ${GROUPSDIR}/configs
 mkdir -p ${GROUPSDIR}/output
 mkdir -p ${GROUPSDIR}/logs
