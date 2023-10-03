@@ -36,6 +36,10 @@ docker system prune -f
 
 # Stop the pipe listener
 ps -ef | grep "pipe_listener.sh" | grep -v grep | awk '{print $2}' | xargs kill -9 || true
+ps -ef | grep "docker_pipe" | grep -v grep | awk '{print $2}' | xargs kill -9 || true
+
+# Write exit to the pipe
+# echo "exit" >> "${DIRECTORY}"/utils/pipe/docker_pipe
 
 bash  < ovs_command.txt || true
 rm -f ovs_command.txt
