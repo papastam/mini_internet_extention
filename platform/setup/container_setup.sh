@@ -84,7 +84,6 @@ for ((k=0;k<group_numbers;k++)); do
                     -v /etc/localtime:/etc/localtime:ro \
                     -v "${DIRECTORY}"/config/welcoming_message.txt:/etc/motd:ro \
                     -v "${DIRECTORY}"/groups/exabgp_monitor/output:/root/exabgp_output \
-                    -v "${DIRECTORY}"/groups/exabgp_monitor/as_prefixes.csv:/root/exabgp_output/as_prefixes.csv \
                     --log-opt max-size=1m --log-opt max-file=3 \
                     "${DOCKERHUB_USER}/d_ssh"
 
