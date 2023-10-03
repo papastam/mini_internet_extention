@@ -37,7 +37,7 @@ from flask_bcrypt import Bcrypt
 import database as db
 
 from utils import parsers
-from utils import as_log, date_to_dict, debug, change_pass
+from utils import as_log, date_to_dict, change_pass
 
 from . import bgp_policy_analyzer, matrix
 
