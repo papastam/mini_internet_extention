@@ -321,7 +321,6 @@ def create_admin_server(db_session, config=None, build=False):
     def config_students():
         if request.method == "POST" and ("name" in dict(request.form) and "email" in dict(request.form)):
             request_args = dict(request.form)
-            debug(f"POST request received: {request_args}")
 
             try:        
                 if len(request_args["name"].split(" ")) < 2:
@@ -424,7 +423,6 @@ def create_admin_server(db_session, config=None, build=False):
 
         if (request.method == "POST") and ("type" in dict(request.form)):
             request_args = dict(request.form)
-            debug(f"POST request received: {request_args}")
             
             try:
                 if request_args["type"] == "new-period":
@@ -631,7 +629,6 @@ def create_admin_server(db_session, config=None, build=False):
             # send a command to refresh in the docker pipe
             with open(app.config['LOCATIONS']['docker_pipe'], "w") as pipe:
                 pipe.write(f"docker logs {container}\n")
-                debug(f"Sending command to docker pipe: docker logs {container}")
                 pipe.flush()
                 pipe.close()
         
