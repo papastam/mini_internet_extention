@@ -7,11 +7,6 @@ artemis_go/*.csv
 old_version*
 platform/groups*
 
-# EXABGP dynamic generated files
-platform/docker_images/exabgp_monitor/parser/output.csv
-platform/docker_images/exabgp_monitor/as_prefixes.csv
-platform/docker_images/exabgp_monitor/exabgp.conf
-
 # Specific files
 platform/docker_images/webserver/server/database/database.db
 platform/setup/router_config.sh
