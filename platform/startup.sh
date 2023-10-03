@@ -255,10 +255,10 @@ time ./setup/website_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}" -b
 echo ""
 echo ""
 
-echo "pipe_setup.sh: "
-echo "pipe_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
+echo "pipe_listener.sh: "
+echo "pipe_listener.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 rm -f ${DIRECTORY}/nohup.out
-time nohup ./setup/pipe_setup.sh "${DIRECTORY}" &
+time nohup ./setup/pipe_listener.sh "${DIRECTORY}" &
 echo "Docker pipe output is: ${DIRECTORY}/nohup.out"
 
 echo ""
