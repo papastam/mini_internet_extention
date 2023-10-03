@@ -153,6 +153,8 @@ api {
                 ./setup/ovs-docker.sh connect-ports ${group_k}_exabgp \
                 group_"${group_number}" ${group_k}_EXABGP_MONITOR \
                 exabgp "${group_number}"_"${rname}"router
+
+                echo "Created EXABGP_MONITOR container for group ${group_number}"
             
             fi
         done
