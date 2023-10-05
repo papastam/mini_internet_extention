@@ -239,7 +239,7 @@ echo ""
 echo ""
 
 echo "Waiting 60sec for RPKI CA and proxy to startup.."
-# sleep 60
+sleep 60
 
 echo "rpki_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 echo "rpki_setup.sh: "
