@@ -10,7 +10,7 @@ from admin_server import create_admin_server
 import os
 import signal
 
-from utils import debug, reset_files
+from utils import info, reset_files
 
 project_server_run = None
 admin_server_run = None
@@ -19,12 +19,12 @@ if __name__ == "__main__":
     
     build=False
     if os.getenv('BUILD')=="true":
-        debug("Building database...")
+        info("Building database...")
         reset_files()
         db_session = init_db(build=True)
         build=True
     else:
-        debug("Build environment variable not set. Not building database.")
+        info("Build environment variable not set. Not building database.")
         db_session = init_db()
     os.environ['BUILD']="false"
 
