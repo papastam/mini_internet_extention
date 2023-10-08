@@ -21,7 +21,7 @@ import database as db
 import psutil
 from math import isnan
 
-from utils import admin_log, info, debug, error, check_for_dupes, update_students, date_to_dict, detect_rend_collision, change_pass
+from utils import admin_log, info, error, check_for_dupes, update_students, date_to_dict, detect_rend_collision, change_pass
 
 # CAUTION: These default values are overwritten by the config file.
 config_defaults = {
@@ -116,7 +116,6 @@ def create_admin_server(db_session, config=None, build=False):
     def dashboard():
         if 'stats' in request.args:
             request_args = dict(request.args)   
-            debug(f"Querying stats {request_args}")
             start = datetime.strptime(request_args["start"],"%Y-%m-%dT%H:%M")
             
             if ("end" not in request_args) or (request_args["end"] == '0'):
@@ -124,18 +123,12 @@ def create_admin_server(db_session, config=None, build=False):
             else:
                 end = datetime.strptime(request_args["end"],"%Y-%m-%dT%H:%M")
             
-            debug(f"Querying measurements from {start} to {end}")
-
             measurement_arr = db_session.query(db.Measurement).filter(db.Measurement.time.between(start, end)).all()
-
-            debug(f"Query returned {len(measurement_arr)} measurements")
 
             if app.config["MAX_DASHBOARD_RESULTS"] > len(measurement_arr):
                 separator = 1
-                debug(f"Separator: {separator}")
             else:
                 separator = int(len(measurement_arr)/app.config["MAX_DASHBOARD_RESULTS"])
-                debug(f"Separator: {separator}")
 
             retarr=[]
             for measurement in measurement_arr[::separator]:
@@ -145,8 +138,6 @@ def create_admin_server(db_session, config=None, build=False):
                     "memory": measurement.memory,
                     "disk": measurement.disk
                 })
-
-            debug(f"Returning {len(retarr)} measurements: {retarr}")
 
             return jsonify(retarr)
         return render_template("dashboard.html")
@@ -576,7 +567,7 @@ def create_admin_server(db_session, config=None, build=False):
 
                 db_session.commit()
             except Exception as e: 
-                debug(f"DATABASE ERROR: {e.with_traceback}")
+                error(f"DATABASE ERROR: {e.with_traceback}")
                 flash(f"Error: {e}", "error")
                 db_session.rollback()
 

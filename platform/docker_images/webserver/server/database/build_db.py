@@ -38,12 +38,6 @@ def create_as_accounts(app, db_session):
     db_session.commit()
 
 def create_test_db_snapshot(db_session):
-    # Create 1000 meassurements
-    for i in range(1000):
-        new_measurement = db.Measurement(cpu=random.randint(1,100), memory=random.randint(1,100), disk=random.randint(1,100), time=datetime.datetime.now()-datetime.timedelta(minutes=i))
-        db_session.add(new_measurement)
-        debug(f"Added measurement: {i}")
-
     """Create sample tables"""
     # Create sample students from dict.
     students =  {
