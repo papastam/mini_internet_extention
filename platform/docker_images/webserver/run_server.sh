@@ -1,4 +1,4 @@
-DIRECTORY='$(pwd)/../..'
+DIRECTORY=$(cd ../.. && pwd)
 DOCKERHUB_USER="miniinterneteth"
 
 # docker build --tag="miniinterneteth/d_webserver" "."
