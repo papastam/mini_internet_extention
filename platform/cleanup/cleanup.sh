@@ -35,8 +35,8 @@ docker system prune -f
 ./cleanup/vpn_cleanup.sh "${DIRECTORY}"
 
 # Stop the pipe listener
-ps -ef | grep "pipe_listener.sh" | grep -v grep | awk '{print $2}' | xargs kill -9 || true
-ps -ef | grep "docker_pipe" | grep -v grep | awk '{print $2}' | xargs kill -9 || true
+ps -ef | grep "pipe_listener.sh" | grep -v grep | awk '{print $2}' | xargs kill -9 || true > /dev/null 2>&1
+ps -ef | grep "docker_pipe" | grep -v grep | awk '{print $2}' | xargs kill -9 || true > /dev/null 2>&1
 
 # Write exit to the pipe
 # echo "exit" >> "${DIRECTORY}"/utils/pipe/docker_pipe
