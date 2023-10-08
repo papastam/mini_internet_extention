@@ -126,12 +126,19 @@ def create_admin_server(db_session, config=None, build=False):
             
             debug(f"Querying measurements from {start} to {end}")
 
-            res = db_session.query(db.Measurement).filter(db.Measurement.time.between(start, end)).all()
+            measurement_arr = db_session.query(db.Measurement).filter(db.Measurement.time.between(start, end)).all()
 
-            debug(f"Query returned {len(res)} measurements")
+            debug(f"Query returned {len(measurement_arr)} measurements")
+
+            if app.config["MAX_DASHBOARD_RESULTS"] > len(measurement_arr):
+                separator = 1
+                debug(f"Separator: {separator}")
+            else:
+                separator = int(len(measurement_arr)/app.config["MAX_DASHBOARD_RESULTS"])
+                debug(f"Separator: {separator}")
 
             retarr=[]
-            for measurement in res:
+            for measurement in measurement_arr[::separator]:
                 retarr.append({
                     "time": measurement.time,
                     "cpu": measurement.cpu,
@@ -634,10 +641,11 @@ def create_admin_server(db_session, config=None, build=False):
             with open(f"{app.config['LOCATIONS']['groups']}/docker_logs/{container}.log", "r") as f:
                 output = f.read()
         else:
-            with open(app.config['LOCATIONS']['docker_pipe'], "w") as pipe:
-                pipe.write(f"docker logs all\n")
-                pipe.flush()
-                pipe.close()
+            return redirect(url_for("logs", container=containers[0]))
+        #     with open(app.config['LOCATIONS']['docker_pipe'], "w") as pipe:
+        #         pipe.write(f"docker logs all\n")
+        #         pipe.flush()
+        #         pipe.close()
             
 
         return render_template("logs.html", logs=output, containers=containers, container=container)
