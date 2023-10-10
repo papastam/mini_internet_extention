@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if (($UID != 0)); then
+    then echo "Please run as root"
+    exit
+fi
+
 # List of targets
 targets=(1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31)
 mkdir tests
@@ -14,3 +19,4 @@ do
     echo "Sleeping for 15 minutes"
     sleep 900
 done
+
