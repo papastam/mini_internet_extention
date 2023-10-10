@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if (($UID != 0)); then
-    then echo "Please run as root"
+    echo "Please run as root"
     exit
 fi
 
