@@ -19,7 +19,7 @@ while getopts ":n:s" opt; do
             ;;
     esac
 done
-
+echo "Executing ${type} tests"
 # List of targets
 
 rm -rf tests | True > /dev/null 2>&1
