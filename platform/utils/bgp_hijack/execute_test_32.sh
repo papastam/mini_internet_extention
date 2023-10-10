@@ -20,7 +20,6 @@ while getopts ":ns" opt; do
             ;;
     esac
 done
-echo "Executing ${type} tests"
 # List of targets
 
 rm -rf tests | True > /dev/null 2>&1
@@ -40,6 +39,7 @@ if [ $type == "normal" ] | [ $type == "all" ]; then
         sleep 900
     done
 fi
+echo "Executing ${type} tests"
 if [ $type == "stress" ] | [ $type == "all" ]; then
     # Execute stress test
     echo "Executing stress tests"
