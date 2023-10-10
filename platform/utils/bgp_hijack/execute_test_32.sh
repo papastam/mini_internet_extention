@@ -8,7 +8,7 @@ mkdir tests
 for attacker in "${targets[@]}"
 do
     echo "Executing hijack.sh for AS${target}"
-    /bin/bash $(pwd)/hijack.sh -a $attacker -p $((attacker+1)).0.0.0/8 -r EAST -t 60 > tests/test_$attacker.log &
+    /bin/bash $(pwd)/hijack.sh -a ${attacker} -p $((attacker+1)).0.0.0/8 -r EAST -t 60 > tests/test_${attacker}.log &
 
     echo "Sleeping for 15 minutes"
     sleep 900
