@@ -6,12 +6,12 @@ if (($UID != 0)); then
 fi
 
 # Parse command line arguments
-while getopts ":normal:stress" opt; do
+while getopts ":n:s" opt; do
     case $opt in
-        normal)
+        n)
             type="normal"
             ;;
-        stress)
+        s)
             type="stress"
             ;;
         \?)
