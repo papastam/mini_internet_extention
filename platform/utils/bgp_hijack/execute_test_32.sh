@@ -6,7 +6,8 @@ if (($UID != 0)); then
 fi
 
 # Parse command line arguments
-while getopts ":n:s" opt; do
+type="all"
+while getopts ":ns" opt; do
     case $opt in
         n)
             type="normal"
@@ -15,7 +16,7 @@ while getopts ":n:s" opt; do
             type="stress"
             ;;
         \?)
-            type="all"
+            echo "Invalid option: -$OPTARG" >&2
             ;;
     esac
 done
