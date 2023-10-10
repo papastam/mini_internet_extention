@@ -39,7 +39,6 @@ if [ $type == "normal" ] || [ $type == "all" ]; then
         sleep 900
     done
 fi
-echo "Executing ${type} tests"
 if [ $type == "stress" ] || [ $type == "all" ]; then
     # Execute stress test
     echo "Executing stress tests"
@@ -49,10 +48,8 @@ if [ $type == "stress" ] || [ $type == "all" ]; then
     do
         echo "Executing hijack.sh for AS${attacker}"
         if [ "$attacker" -eq 32 ]; then
-            echo /bin/bash $(pwd)/hijack.sh -a ${attacker} -p 1.0.0.0/8 -r EAST -t 60 > tests/test_${attacker}.log 2>&1 &
             /bin/bash $(pwd)/hijack.sh -a ${attacker} -p 1.0.0.0/8 -r EAST -t 60 > tests/test_${attacker}.log 2>&1 &
         else
-            echo /bin/bash $(pwd)/hijack.sh -a ${attacker} -p $((attacker+1)).0.0.0/8 -r EAST -t 60 > tests/test_${attacker}.log 2>&1 &
             /bin/bash $(pwd)/hijack.sh -a ${attacker} -p $((attacker+1)).0.0.0/8 -r EAST -t 60 > tests/test_${attacker}.log 2>&1 &
         fi
     done
