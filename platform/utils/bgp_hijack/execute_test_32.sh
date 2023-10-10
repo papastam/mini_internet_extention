@@ -7,7 +7,9 @@ fi
 
 # List of targets
 targets=(1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31)
-mkdir tests
+
+rm -rf tests | True > /dev/null 2>&1
+mkdir tests | True > /dev/null 2>&1
 
 # Loop through each target and execute hijack.sh
 for attacker in "${targets[@]}"
