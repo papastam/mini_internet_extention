@@ -96,14 +96,14 @@ fi
     echo " -c 'exit' \\"
 } | docker exec -i "${as_number}_${router_name}router" bash
 
-echo "Hijacking ${prefix} for ${duration} minute(s)"
+echo "(AS${as_number})Hijacking ${prefix} for ${duration} minute(s)"
 
 # Sleep for the duration of the hijack
 for (( i=duration; i>0; i-- )); do
     if [ "$i" -eq 1 ]; then
-        echo "1 minute remaining"
+        echo "(AS${as_number})1 minute remaining"
     else
-        echo "$((i)) minutes Remaining"
+        echo "(AS${as_number})$((i)) minutes Remaining"
     fi
     sleep 1m
 done
@@ -121,4 +121,4 @@ done
     echo " -c 'exit' \\"
 } | docker exec -i "${as_number}_${router_name}router" bash
 
-echo "Prefix ${prefix} withdrawn"
+echo "(AS${as_number})Prefix ${prefix} withdrawn"
