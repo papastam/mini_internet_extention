@@ -1,3 +1,0 @@
-LOND    N/A             host:miniinterneteth/d_host vtysh
-ZURI    N/A 			host:miniinterneteth/d_host vtysh
-ATH     N/A 			host:miniinterneteth/d_host vtysh
