@@ -1,5 +1,0 @@
-1	ZURI	Customer	2	LOND	Provider	100000	1000	179.0.1.0/24
-2	ZURI	Customer	3	LOND	Provider	100000	1000	179.0.2.0/24
-3	ZURI	Customer	4	LOND	Provider	100000	1000	179.0.3.0/24
-4	ZURI	Customer	5	LOND	Provider	100000	1000	179.0.4.0/24
-3   ATH     Customer    6   LOND    Provider    100000  1000    179.0.5.0/24 
