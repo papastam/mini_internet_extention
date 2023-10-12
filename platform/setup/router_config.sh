@@ -18,14 +18,11 @@ readarray l2_switches < "${DIRECTORY}"/config/l2_switches.txt
 readarray l2_links < "${DIRECTORY}"/config/l2_links.txt
 readarray l2_hosts < "${DIRECTORY}"/config/l2_hosts.txt
 
-declare -a hijack_groups
-
 group_numbers=${#groups[@]}
 n_extern_links=${#extern_links[@]}
 n_l2_switches=${#l2_switches[@]}
 n_l2_links=${#l2_links[@]}
 n_l2_hosts=${#l2_hosts[@]}
-
 
 # create initial configuration for each router
 for ((k=0;k<group_numbers;k++));do
@@ -52,9 +49,6 @@ for ((k=0;k<group_numbers;k++));do
             property2="${router_i[2]}"
             if [[ "${property2}" == *L2* ]];then
                 l2_id[$property2]=0
-            fi
-            if [[ "${property1}" == "HIJACK" ]];then
-                hijack_groups+=("${group_number}")
             fi
         done
         for ((i=0;i<n_routers;i++)); do
@@ -262,16 +256,6 @@ for ((i=0;i<n_extern_links;i++)); do
             group_as_2="${group_as}"
         fi
     done
-
-    # Check if the the source as is a hijack
-    # hijacker=0
-    # for as in "${hijack_groups[@]}"; do
-    #     if [ "${grp_1}" = "${as}" ];then
-    #         hijacker=1
-    #     elif [ "${grp_2}" = "${as}" ];then
-    #         hijacker=2
-    #     fi
-    # done
 
     if [ "${group_as_1}" = "IXP" ] || [ "${group_as_2}" = "IXP" ];then
         if [ "${group_as_1}" = "IXP" ];then
