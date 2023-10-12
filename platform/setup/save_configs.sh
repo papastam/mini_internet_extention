@@ -105,7 +105,7 @@ for ((k=0;k<n_groups;k++)); do
 
     echo "zip \${dirname}.zip \${dirname}/*" >> "${file_loc}"
     echo "echo \"Download zip file:\"" >> "${file_loc}"
-    echo "echo \"    scp -P $((2000 + ${group_number})) root@duvel.ethz.ch:\${dirname}.zip .\"" >> "${file_loc}"
+    echo "echo \"    scp -P $((2000 + ${group_number})) root@147.52.203.13:\${dirname}.zip .\"" >> "${file_loc}"
     echo "echo \"Overwrite the config folder in the current directory:\"" >> "${file_loc}"
-    echo "echo \"    scp -r -P $((2000 + ${group_number})) root@duvel.ethz.ch:\${dirname} config\"" >> "${file_loc}"
+    echo "echo \"    scp -r -P $((2000 + ${group_number})) root@147.52.203.13:\${dirname} config\"" >> "${file_loc}"
 done
