@@ -5,5 +5,5 @@ DIRECTORY="$3"
 echo -e ""${N_PASSWORD}"\n"${N_PASSWORD}"" | docker exec -i "${AS}"_ssh passwd root
 docker exec "${AS}"_ssh bash -c "kill -HUP \$(cat /var/run/sshd.pid)"
 
-# Change in password text file as well
-sed -i "s/${AS} .*/${AS} ${N_PASSWORD}/" ${DIRECTORY}/groups/passwords.txt
+# Change in password text file as well (dont replace all appearances of number e.g. 1 in 10)
+sed -i "s/\<${AS}\> 1/${AS} ${N_PASSWORD}/g" "${DIRECTORY}"/passwords.txt
