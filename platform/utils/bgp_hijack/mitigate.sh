@@ -78,9 +78,8 @@ prefix1="${quads[0]}.0.0.0/9"
 prefix2="${quads[0]}.128.0.0/9"
 
 # Advertise both prefixes for each router of the as
-routers=($(docker ps --format '{{.Names}}' | grep "${as_number}" | grep router))
+routers=($(docker ps --format '{{.Names}}' | grep -w -E "${as_number}_.*router"))
 for router in "${routers[@]}"; do
-    router_name=$(echo "$router" | cut -d'_' -f2)
     echo "(AS${as_number})Advertising prefixes ${prefix1} and ${prefix2} from ${router_name}router"
 
     # Advertise the prefixes
@@ -114,7 +113,6 @@ for (( i=duration; i>0; i-- )); do
 done
 
 for router in "${routers[@]}"; do
-    router_name=$(echo "$router" | cut -d'_' -f2)
     echo "(AS${as_number})Withdrawing the advertisements for ${prefix1} and ${prefix2} from ${router_name}router"
 
     # Withdraw the prefix

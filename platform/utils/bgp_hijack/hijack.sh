@@ -65,10 +65,9 @@ else
 fi
 
 # Hijack the prefix for each router of the as
-routers=($(docker ps --format '{{.Names}}' | grep "${as_number}" | grep router))
+routers=($(docker ps --format '{{.Names}}' | grep -w -E "${as_number}_.*router"))
 for router in "${routers[@]}"; do
-    router_name=$(echo "$router" | cut -d'_' -f2)
-    echo "(AS${as_number})Hijacking ${prefix} for ${duration} minute(s) on ${router_name}router"
+    echo "(AS${as_number})Hijacking ${prefix} for ${duration} minute(s) on ${router}"
 
     # Hijack the prefix
     {
@@ -93,8 +92,7 @@ for (( i=duration; i>0; i-- )); do
 done
 
 for router in "${routers[@]}"; do
-    router_name=$(echo "$router" | cut -d'_' -f2)
-    echo "(AS${as_number})Withdrawing hijack for ${prefix} from ${router_name}router"
+    echo "(AS${as_number})Withdrawing hijack for ${prefix} from ${router}"
 
     # Withdraw the prefix
     {
@@ -107,42 +105,3 @@ for router in "${routers[@]}"; do
         echo " -c 'exit' \\"
     } | docker exec -i "${router}" bash
 done
-
-# {
-#     echo "#!/bin/bash"
-#     echo "vtysh  -c 'conf t' \\"
-#     echo " -c 'interface hijack' \\"
-#     echo " -c 'ip address ${prefix}' \\"
-#     echo " -c 'exit' \\"
-#     echo " -c 'router bgp ${as_number}' \\"
-#     echo " -c 'network ${prefix}' \\"
-#     echo " -c 'exit' \\"
-#     echo " -c 'exit' \\"
-# } | docker exec -i "${as_number}_${router_name}router" bash
-
-# echo "(AS${as_number})Hijacking ${prefix} for ${duration} minute(s)"
-
-# # Sleep for the duration of the hijack
-# for (( i=duration; i>0; i-- )); do
-#     if [ "$i" -eq 1 ]; then
-#         echo "(AS${as_number})1 minute remaining"
-#     else
-#         echo "(AS${as_number})$((i)) minutes Remaining"
-#     fi
-#     sleep 1m
-# done
-
-# # Withdraw the prefix
-# {
-#     echo "#!/bin/bash"
-#     echo "vtysh  -c 'conf t' \\"
-#     echo " -c 'router bgp ${as_number}' \\"
-#     echo " -c 'no network ${prefix}' \\"
-#     echo " -c 'exit' \\"
-#     echo " -c 'interface hijack' \\"
-#     echo " -c 'no ip address ${prefix}' \\"
-#     echo " -c 'exit' \\"
-#     echo " -c 'exit' \\"
-# } | docker exec -i "${as_number}_${router_name}router" bash
-
-# echo "(AS${as_number})Prefix ${prefix} withdrawn"
