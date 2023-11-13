@@ -142,10 +142,17 @@ time ./setup/measurement_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
 echo ""
 echo ""
 
-echo "echo \"exabgp_monitor links\"" >> "${DIRECTORY}"/groups/ip_setup.sh
-echo "exabgp_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
-echo "exabgp_setup.sh: "
-time ./setup/exabgp_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
+echo "create_monitor_files.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
+echo "create_monitor_files.sh: "
+time ./setup/create_monitor_files.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
+
+echo ""
+echo ""
+
+echo "echo \"monitor links\"" >> "${DIRECTORY}"/groups/ip_setup.sh
+echo "monitor_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
+echo "monitor_setup.sh: "
+time ./setup/monitor_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
 
 echo ""
 echo ""
@@ -238,8 +245,8 @@ time ./setup/mpls_setup.sh "${DIRECTORY}"
 echo ""
 echo ""
 
-echo "Waiting 60sec for RPKI CA and proxy to startup.."
-sleep 60
+# echo "Waiting 60sec for RPKI CA and proxy to startup.."
+# sleep 60
 
 echo "rpki_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 echo "rpki_setup.sh: "
