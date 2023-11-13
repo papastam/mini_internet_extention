@@ -541,12 +541,12 @@ for ((k=0;k<group_numbers;k++)); do
             rname="${router_i[0]}"
             property1="${router_i[1]}"
 
-            if [ "${property1}" = "BGP_MONITOR"  ];then
+            if [ "${property1}" = "BGP_MONITOR"  ] || [ "${property1}" = "ARTEMIS"  ];then
                 location="${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_conf.sh
                 {
                     echo "#!/bin/bash"
                     echo "vtysh  -c 'conf t' \\"
-                    echo " -c 'interface exabgp' \\"
+                    echo " -c 'interface monitor' \\"
                     echo " -c 'ip address "$(subnet_router_EXABGP_MONITOR "${group_number}" "group")"' \\"
                     echo " -c 'exit' \\"
                     echo " -c 'router ospf' \\"
@@ -554,14 +554,10 @@ for ((k=0;k<group_numbers;k++)); do
                     echo " -c 'exit' \\"
                     echo " -c 'bgp community-list 1 permit $group_k:10' \\"
                     echo " -c 'route-map LOCAL_PREF_IN_EXA deny 10' \\"
-                    # echo " -c 'set community $group_k:20' \\"
-                    # echo " -c 'set local-preference 50' \\"
                     echo " -c 'exit' \\"
                     echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 5' \\"
-                    # echo " -c 'match ip address prefix-list OWN_PREFIX' \\"
                     echo " -c 'exit' \\"
                     echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 10' \\"
-                    # echo " -c 'match community 1' \\"
                     echo " -c 'exit' \\"
                     echo " -c 'router bgp "${group_number}"' \\"
                     echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address")" remote-as 10000' \\"

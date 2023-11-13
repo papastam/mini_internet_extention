@@ -28,7 +28,7 @@ docker system prune -f
 ./cleanup/internal_links_cleanup.sh "${DIRECTORY}"
 ./cleanup/external_links_cleanup.sh "${DIRECTORY}"
 ./cleanup/measurement_cleanup.sh "${DIRECTORY}"
-./cleanup/exabgp_monitor_cleanup.sh "${DIRECTORY}"
+./cleanup/monitor_cleanup.sh "${DIRECTORY}"
 ./cleanup/matrix_cleanup.sh "${DIRECTORY}"
 ./cleanup/dns_cleanup.sh "${DIRECTORY}"
 ./cleanup/ssh_cleanup.sh "${DIRECTORY}"

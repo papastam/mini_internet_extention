@@ -63,7 +63,7 @@ for ((k=0;k<group_numbers;k++)); do
                 property1="${router_i[1]}"
                 property2="${router_i[2]}"
 
-                if [[ "${property1}" == "BGP_MONITOR" ]];then
+                if [[ "${property1}" == "BGP_MONITOR" ]] || [[ "${property1}" == "ARTEMIS" ]];then
                     has_monitor=1
                     break
                 fi

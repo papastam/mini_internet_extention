@@ -39,6 +39,7 @@ for ((k=0;k<group_numbers;k++)); do
 
         # kill exabgp if exists
         docker kill ${group_number}_EXABGP_MONITOR &>/dev/null || true 
+        docker kill ${group_number}_ARTEMIS &>/dev/null || true 
 
         for ((i=0;i<n_routers;i++)); do
             router_i=(${routers[$i]})
