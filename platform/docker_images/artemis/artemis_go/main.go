@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/kentik/patricia"
 	"github.com/kentik/patricia/string_tree"
@@ -106,17 +107,64 @@ func main() {
 
 		}
 	}(fileUpdates)
+	
+	if cmd.IntervalEnabled == true {
+		
+		interval := cmd.Interval
+		timestamp_last := float64(0)
+		
+		for {
+			csvReader2 := csv.NewReader(fileUpdates)
+			csvReader2.Comma = '|'
+			
+			if timestamp_last == 0 {
+				fmt.Println("Parsing file from the beginning...")
+				// advance the csvReader2 until the last timestamp
+				for {
+					// Read the next line
+					updateRecord, err := csvReader2.Read()
+					if err == io.EOF{
+						break
+					}
+					// If the timestamp is equal to the last timestamp, break
+					if s, err := strconv.ParseFloat(updateRecord[8], 64); err == nil {
+						if s == timestamp_last {
+							break;
+						}
+						} else {
+						continue
+					}
+				}
+			} else {
+				fmt.Println("Parsing Updates after timestamp: ", timestamp_last)
+			}
 
-	csvReader2 := csv.NewReader(fileUpdates)
-	csvReader2.Comma = '|'
-	fmt.Println("Initiating Hijack Detection...")
+			timestamp_last = artemisDetection(csvReader2, prefixTree, prefixASMap, peerGraph)
+
+			fmt.Println("Sleeping for", interval, "minutes...")
+			time.Sleep(time.Duration(interval) * time.Minute)
+		}		
+		
+	} else {
+		
+		csvReader2 := csv.NewReader(fileUpdates)
+		csvReader2.Comma = '|'
+		fmt.Println("Initiating Hijack Detection...")
+
+		artemisDetection(csvReader2, prefixTree, prefixASMap, peerGraph)
+	}
+}
+
+func artemisDetection(csvReader2 *csv.Reader, prefixTree *string_tree.TreeV4, prefixASMap map[string][]string, peerGraph map[string][]string) (float64){
 	bar := progressbar.Default(cmd.LineNo)
+	final_timestamp := float64(0)
 	for {
 		updateRecord, err := csvReader2.Read()
 		if err == io.EOF {
+			fmt.Println("No new updates found!")
 			break
 		}
-
+	
 		// An example string:
 		// 2a09:10c0::/29|6886|34927|34927 13249 6886|ris|rrc03|A|"[{""asn"":34927
 		// PREFIX | ORIGIN AS | PEER AS | PATH | COLLECTOR | PEER | MESSAGE TYPE | MESSAGE
@@ -131,11 +179,13 @@ func main() {
 		}
 		if s, err := strconv.ParseFloat(updateRecord[8], 64); err == nil {
 			updateMessage.timestamp = s
+			final_timestamp = s
 		} else {
 			continue
 		}
+		
 		updateMessage.path = updateRecord[3]
-
+		
 		if strings.Contains(updateMessage.prefix, ":") || strings.Contains(updateRecord[1], "{") {
 			continue
 		}
@@ -144,19 +194,21 @@ func main() {
 		if hijackType == Undefined {
 			continue
 		}
-
+		
 		if updateMessage.messageType == "A" {
 			if hijackType != Valid {
 				handleAnnouncement(updateMessage, hijackType, hijackerAs, asnOrigin, prefixMatched)
 			} else {
 				handleCorrectionAnnouncement(updateMessage, hijackType, hijackerAs, asnOrigin, prefixMatched)
 			}
-		} else { // Withdrawal message
-			handleWithdrawal(updateMessage, prefixMatched)
+			} else { // Withdrawal message
+				handleWithdrawal(updateMessage, prefixMatched)
+			}
 		}
-	}
-	//}
 	printHijacks()
+		
+	// return last message's timestamp
+	return final_timestamp
 }
 
 func handleWithdrawal(updateMessage BGPUpdate, prefixMatched string) {

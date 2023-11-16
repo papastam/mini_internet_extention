@@ -26,6 +26,7 @@ var intervalCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		CommandProvided = true
+		IntervalEnabled = true
 	},
 }
 
@@ -33,6 +34,6 @@ func init() {
 	rootCmd.AddCommand(intervalCmd)
 
 	// Add an integer flag named "interval" with shorthand "i" and default value of 10
-	intervalCmd.Flags().IntP("interval", "i", 10, "Interval for hijack detection in minutes")
+	intervalCmd.Flags().Int64Var(&Interval, "interval", 10, "Interval for hijack detection in minutes")
 }
 

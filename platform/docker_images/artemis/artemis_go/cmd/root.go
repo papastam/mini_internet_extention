@@ -27,8 +27,10 @@ var PrefixFile string
 var HijackFile string
 var RelationsFile string
 var LineNo int64
+var Interval int64
 
 var CommandProvided bool = false
+var IntervalEnabled bool = false
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{

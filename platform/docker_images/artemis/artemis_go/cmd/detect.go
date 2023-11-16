@@ -19,7 +19,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 // detectCmd represents the detect command
 var detectCmd = &cobra.Command{
 	Use:   "detect",
@@ -27,6 +26,7 @@ var detectCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		CommandProvided = true
+		IntervalEnabled = false
 	},
 }
 
