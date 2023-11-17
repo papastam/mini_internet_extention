@@ -255,18 +255,16 @@ time ./setup/rpki_setup.sh "${DIRECTORY}"
 echo ""
 echo ""
 
+echo "pipe_listener.sh: "
+echo "pipe_listener.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
+time ./setup/pipe_setup.sh "${DIRECTORY}"
+
+echo ""
+echo ""
+
 echo "website_setup.sh: "
 echo "website_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 time ./setup/website_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}" -b
-
-echo ""
-echo ""
-
-echo "pipe_listener.sh: "
-echo "pipe_listener.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
-rm -f ${DIRECTORY}/nohup.out
-time nohup ./setup/pipe_listener.sh "${DIRECTORY}" &
-echo "Docker pipe output is: ${DIRECTORY}/nohup.out"
 
 echo ""
 echo ""
