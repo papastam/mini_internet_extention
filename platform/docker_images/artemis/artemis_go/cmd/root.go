@@ -26,6 +26,7 @@ var UpdateFile string
 var PrefixFile string
 var HijackFile string
 var RelationsFile string
+var DebugEnabled bool
 var LineNo int64
 var Interval int64
 
@@ -66,6 +67,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&HijackFile, "output", "hijacks.csv", "file containing the detected hijacks")
 	rootCmd.PersistentFlags().Int64Var(&LineNo, "lineno", 0, "the number of lines the update file contains ")
 	rootCmd.PersistentFlags().StringVar(&RelationsFile, "relations", "", "CAIDA's graph for AS relationships ")
+	rootCmd.PersistentFlags().BoolVar(&DebugEnabled, "debug", false, "enable debug mode")
 	// rootCmd.PersistentFlags().StringVar(&RelationsFile, "relations", "", "CAIDA's graph for AS relationships ")
 
 	rootCmd.MarkPersistentFlagRequired("updates")

@@ -17,8 +17,10 @@ RUN cd /artemis_go \
 # Begin artemis_go interval
 COPY ./run_artemis_interval.sh /run_artemis_interval.sh
 
-CMD ["/artemis_go/ihd", "detect", \
-	"--updates", "/parser/output.csv", \
-	"--prefixes", "/parser/as_prefixes.csv", \
-	"--output", "artemis_go/mini-internet_hijacks.csv" \
-    ]
+ENTRYPOINT ["/artemis_go/ihd", "interval", \
+	        "--updates", "/parser/output.csv", \
+	        "--prefixes", "/parser/as_prefixes.csv", \
+	        "--output", "AS_hijacks.csv", \
+            "--interval", "1", \
+            "--debug", "true" \
+            ]

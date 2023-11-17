@@ -89,6 +89,10 @@ func main() {
 	//for i := 0; i < argCount; i++ {
 	updatesFilename := cmd.UpdateFile
 	prefixMapFilename := cmd.PrefixFile
+
+	debug("Updates file: " + updatesFilename)
+	debug("Prefixes file: " + prefixMapFilename)
+	debug("Hijack file: " + cmd.HijackFile)
 		
 	fmt.Println("")
 	fmt.Println("Generating Peer Graph...")
@@ -117,8 +121,8 @@ func main() {
 			csvReader2 := csv.NewReader(fileUpdates)
 			csvReader2.Comma = '|'
 			
-			if timestamp_last == 0 {
-				fmt.Println("Parsing file from the beginning...")
+			if timestamp_last != 0 {
+				fmt.Println("Parsing Updates after timestamp: ", timestamp_last)
 				// advance the csvReader2 until the last timestamp
 				for {
 					// Read the next line
@@ -131,12 +135,12 @@ func main() {
 						if s == timestamp_last {
 							break;
 						}
-						} else {
+					} else {
 						continue
 					}
 				}
 			} else {
-				fmt.Println("Parsing Updates after timestamp: ", timestamp_last)
+				fmt.Println("Parsing file from the beginning...")
 			}
 
 			timestamp_last = artemisDetection(csvReader2, prefixTree, prefixASMap, peerGraph)
@@ -158,12 +162,14 @@ func main() {
 func artemisDetection(csvReader2 *csv.Reader, prefixTree *string_tree.TreeV4, prefixASMap map[string][]string, peerGraph map[string][]string) (float64){
 	bar := progressbar.Default(cmd.LineNo)
 	final_timestamp := float64(0)
+	counter := 0
 	for {
 		updateRecord, err := csvReader2.Read()
 		if err == io.EOF {
 			fmt.Println("No new updates found!")
 			break
 		}
+		counter++
 	
 		// An example string:
 		// 2a09:10c0::/29|6886|34927|34927 13249 6886|ris|rrc03|A|"[{""asn"":34927
@@ -206,6 +212,7 @@ func artemisDetection(csvReader2 *csv.Reader, prefixTree *string_tree.TreeV4, pr
 			}
 		}
 	printHijacks()
+	fmt.Println("Total number of updates processed: ", counter)
 		
 	// return last message's timestamp
 	return final_timestamp
@@ -456,4 +463,10 @@ func printHijacks() {
 		// }
 	}
 	datawriter.Flush()
+}
+
+func debug(message string) {
+	if cmd.DebugEnabled {
+		fmt.Println(message)
+	}
 }
