@@ -541,7 +541,7 @@ for ((k=0;k<group_numbers;k++)); do
             rname="${router_i[0]}"
             property1="${router_i[1]}"
 
-            if [ "${property1}" = "BGP_MONITOR"  ] || [ "${property1}" = "ARTEMIS"  ];then
+            if [ "${property1}" = "BGP_MONITOR" ] || [ "${property1}" = "ARTEMIS" ];then
                 location="${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_conf.sh
                 {
                     echo "#!/bin/bash"
