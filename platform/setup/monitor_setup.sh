@@ -133,6 +133,8 @@ for ((k=0;k<group_numbers;k++)); do
                         -v ${GROUPSDIR}/logs/${group_k}_parser.log:/parser/parser.log \
                         -v ${GROUPSDIR}/output/${group_k}_output.csv:/parser/output.csv \
                         -v ${GROUPSDIR}/output/as_prefixes.csv:/parser/as_prefixes.csv \
+                        -v ${UTILSDIR}/pipe/docker_pipe:/pipe \
+                        -e "ASN=${group_number}" \
                         --hostname="${group_k}_ARTEMIS" --cpus=2 --pids-limit 100 \
                         papastam/mi-artemis
 

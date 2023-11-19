@@ -1,5 +1,5 @@
 all: build
-	 ./ihd interval \
+	 ./ihd active \
 	--updates 1_output.csv \
 	--prefixes as_prefixes.csv \
 	--output mini-internet_hijacks.csv \
