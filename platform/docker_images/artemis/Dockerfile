@@ -21,7 +21,7 @@ ENTRYPOINT /artemis_go/ihd active \
             --updates /parser/output.csv \
             --prefixes /parser/as_prefixes.csv \
             --output AS_hijacks.csv \
-            --interval 1 \
+            --interval $ARTEMIS_INTERVAL \
             --pipename /pipe \
             --asn $ASN \
             --debug true

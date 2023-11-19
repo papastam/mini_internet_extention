@@ -2,18 +2,67 @@ package main
 
 import (
 	"bufio"
+	"encoding/binary"
 	"encoding/csv"
 	"fmt"
-	"github.com/kentik/patricia"
-	"github.com/kentik/patricia/string_tree"
-	"github.com/mikioh/ipaddr"
 	"io"
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/kentik/patricia"
+	"github.com/kentik/patricia/string_tree"
+	"github.com/mikioh/ipaddr"
 )
+
+func prefixBelongsToAS(prefix string, Asn int64, peerGraph map[string][]string) bool {
+	// Parse the prefix into an IPNet
+	_, advertNet, _ := net.ParseCIDR(prefix)
+
+	// Get the asPrefixes belonging to the AS
+	asPrefixes, _ := peerGraph[strconv.FormatInt(Asn, 10)]
+
+	// Check if the given prefix is a sub-prefix of any of the prefixes belonging to the AS
+	for _, as_prefix := range asPrefixes {
+		_, as_network, _ := net.ParseCIDR(as_prefix)
+		if as_network.Contains(advertNet.IP) {
+			return true
+		}
+	}
+	return false
+}
+
+func calculateSubnets(prefix string) (subnet1 string, subnet2 string) {
+	// Split the prefix into the network address and the subnet mask
+	ip, ipNet, _ := net.ParseCIDR(prefix)
+	network := ip.Mask(ipNet.Mask)
+
+	// Convert the network address to an integer
+	networkInt := binary.BigEndian.Uint32(network)
+
+	// Calculate the number of bits in the subnet mask
+	ones, _ := ipNet.Mask.Size()
+
+	// Calculate the bit needed to flip to get the second subnet
+	flipBit := uint32(1 << (31 - ones))
+
+	// Calculate the network address of each subnet
+	subnet1Int := networkInt
+	subnet2Int := networkInt + uint32(flipBit)
+
+	// Convert the network addresses of the subnets back to the dotted decimal notation
+	subnet1 = fmt.Sprintf("%s/%d", net.IPv4(uint32ToBytes(subnet1Int>>24), uint32ToBytes(subnet1Int>>16&0xFF), uint32ToBytes(subnet1Int>>8&0xFF), uint32ToBytes(subnet1Int&0xFF)).String(), ones+1)
+	subnet2 = fmt.Sprintf("%s/%d", net.IPv4(uint32ToBytes(subnet2Int>>24), uint32ToBytes(subnet2Int>>16&0xFF), uint32ToBytes(subnet2Int>>8&0xFF), uint32ToBytes(subnet2Int&0xFF)).String(), ones+1)
+
+	return subnet1, subnet2
+}
+
+func uint32ToBytes(n uint32) byte {
+	return byte(n & 0xff)
+}
 
 func getTimeDiffInSeconds(time1 float64, time2 float64) float64 {
 	tm1 := time.Unix(int64(time1), 0)
@@ -177,4 +226,3 @@ func Find(slice []string, val string) (int, bool) {
 	}
 	return -1, false
 }
-

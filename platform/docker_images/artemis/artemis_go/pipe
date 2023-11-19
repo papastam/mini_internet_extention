@@ -1,0 +1,2 @@
+advertise 2 2.0.0.0/9 null0
+advertise 2 2.128.0.0/9 null0
