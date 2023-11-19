@@ -22,7 +22,6 @@ echo -n "ovs-vsctl " > ovs_command.txt
 # remove all container & restart docker
 docker system prune -f
 
-
 ./cleanup/host_links_cleanup.sh "${DIRECTORY}"
 ./cleanup/layer2_cleanup.sh "${DIRECTORY}"
 ./cleanup/internal_links_cleanup.sh "${DIRECTORY}"

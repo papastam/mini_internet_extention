@@ -77,7 +77,7 @@ for ((k=0;k<group_numbers;k++)); do
                 "${rname}""router" "${group_number}"_"${rname}"host
 
                 # set default ip address and default gw in host
-                if [ "$group_config" == "Config" ] || [ "$group_config" == "NoRules" ]; then
+                if [ "$group_config" == "Config" ] || [ "$group_config" == "Monitored" ]; then
                     get_docker_pid "${group_number}"_"${rname}"host
                     echo "PID=$DOCKER_PID" >> "${DIRECTORY}"/groups/ip_setup.sh
                     echo "create_netns_link" >> "${DIRECTORY}"/groups/ip_setup.sh
