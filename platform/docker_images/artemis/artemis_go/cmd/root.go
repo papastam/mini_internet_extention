@@ -28,7 +28,10 @@ var HijackFile string
 var RelationsFile string
 var DebugEnabled bool
 var LineNo int64
+
 var Interval int64
+var Asn int64
+var PipeName string
 
 var CommandProvided bool = false
 var IntervalEnabled bool = false

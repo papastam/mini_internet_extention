@@ -1,5 +1,6 @@
 DIRECTORY="$1"
 PIPE_DIR="$1/utils/pipe/docker_pipe"
+LISTENER_DIR="$1/utils/pipe/pipe_listener.sh"
 
 # Properly setup the pipe
 # it has been noticed that when the project is pulled
@@ -16,5 +17,5 @@ if [ ! -p "${PIPE_DIR}" ]; then
 fi
 
 rm -f ${DIRECTORY}/nohup.out
-time nohup ./pipe_listener.sh "${DIRECTORY}" &
+time nohup ${LISTENER_DIR} "${DIRECTORY}" &
 echo "Docker pipe output is: ${DIRECTORY}/nohup.out"
