@@ -1,0 +1,3 @@
+prefix,origin as,hijack type,hijacker asn,time started,time of last update,time ended,state,duration
+2.0.0.0/8,1,E|0|-|-,1,1697212713.179109,1697795712.000000,1697795712.000000,Withdrawn,9716.650000,3,[%!d(string=1)],[%!d(string=1)]
+2.0.0.0/8,1,E|0|-|-,1,1697795990.790167,1699621504.000000,1699622104.000000,Dormant,30435.233333,11,[],[%!d(string=1)]

@@ -34,7 +34,7 @@ func init() {
 	rootCmd.AddCommand(activeCmd)
 
 	// Add an integer flag named "interval" with shorthand "i" and default value of 10
-	activeCmd.Flags().Int64Var(&Interval, "interval", 10, "Interval for hijack detection in minutes")
+	activeCmd.Flags().Int64Var(&Interval, "interval", 10, "Interval for hijack detection in seconds")
 	activeCmd.Flags().Int64Var(&Asn, "asn", -1, "AS number to mitigate the hijack for")
 	activeCmd.Flags().StringVar(&PipeName, "pipename", "", "Named pipe file to write the mitigation commands to")
 }

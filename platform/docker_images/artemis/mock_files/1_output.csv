@@ -1,2 +1,3 @@
 1.0.0.0/8|1|1|1 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1]}}, 'med': 0}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '1.0.0.0/8'}]}}}|1700348846.9505541
 1.0.0.0/8|2|1|1 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [2]}}, 'med': 0}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '1.0.0.0/8'}]}}}|1700351100.9505541
+1.0.0.0/8|2|1|1 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [2]}}, 'med': 0}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '1.0.0.0/8'}]}}}|1700351101.9505541

@@ -105,3 +105,9 @@
 2.0.0.0/9||1||exabgp|1|W|{'withdraw': {'ipv4 unicast': [{'nlri': '2.0.0.0/9'}, {'nlri': '2.128.0.0/9'}]}}|1699621103.9706836
 2.0.0.0/8|1|1|1 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1]}}}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '2.0.0.0/8'}]}}}|1699621480.699334
 2.0.0.0/8|2|1|1 2 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1, 2]}}}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '2.0.0.0/8'}]}}}|1699621493.7327049
+2.0.0.0/8|2|1|1 2 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1, 2]}}}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '2.0.0.0/8'}]}}}|1699621493.7327050
+2.0.0.0/8|2|1|1 2 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1, 2]}}}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '2.0.0.0/8'}]}}}|1699621493.7327051
+2.0.0.0/8|2|1|1 2 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1, 2]}}}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '2.0.0.0/8'}]}}}|1699621493.7327052
+2.0.0.0/8|2|1|1 2 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1, 2]}}}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '2.0.0.0/8'}]}}}|1699621493.7327053
+2.0.0.0/8|2|1|1 2 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1, 2]}}}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '2.0.0.0/8'}]}}}|1699621493.7327054
+2.0.0.0/8|2|1|1 2 |exabgp|1|A|{'attribute': {'origin': 'igp', 'as-path': {'0': {'element': 'as-sequence', 'value': [1, 2]}}}, 'announce': {'ipv4 unicast': {'1.0.197.1': [{'nlri': '2.0.0.0/8'}]}}}|1699621493.7327055

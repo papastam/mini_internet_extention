@@ -2,13 +2,11 @@ package main
 
 import (
 	"bufio"
-	"encoding/binary"
 	"encoding/csv"
 	"fmt"
 	"io"
 	"log"
 	"math"
-	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -42,6 +40,7 @@ type Hijack struct {
 	peers_withdrawn []string
 	state           HijackState
 	messageCount    int64
+	mitigated       bool
 }
 
 type BGPUpdate struct {
@@ -127,7 +126,8 @@ func main() {
 				MitigationEnabled = false
 				Asn = -1
 			} else {
-				fmt.Println("Mitigating hijacks for AS", cmd.Asn)
+				Asn = cmd.Asn
+				fmt.Println("Mitigating hijacks for AS", Asn)
 				MitigationEnabled = true
 			}
 		}
@@ -142,12 +142,14 @@ func main() {
 		csvReader2.Comma = '|'
 		timestamp_last = artemisDetection(csvReader2, prefixTree, prefixASMap, peerGraph)
 
-		mitigateHijacks(Asn, pipe)
+		mitigateHijacks(Asn, pipe, peerGraph)
 
-		fmt.Println("Sleeping for", interval, "minutes...")
-		time.Sleep(time.Duration(interval) * time.Minute)
+		fmt.Println("Sleeping for", interval, "seconds...")
+		time.Sleep(time.Duration(interval) * time.Second)
 
 		for {
+			// Create a reader and start from the top of the file
+			fileUpdates.Seek(0, 0)
 			csvReader2 := csv.NewReader(fileUpdates)
 			csvReader2.Comma = '|'
 
@@ -160,8 +162,8 @@ func main() {
 					break
 				}
 				// If the timestamp is equal to the last timestamp, break
-				if s, err := strconv.ParseFloat(updateRecord[8], 64); err == nil {
-					if s == timestamp_last {
+				if red_ts, err := strconv.ParseFloat(updateRecord[8], 64); err == nil {
+					if red_ts == timestamp_last {
 						break
 					}
 				} else {
@@ -175,10 +177,10 @@ func main() {
 				timestamp_last = temp_timestamp_last
 			}
 
-			mitigateHijacks(Asn, pipe)
+			mitigateHijacks(Asn, pipe, peerGraph)
 
-			fmt.Println("Sleeping for", interval, "minutes...")
-			time.Sleep(time.Duration(interval) * time.Minute)
+			fmt.Println("Sleeping for", interval, "seconds...")
+			time.Sleep(time.Duration(interval) * time.Second)
 		}
 
 	} else {
@@ -198,11 +200,11 @@ func main() {
 
 }
 
-func mitigateHijacks(Asn int64, pipe *os.File) {
+func mitigateHijacks(Asn int64, pipe *os.File, peerGraph map[string][]string) {
 	if MitigationEnabled {
-		for _, hijack := range detectedHijackMap {
-			if hijack.state != Withdrawn && hijack.hijack_as == strconv.FormatInt(Asn, 10) {
-				fmt.Println("Mitigating hijack: ", hijack)
+		for hijack_key, hijack := range ongoingHijackMap {
+			if hijack.state != Withdrawn && prefixBelongsToAS(hijack.prefix, Asn, peerGraph) && !hijack.mitigated {
+				fmt.Println("Mitigating hijack: ", hijack_key)
 				subnet1, subnet2 := calculateSubnets(hijack.prefix)
 
 				// Write the mitigation commands to the named pipe
@@ -215,38 +217,12 @@ func mitigateHijacks(Asn int64, pipe *os.File) {
 				if err != nil {
 					log.Fatal("Error writing to pipe: ", err)
 				}
+
+				hijack.mitigated = true
+				ongoingHijackMap[hijack_key] = hijack
 			}
 		}
 	}
-}
-
-func calculateSubnets(prefix string) (subnet1 string, subnet2 string) {
-	// Split the prefix into the network address and the subnet mask
-	ip, ipNet, _ := net.ParseCIDR(prefix)
-	network := ip.Mask(ipNet.Mask)
-
-	// Convert the network address to an integer
-	networkInt := binary.BigEndian.Uint32(network)
-
-	// Calculate the number of bits in the subnet mask
-	ones, _ := ipNet.Mask.Size()
-
-	// Calculate the bit needed to flip to get the second subnet
-	flipBit := uint32(1 << (31 - ones))
-
-	// Calculate the network address of each subnet
-	subnet1Int := networkInt
-	subnet2Int := networkInt + uint32(flipBit)
-
-	// Convert the network addresses of the subnets back to the dotted decimal notation
-	subnet1 = fmt.Sprintf("%s/%d", net.IPv4(uint32ToBytes(subnet1Int>>24), uint32ToBytes(subnet1Int>>16&0xFF), uint32ToBytes(subnet1Int>>8&0xFF), uint32ToBytes(subnet1Int&0xFF)).String(), ones+1)
-	subnet2 = fmt.Sprintf("%s/%d", net.IPv4(uint32ToBytes(subnet2Int>>24), uint32ToBytes(subnet2Int>>16&0xFF), uint32ToBytes(subnet2Int>>8&0xFF), uint32ToBytes(subnet2Int&0xFF)).String(), ones+1)
-
-	return subnet1, subnet2
-}
-
-func uint32ToBytes(n uint32) byte {
-	return byte(n & 0xff)
 }
 
 func artemisDetection(csvReader2 *csv.Reader, prefixTree *string_tree.TreeV4, prefixASMap map[string][]string, peerGraph map[string][]string) float64 {
@@ -497,16 +473,18 @@ func getHijackDetectionStatus(updateMessage BGPUpdate, prefixTree *string_tree.T
 		}
 	} else {
 		if isPartialPrefixMatch && !isExactPrefixMatch {
-			// TODO:
 			// Check if the sub-prefix is a valid sub-prefix of a valid as
-			// Get the advertizer's valid prefixes
-			// validPrefixes := getValidPrefixes(treeMatchedASN, prefixASMap)
-
-			hijackType = SubPrefix
 			hijackerAs = updateMessage.origin_as
-			isHijack = true
+			AS_number, _ := strconv.ParseInt(updateMessage.origin_as, 10, 64)
+			validPrefix = updateMessage.prefix
+			if !prefixBelongsToAS(validPrefix, AS_number, peerGraph) {
+				hijackType = SubPrefix
+				isHijack = true
+			} else {
+				isHijack = false
+				hijackType = Undefined
+			}
 		}
-		validPrefix = updateMessage.prefix
 	}
 
 	asnOrigin := ""
