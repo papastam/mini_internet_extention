@@ -536,21 +536,22 @@ for ((k=0;k<group_numbers;k++)); do
         readarray routers < "${DIRECTORY}"/config/$group_router_config
         n_routers=${#routers[@]}
 
+        router_cnt=0
         for ((i=0;i<n_routers;i++)); do
             router_i=(${routers[$i]})
             rname="${router_i[0]}"
             property1="${router_i[1]}"
 
-            if [ "${property1}" = "BGP_MONITOR" ] || [ "${property1}" = "ARTEMIS" ];then
+            if [ "${group_config}" = "Monitored" ];then
                 location="${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_conf.sh
                 {
                     echo "#!/bin/bash"
                     echo "vtysh  -c 'conf t' \\"
                     echo " -c 'interface monitor' \\"
-                    echo " -c 'ip address "$(subnet_router_EXABGP_MONITOR "${group_number}" "group")"' \\"
+                    echo " -c 'ip address "$(subnet_router_EXABGP_MONITOR "${group_number}" "group" "${router_cnt}")"' \\"
                     echo " -c 'exit' \\"
                     echo " -c 'router ospf' \\"
-                    echo " -c '"network "$(subnet_router_EXABGP_MONITOR "${group_number}" "group")" area 0"' \\"
+                    echo " -c '"network "$(subnet_router_EXABGP_MONITOR "${group_number}" "group" "${router_cnt}")" area 0"' \\"
                     echo " -c 'exit' \\"
                     echo " -c 'bgp community-list 1 permit $group_k:10' \\"
                     echo " -c 'route-map LOCAL_PREF_IN_EXA deny 10' \\"
@@ -560,15 +561,14 @@ for ((k=0;k<group_numbers;k++)); do
                     echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 10' \\"
                     echo " -c 'exit' \\"
                     echo " -c 'router bgp "${group_number}"' \\"
-                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address")" remote-as 10000' \\"
-                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address")" route-map LOCAL_PREF_IN_EXA in' \\"
-                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address")" route-map LOCAL_PREF_OUT_EXA out' \\"
+                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" remote-as 10000' \\"
+                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-map LOCAL_PREF_IN_EXA in' \\"
+                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-map LOCAL_PREF_OUT_EXA out' \\"
                     echo " -c 'exit' \\"
                 } >> "${location}"
             
-
             fi
-
+            router_cnt=$((router_cnt+1))
         done
     fi
 done
@@ -679,7 +679,7 @@ for ((k=0;k<group_numbers;k++)); do
             if [ "$group_config" == "Config" ]; then
                 docker cp "${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_full_conf.sh "${group_number}"_"${rname}"router:/home/init_full_conf.sh
                 docker exec -d "${group_number}"_"${rname}"router bash ./home/init_full_conf.sh &
-            elif [ "$group_config" == "NoRules" ]; then
+            elif [ "$group_config" == "Monitored" ]; then
                 docker cp "${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_no_rules_conf.sh "${group_number}"_"${rname}"router:/home/init_no_rules_conf.sh
                 docker exec -d "${group_number}"_"${rname}"router bash ./home/init_no_rules_conf.sh &
             fi
