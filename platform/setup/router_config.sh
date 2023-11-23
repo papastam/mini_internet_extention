@@ -553,17 +553,18 @@ for ((k=0;k<group_numbers;k++)); do
                     echo " -c 'router ospf' \\"
                     echo " -c '"network "$(subnet_router_EXABGP_MONITOR "${group_number}" "group" "${router_cnt}")" area 0"' \\"
                     echo " -c 'exit' \\"
-                    echo " -c 'bgp community-list 1 permit $group_k:10' \\"
-                    echo " -c 'route-map LOCAL_PREF_IN_EXA deny 10' \\"
-                    echo " -c 'exit' \\"
-                    echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 5' \\"
-                    echo " -c 'exit' \\"
-                    echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 10' \\"
-                    echo " -c 'exit' \\"
+                    # echo " -c 'bgp community-list 1 permit $group_k:10' \\"
+                    # echo " -c 'route-map LOCAL_PREF_IN_EXA deny 10' \\"
+                    # echo " -c 'exit' \\"
+                    # echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 5' \\"
+                    # echo " -c 'exit' \\"
+                    # echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 10' \\"
+                    # echo " -c 'exit' \\"
                     echo " -c 'router bgp "${group_number}"' \\"
-                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" remote-as 10000' \\"
-                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-map LOCAL_PREF_IN_EXA in' \\"
-                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-map LOCAL_PREF_OUT_EXA out' \\"
+                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" remote-as $group_number' \\"
+                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-reflector' \\"
+                    # echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-map LOCAL_PREF_IN_EXA in' \\"
+                    # echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-map LOCAL_PREF_OUT_EXA out' \\"
                     echo " -c 'exit' \\"
                 } >> "${location}"
             
@@ -572,7 +573,6 @@ for ((k=0;k<group_numbers;k++)); do
         done
     fi
 done
-
 
 # matrix
 for ((k=0;k<group_numbers;k++)); do

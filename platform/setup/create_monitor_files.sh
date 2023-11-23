@@ -66,7 +66,7 @@ for ((k=0;k<group_numbers;k++)); do
             # Generate the config
             echo "neighbor $(subnet_router_EXABGP_MONITOR "${group_k}" "neighbor" "${router_cnt}") {
 local-address $(subnet_router_EXABGP_MONITOR "${group_k}" "local-address" "${router_cnt}");
-local-as 10000;
+local-as "${group_k}";
 peer-as "${group_k}";
 family {
     ipv4 unicast;
