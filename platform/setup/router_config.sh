@@ -170,9 +170,19 @@ for ((k=0;k<group_numbers;k++));do
             rname="${router_i[0]}"
             cp "${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_full_conf.sh "${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_no_rules_conf.sh
         
+            # TODO: CHANGE! VERY HARD CODED
+            # monitor_as=$((group_number+1000))
             # Create a empty route-map
             {
-                echo " -c 'route-map empty_in permit 10' \\"
+                # echo " -c 'route-map empty_in permit 10' \\"
+                # echo " -c 'exit' \\"
+                echo " -c 'route-map empty_in permit 5' \\"
+                # match ip address prefix-list any
+                # set as-path prepend 10
+                # echo " -c 'match ip address prefix-list $group_number.0.0.0/8' \\"
+                # echo " -c 'set as-path prepend $monitor_as' \\"
+                # echo " -c 'set weight 1' \\"
+                # echo " -c 'on-match goto 10' \\"
                 echo " -c 'exit' \\"
                 echo " -c 'route-map empty_out permit 10' \\"
                 echo " -c 'exit' \\"
@@ -541,6 +551,7 @@ for ((k=0;k<group_numbers;k++)); do
             router_i=(${routers[$i]})
             rname="${router_i[0]}"
             property1="${router_i[1]}"
+            monitor_as=$((group_number+1000))
 
             if [ "${group_config}" = "Monitored" ];then
                 location="${DIRECTORY}"/groups/g"${group_number}"/"${rname}"/init_conf.sh
@@ -553,18 +564,17 @@ for ((k=0;k<group_numbers;k++)); do
                     echo " -c 'router ospf' \\"
                     echo " -c '"network "$(subnet_router_EXABGP_MONITOR "${group_number}" "group" "${router_cnt}")" area 0"' \\"
                     echo " -c 'exit' \\"
-                    # echo " -c 'bgp community-list 1 permit $group_k:10' \\"
-                    # echo " -c 'route-map LOCAL_PREF_IN_EXA deny 10' \\"
-                    # echo " -c 'exit' \\"
-                    # echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 5' \\"
-                    # echo " -c 'exit' \\"
-                    # echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 10' \\"
-                    # echo " -c 'exit' \\"
+                    echo " -c 'bgp community-list 1 permit $group_k:10' \\"
+                    echo " -c 'route-map LOCAL_PREF_IN_EXA deny 10' \\"
+                    echo " -c 'exit' \\"
+                    echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 5' \\"
+                    echo " -c 'exit' \\"
+                    echo " -c 'route-map LOCAL_PREF_OUT_EXA permit 10' \\"
+                    echo " -c 'exit' \\"
                     echo " -c 'router bgp "${group_number}"' \\"
-                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" remote-as $group_number' \\"
-                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-reflector' \\"
-                    # echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-map LOCAL_PREF_IN_EXA in' \\"
-                    # echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-map LOCAL_PREF_OUT_EXA out' \\"
+                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" remote-as $monitor_as' \\"
+                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-map LOCAL_PREF_IN_EXA in' \\"
+                    echo " -c 'neighbor "$(subnet_router_EXABGP_MONITOR "${group_number}" "local-address" "${router_cnt}")" route-map LOCAL_PREF_OUT_EXA out' \\"
                     echo " -c 'exit' \\"
                 } >> "${location}"
             

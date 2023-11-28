@@ -36,6 +36,7 @@ for ((k=0;k<group_numbers;k++)); do
     group_router_config="${group_k[3]}"
 
     if [ "${group_as}" != "IXP" ] && [ "${group_config}" == "Monitored" ];then
+        monitor_as=$((group_number+1000))
 
         # Create as_prefixes.csv, format is: IP|AS|AS_NAME
         echo "${group_number}.0.0.0/8|${group_number}|${group_number}" >> ${GROUPSDIR}/output/as_prefixes.csv
@@ -66,7 +67,7 @@ for ((k=0;k<group_numbers;k++)); do
             # Generate the config
             echo "neighbor $(subnet_router_EXABGP_MONITOR "${group_k}" "neighbor" "${router_cnt}") {
 local-address $(subnet_router_EXABGP_MONITOR "${group_k}" "local-address" "${router_cnt}");
-local-as "${group_k}";
+local-as "${monitor_as}";
 peer-as "${group_k}";
 family {
     ipv4 unicast;

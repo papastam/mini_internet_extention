@@ -37,8 +37,8 @@ docker system prune -f
 ps -ef | grep "pipe_listener.sh" | grep -v grep | awk '{print $2}' | xargs kill -9 || true > /dev/null 2>&1
 ps -ef | grep "docker_pipe" | grep -v grep | awk '{print $2}' | xargs kill -9 || true > /dev/null 2>&1
 
-# Write exit to the pipe
-# echo "exit" >> "${DIRECTORY}"/utils/pipe/docker_pipe
+# remove the pipe log
+sudo rm -f "${DIRECTORY}"/nohup.out
 
 bash  < ovs_command.txt || true
 rm -f ovs_command.txt
