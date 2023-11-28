@@ -13,3 +13,4 @@ platform/setup/router_config.sh
 nohup.out
 platform/log.txt
 goto_server.sh
+platform/utils/artemis/*_artemis_output.csv
