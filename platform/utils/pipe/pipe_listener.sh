@@ -29,9 +29,10 @@ while true; do
 			docker logs "${CMD_ARR[2]}" > "$1/groups/docker_logs/${CMD_ARR[2]}.log" 2>&1
 		fi
 
-	elif [ "${CMD_ARR[0]}" == "announce" ]; then
-		echo "Announcing prefix ${CMD_ARR[2]} from AS${CMD_ARR[1]}" 
+	elif [ "${CMD_ARR[0]}" == "advertise" ]; then
+		echo "Announcing prefixes ${CMD_ARR[2]} and ${CMD_ARR[3]} from AS${CMD_ARR[1]}" 
 		"$1/utils/announcePrefix/announcePrefix.sh" -a "${CMD_ARR[1]}" -p "${CMD_ARR[2]}"
+		"$1/utils/announcePrefix/announcePrefix.sh" -a "${CMD_ARR[1]}" -p "${CMD_ARR[3]}"
 		
 	elif [ "${CMD_ARR[0]}" == "exit" ]; then
 		echo "Exiting pipe listener"

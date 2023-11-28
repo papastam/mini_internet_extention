@@ -20,7 +20,7 @@ COPY ./run_artemis_interval.sh /run_artemis_interval.sh
 ENTRYPOINT /artemis_go/ihd active \
             --updates /parser/output.csv \
             --prefixes /parser/as_prefixes.csv \
-            --output AS_hijacks.csv \
+            --output /output/astemis_output.csv \
             --interval $ARTEMIS_INTERVAL \
             --pipename /pipe \
             --asn $ASN \
