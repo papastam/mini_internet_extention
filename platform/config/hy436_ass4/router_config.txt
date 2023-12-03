@@ -1,5 +1,4 @@
 NORTH   MATRIX                  host:miniinterneteth/d_host vtysh
-EAST    DNS                     host:miniinterneteth/d_host vtysh
+EAST    MEASUREMENT             host:miniinterneteth/d_host vtysh
 SOUTH   MATRIX_TARGET           host:miniinterneteth/d_host vtysh
-WEST    BGP_MONITOR             host:miniinterneteth/d_host vtysh
-CENTER  MEASUREMENT             host:miniinterneteth/d_host vtysh
+WEST    DNS                     host:miniinterneteth/d_host vtysh
