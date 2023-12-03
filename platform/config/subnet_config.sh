@@ -104,6 +104,14 @@ subnet_router_router_extern () {
 
         echo "179."${div}"."${mod}".0/24"
 
+    elif [ "${device}" = "monitor_router" ] ; then
+
+        echo "179."${div}"."${mod}".3/24"
+
+    elif [ "${device}" = "monitor" ] ; then
+
+        echo "179."${div}"."${mod}".4/24"
+
     fi
 }
 
