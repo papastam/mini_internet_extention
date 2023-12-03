@@ -242,39 +242,29 @@ subnet_sshContainer_groupContainer () {
   fi
 }
 
+# TODO: Decide weather one or more monitors need to be deployed
 subnet_router_EXABGP_MONITOR () {
   local n_grp="$1" device="$2"
-  local identifier=$(($3 * 4))
 
   if [ "${device}" = "group" ] ; then
 
-    local d_part=$(($identifier + 1))
-
-    echo "${n_grp}"".0.197."${d_part}"/30"
+    echo "${n_grp}"".0.197.1/24"
 
   elif [ "${device}" = "monitor" ] ; then
 
-    local d_part=$(($identifier + 2))
-
-    echo "${n_grp}"".0.197."${d_part}"/30"
+    echo "${n_grp}"".0.197.2/24"
 
   elif [ "${device}" = "bridge" ] ; then
 
-    local d_part=$(($identifier))
-
-    echo "${n_grp}"".0.197."${d_part}"/30"
+    echo "${n_grp}"".0.197.0/24"
 
   elif [ "${device}" = "neighbor" ] ; then
 
-    local d_part=$(($identifier + 1))
-
-    echo "${n_grp}"".0.197."${d_part}""
+    echo "${n_grp}"".0.197.1"
 
   elif [ "${device}" = "local-address" ] ; then
 
-    local d_part=$(($identifier + 2))
-
-    echo "${n_grp}"".0.197."${d_part}""
+    echo "${n_grp}"".0.197.2"
 
   fi
 }
