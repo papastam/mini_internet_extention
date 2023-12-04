@@ -17,16 +17,24 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/common-nighthawk/go-figure"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var UpdateFile string
 var PrefixFile string
 var HijackFile string
 var RelationsFile string
+var DebugEnabled bool
 var LineNo int64
+
+var InputType string
+var Asn int64
+
+var CommandProvided bool = false
+var SpecificAsn bool = false
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -54,7 +62,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&UpdateFile, "updates", "", "file containing bgp updates")
+	rootCmd.PersistentFlags().StringVar(&UpdateFile, "updates", "", "File containing the updates")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -62,6 +70,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&HijackFile, "output", "hijacks.csv", "file containing the detected hijacks")
 	rootCmd.PersistentFlags().Int64Var(&LineNo, "lineno", 0, "the number of lines the update file contains ")
 	rootCmd.PersistentFlags().StringVar(&RelationsFile, "relations", "", "CAIDA's graph for AS relationships ")
+	rootCmd.PersistentFlags().BoolVar(&DebugEnabled, "debug", false, "enable debug mode")
+	// rootCmd.PersistentFlags().StringVar(&RelationsFile, "relations", "", "CAIDA's graph for AS relationships ")
 
 	rootCmd.MarkPersistentFlagRequired("updates")
 	rootCmd.MarkPersistentFlagRequired("prefixes")
@@ -70,8 +80,7 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	myFigure := figure.NewFigure("IHD (INSPIRE Hijack Detector)", "", true)
+	myFigure := figure.NewFigure("ARTEMIS DETECTOR", "", true)
 	myFigure.Print()
 
 }
-
