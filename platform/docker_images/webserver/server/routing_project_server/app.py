@@ -113,7 +113,7 @@ def create_project_server(db_session, config=None, build=False):
 
     if build:
         db.create_as_login(db_session,app.config['LOCATIONS']['as_passwords'])
-        db.create_test_db_snapshot(db_session)
+        # db.create_test_db_snapshot(db_session)
 
     def create_index_list(db_session):
         index_list = {"connectivity_matrix": "matrix"}
