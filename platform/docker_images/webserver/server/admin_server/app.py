@@ -39,7 +39,7 @@ config_defaults = {
     'AUTO_START_WORKERS': True
 }
 
-admin_users = {'papastam': 'admin'}
+admin_users = {'inspire': 'hy335hy436!'}
 
 class LoginForm(FlaskForm):
     username = StringField(validators=[InputRequired(),], render_kw={"placeholder": "Username"}, )
