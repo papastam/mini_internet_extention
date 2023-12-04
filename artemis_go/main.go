@@ -25,6 +25,7 @@ const (
 	ExactPrefix HijackType = "E|0|-|-"
 	Valid       HijackType = "valid"
 	Undefined   HijackType = "undefined"
+	Mitigation  HijackType = "mitigation"
 )
 
 type Hijack struct {
@@ -39,6 +40,7 @@ type Hijack struct {
 	peers_withdrawn []string
 	state           HijackState
 	messageCount    int64
+	mitigated       bool
 }
 
 type BGPUpdate struct {
@@ -70,6 +72,8 @@ var prefixPeerMap map[string]string
 
 var withdrawalsMap map[string]Hijack
 
+var MitigationEnabled bool = false
+
 func main() {
 	cmd.Execute()
 	if !cmd.CommandProvided {
@@ -82,40 +86,77 @@ func main() {
 	prefixPeerMap = make(map[string]string)
 	withdrawalsMap = make(map[string]Hijack)
 
-	//argCount := (len(os.Args) - 2) / 2
-	//hijackFile := os.Args[len(os.Args)-1]
-	
-	//for i := 0; i < argCount; i++ {
 	updatesFilename := cmd.UpdateFile
 	prefixMapFilename := cmd.PrefixFile
-		
+
+	asn := cmd.Asn
+
 	fmt.Println("")
 	fmt.Println("Generating Peer Graph...")
 	peerGraph := generatePeerGraph(prefixMapFilename)
 	fmt.Println("Generating Patricia Tree...")
 	prefixASMap, prefixTree := generatePatriciaTree(prefixMapFilename)
 
-	fileUpdates, err := os.Open(updatesFilename)
-	if err != nil {
-		log.Fatal(err)
+	if cmd.InputType == "file" {
+		fileUpdates, err := os.Open(updatesFilename)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		defer func(fileUpdates *os.File) {
+			err := fileUpdates.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}(fileUpdates)
+
+		if cmd.SpecificAsn {
+			artemisDetection(asn, fileUpdates, prefixTree, prefixASMap, peerGraph)
+		} else {
+			artemisDetection(0, fileUpdates, prefixTree, prefixASMap, peerGraph)
+		}
+	} else if cmd.InputType == "directory" {
+
+		// Get all files in the directory
+		files, err := os.ReadDir(updatesFilename)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Iterate over all files in the directory
+		for _, file := range files {
+			fmt.Printf("Processing file: %s\n", file.Name())
+			fileUpdates, err := os.Open(fmt.Sprintf("%s/%s", updatesFilename, file.Name()))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if cmd.SpecificAsn {
+				artemisDetection(asn, fileUpdates, prefixTree, prefixASMap, peerGraph)
+			} else {
+				artemisDetection(0, fileUpdates, prefixTree, prefixASMap, peerGraph)
+			}
+		}
 	}
 
-	defer func(fileUpdates *os.File) {
-		err := fileUpdates.Close()
-		if err != nil {
+	printHijacks()
+}
 
-		}
-	}(fileUpdates)
-
+func artemisDetection(asn int64, fileUpdates *os.File, prefixTree *string_tree.TreeV4, prefixASMap map[string][]string, peerGraph map[string][]string) float64 {
 	csvReader2 := csv.NewReader(fileUpdates)
 	csvReader2.Comma = '|'
 	fmt.Println("Initiating Hijack Detection...")
+
 	bar := progressbar.Default(cmd.LineNo)
+	final_timestamp := float64(0)
+	counter := 0
 	for {
 		updateRecord, err := csvReader2.Read()
 		if err == io.EOF {
+			fmt.Println("No new updates found!")
 			break
 		}
+		counter++
 
 		// An example string:
 		// 2a09:10c0::/29|6886|34927|34927 13249 6886|ris|rrc03|A|"[{""asn"":34927
@@ -126,14 +167,24 @@ func main() {
 		updateMessage.peer_as = updateRecord[2]
 		updateMessage.messageType = updateRecord[6]
 		bar.Add(1)
+
+		// if the prefix does not belong to the AS we are interested in, we skip it
+		if asn != 0 {
+			if !prefixBelongsToAS(updateMessage.prefix, asn, peerGraph) {
+				continue
+			}
+		}
+
 		if len(updateRecord) < 9 {
 			continue
 		}
 		if s, err := strconv.ParseFloat(updateRecord[8], 64); err == nil {
 			updateMessage.timestamp = s
+			final_timestamp = s
 		} else {
 			continue
 		}
+
 		updateMessage.path = updateRecord[3]
 
 		if strings.Contains(updateMessage.prefix, ":") || strings.Contains(updateRecord[1], "{") {
@@ -146,6 +197,9 @@ func main() {
 		}
 
 		if updateMessage.messageType == "A" {
+			if hijackType == Mitigation {
+				handleMitigation(updateMessage, prefixMatched, asnOrigin, hijackerAs, peerGraph)
+			}
 			if hijackType != Valid {
 				handleAnnouncement(updateMessage, hijackType, hijackerAs, asnOrigin, prefixMatched)
 			} else {
@@ -155,8 +209,14 @@ func main() {
 			handleWithdrawal(updateMessage, prefixMatched)
 		}
 	}
-	//}
-	printHijacks()
+	fmt.Println("Total number of updates processed: ", counter)
+
+	// return last message's timestamp
+	return final_timestamp
+}
+
+func handleMitigation(updateMessage BGPUpdate, prefixMatched string, asnOrigin string, hijackerAs string, peerGraph map[string][]string) {
+
 }
 
 func handleWithdrawal(updateMessage BGPUpdate, prefixMatched string) {
@@ -263,13 +323,13 @@ func handleCorrectionAnnouncement(updateMessage BGPUpdate, hijack_type HijackTyp
 		delete(ongoingHijackMap, hijackKey)
 		delete(prefixMap, updateMessage.prefix)
 	}
-	
+
 	for key, _ := range ongoingHijackMap {
 		split := strings.Split(key, "_")
 		prefix := split[0]
 
 		// If the route is valid for an ongoing hijack then we terminate the hijack
-		if prefix == prefixMatched{
+		if prefix == prefixMatched {
 			markHijackTermination(key, ongoingHijackMap[key])
 		}
 	}
@@ -348,11 +408,18 @@ func getHijackDetectionStatus(updateMessage BGPUpdate, prefixTree *string_tree.T
 		}
 	} else {
 		if isPartialPrefixMatch && !isExactPrefixMatch {
-			hijackType = SubPrefix
+			// Check if the sub-prefix is a valid sub-prefix of a valid as
 			hijackerAs = updateMessage.origin_as
-			isHijack = true
+			AS_number, _ := strconv.ParseInt(updateMessage.origin_as, 10, 64)
+			validPrefix = updateMessage.prefix
+			if !prefixBelongsToAS(validPrefix, AS_number, peerGraph) {
+				hijackType = SubPrefix
+				isHijack = true
+			} else {
+				isHijack = false
+				hijackType = Mitigation
+			}
 		}
-		validPrefix = updateMessage.prefix
 	}
 
 	asnOrigin := ""
@@ -370,7 +437,7 @@ func getHijackDetectionStatus(updateMessage BGPUpdate, prefixTree *string_tree.T
 func printHijacks() {
 	fmt.Printf("We have detected %d withdrawn hijacks\n", len(detectedHijackMap))
 	fmt.Printf("We have detected %d ongoing hijacks\n", len(ongoingHijackMap))
-	
+
 	file, err := os.Create(cmd.HijackFile)
 	if err != nil {
 		log.Fatalf("failed creating file: %s", err)
@@ -387,8 +454,8 @@ func printHijacks() {
 			hijack.time_ended = hijack.time_last + 600
 		}
 
-		hijackLine := fmt.Sprintf("%s,%s,%s,%s,%f,%f,%f,%s,%f,%d,%d,%d\n", hijack.prefix, hijack.origin_as, hijack.hj_type, hijack.hijack_as, hijack.time_started,
-			hijack.time_last, hijack.time_ended, hijack.state, getTimeDiffInSeconds(hijack.time_started, hijack.time_ended)/60, hijack.messageCount, hijack.peers_withdrawn, hijack.peers_seen)
+		hijackLine := fmt.Sprintf("%s,%s,%s,%s,%f,%f,%f,%s,%f\n", hijack.prefix, hijack.origin_as, hijack.hj_type, hijack.hijack_as, hijack.time_started,
+			hijack.time_last, hijack.time_ended, hijack.state, getTimeDiffInSeconds(hijack.time_started, hijack.time_ended)/60)
 		_, _ = datawriter.WriteString(hijackLine)
 	}
 
@@ -398,10 +465,16 @@ func printHijacks() {
 		hijack.time_ended = hijack.time_last + 600
 		// WHY IS THIS NEEDED?
 		// if hijack.time_started != hijack.time_last {
-		hijackLine := fmt.Sprintf("%s,%s,%s,%s,%f,%f,%f,%s,%f,%d,%d,%d\n", hijack.prefix, hijack.origin_as, hijack.hj_type, hijack.hijack_as, hijack.time_started,
-			hijack.time_last, hijack.time_ended, hijack.state, getTimeDiffInSeconds(hijack.time_started, hijack.time_ended)/60, hijack.messageCount, hijack.peers_withdrawn, hijack.peers_seen)
+		hijackLine := fmt.Sprintf("%s,%s,%s,%s,%f,%f,%f,%s,%f\n", hijack.prefix, hijack.origin_as, hijack.hj_type, hijack.hijack_as, hijack.time_started,
+			hijack.time_last, hijack.time_ended, hijack.state, getTimeDiffInSeconds(hijack.time_started, hijack.time_ended)/60)
 		_, _ = datawriter.WriteString(hijackLine)
 		// }
 	}
 	datawriter.Flush()
+}
+
+func debug(message string) {
+	if cmd.DebugEnabled {
+		fmt.Println(message)
+	}
 }
