@@ -1,15 +1,16 @@
 detect_as: build
 	 ./artemis_detector detect_as \
-	--updates output \
+	--updates test1 \
 	--input_type directory \
 	--prefixes as_prefixes.csv \
 	--output mini-internet_hijacks.csv \
-	--asn 1 \
+	--asn 2 \
 	--debug
 
 detect_all: build
 	 ./artemis_detector detect_all \
 	--updates 1_output.csv \
+	--input_type file \
 	--prefixes as_prefixes.csv \
 	--output mini-internet_hijacks.csv \
 	--debug
