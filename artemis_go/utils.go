@@ -2,18 +2,131 @@ package main
 
 import (
 	"bufio"
+	"encoding/binary"
 	"encoding/csv"
 	"fmt"
-	"github.com/kentik/patricia"
-	"github.com/kentik/patricia/string_tree"
-	"github.com/mikioh/ipaddr"
 	"io"
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/kentik/patricia"
+	"github.com/kentik/patricia/string_tree"
+	"github.com/mikioh/ipaddr"
 )
+
+func prefixBelongsToAS(prefix string, Asn int64, peerGraph map[string][]string) bool {
+	// Parse the prefix into an IPNet
+	_, advertNet, _ := net.ParseCIDR(prefix)
+
+	// Get the asPrefixes belonging to the AS
+	asPrefixes, _ := peerGraph[strconv.FormatInt(Asn, 10)]
+
+	// Check if the given prefix is a sub-prefix of any of the prefixes belonging to the AS
+	for _, as_prefix := range asPrefixes {
+		_, as_network, _ := net.ParseCIDR(as_prefix)
+		if as_network.Contains(advertNet.IP) {
+			return true
+		}
+	}
+	return false
+}
+
+func calculateSubnets(prefix string) (subnet1 string, subnet2 string) {
+	// Split the prefix into the network address and the subnet mask
+	ip, ipNet, _ := net.ParseCIDR(prefix)
+	network := ip.Mask(ipNet.Mask)
+
+	// Convert the network address to an integer
+	networkInt := binary.BigEndian.Uint32(network)
+
+	// Calculate the number of bits in the subnet mask
+	ones, _ := ipNet.Mask.Size()
+
+	// Calculate the bit needed to flip to get the second subnet
+	flipBit := uint32(1 << (31 - ones))
+
+	// Calculate the network address of each subnet
+	subnet1Int := networkInt
+	subnet2Int := networkInt + uint32(flipBit)
+
+	// Convert the network addresses of the subnets back to the dotted decimal notation
+	subnet1 = fmt.Sprintf("%s/%d", net.IPv4(uint32ToBytes(subnet1Int>>24), uint32ToBytes(subnet1Int>>16&0xFF), uint32ToBytes(subnet1Int>>8&0xFF), uint32ToBytes(subnet1Int&0xFF)).String(), ones+1)
+	subnet2 = fmt.Sprintf("%s/%d", net.IPv4(uint32ToBytes(subnet2Int>>24), uint32ToBytes(subnet2Int>>16&0xFF), uint32ToBytes(subnet2Int>>8&0xFF), uint32ToBytes(subnet2Int&0xFF)).String(), ones+1)
+
+	return subnet1, subnet2
+}
+
+func calculateComplementarySubnet(prefix1 string) (subnet string) {
+	// Split the prefix into the network address and the subnet mask
+	ip, ipNet, _ := net.ParseCIDR(prefix1)
+	network := ip.Mask(ipNet.Mask)
+
+	// Convert the network address to an integer
+	networkInt := binary.BigEndian.Uint32(network)
+
+	// Calculate the number of bits in the subnet mask
+	ones, _ := ipNet.Mask.Size()
+
+	// Calculate the bit needed to flip to get the second subnet
+	compl_address := networkInt ^ (1 << (32 - ones))
+
+	// Convert the network addresses of the subnets back to the dotted decimal notation
+	subnet = fmt.Sprintf("%s/%d", net.IPv4(uint32ToBytes(compl_address>>24), uint32ToBytes(compl_address>>16&0xFF), uint32ToBytes(compl_address>>8&0xFF), uint32ToBytes(compl_address&0xFF)).String(), ones)
+
+	return subnet
+}
+
+// The following conditions must be true for a prefix to be a sub-prefix of another prefix:
+// 1. The sub-prefixes must have the same mask length
+// 2. The sub-prefixes must have the same host bits
+// 3. The LS bit of the network part of each address must be different
+func calculateSupernet(prefix1 string, prefix2 string) (supernet string) {
+	// Split the prefix into the network address and the subnet mask
+	ip1, ipNet1, _ := net.ParseCIDR(prefix1)
+	network1 := ip1.Mask(ipNet1.Mask)
+	ip2, ipNet2, _ := net.ParseCIDR(prefix2)
+	network2 := ip2.Mask(ipNet2.Mask)
+
+	// Calculate the number of bits in the subnet mask
+	networkSize, _ := ipNet1.Mask.Size()
+	networkSize2, _ := ipNet2.Mask.Size()
+	if networkSize2 != networkSize {
+		return ""
+	}
+
+	networkInt1 := binary.BigEndian.Uint32(network1)
+	networkInt2 := binary.BigEndian.Uint32(network2)
+
+	// Calculate the host bits of each subnet
+	host_part1 := networkInt1 & (1<<uint32(32-networkSize) - 1)
+	host_part2 := networkInt2 & (1<<uint32(32-networkSize) - 1)
+	if host_part1 != host_part2 {
+		return ""
+	}
+
+	// Commpare the LS bit of the network part of each address
+	network_part1 := networkInt1 >> uint32(32-networkSize)
+	network_part2 := networkInt2 >> uint32(32-networkSize)
+	if network_part1&1 == network_part2&1 {
+		return ""
+	}
+
+	// Calculate the network address of the supernet
+	supernetMask := networkSize - 1
+	supernetInt := (networkInt1 >> (32 - supernetMask)) << (32 - supernetMask)
+
+	// Convert the network addresses of the subnets back to the dotted decimal notation
+	supernet = fmt.Sprintf("%s/%d", net.IPv4(uint32ToBytes(supernetInt>>24), uint32ToBytes(supernetInt>>16&0xFF), uint32ToBytes(supernetInt>>8&0xFF), uint32ToBytes(supernetInt&0xFF)).String(), supernetMask)
+	return supernet
+}
+
+func uint32ToBytes(n uint32) byte {
+	return byte(n & 0xff)
+}
 
 func getTimeDiffInSeconds(time1 float64, time2 float64) float64 {
 	tm1 := time.Unix(int64(time1), 0)
@@ -177,4 +290,3 @@ func Find(slice []string, val string) (int, bool) {
 	}
 	return -1, false
 }
-
