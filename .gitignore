@@ -6,6 +6,7 @@ artemis_go/*.csv
 # Directories
 old_version*
 platform/groups*
+running_groups*
 
 # Specific files
 platform/docker_images/webserver/server/database/database.db
