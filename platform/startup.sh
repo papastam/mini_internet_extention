@@ -126,6 +126,21 @@ time ./setup/internal_links_setup.sh "${DIRECTORY}"
 echo ""
 echo ""
 
+echo "create_monitor_files.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
+echo "create_monitor_files.sh: "
+time ./setup/create_monitor_files.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
+
+echo ""
+echo ""
+
+echo "echo \"monitor links\"" >> "${DIRECTORY}"/groups/ip_setup.sh
+echo "monitor_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
+echo "monitor_setup.sh: "
+time ./setup/monitor_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
+
+echo ""
+echo ""
+
 echo "echo \"external links\"" >> "${DIRECTORY}"/groups/ip_setup.sh
 echo "external_links_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 echo "external_links_setup.sh: "
@@ -138,21 +153,6 @@ echo "echo \"measurement links\"" >> "${DIRECTORY}"/groups/ip_setup.sh
 echo "measurement_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 echo "measurement_setup.sh: "
 time ./setup/measurement_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
-
-echo ""
-echo ""
-
-echo "create_monitor_files.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
-echo "create_monitor_files.sh: "
-time ./setup/create_monitor_files.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
-
-echo ""
-echo ""
-
-echo "echo \"monitor links\"" >> "${DIRECTORY}"/groups/ip_setup.sh
-echo "monitor_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
-echo "monitor_setup.sh: "
-time ./setup/monitor_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
 
 echo ""
 echo ""
