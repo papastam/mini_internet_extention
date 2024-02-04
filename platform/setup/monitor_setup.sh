@@ -63,9 +63,9 @@ for ((k=0;k<group_numbers;k++)); do
             echo -n "-- add-br ${group_k}_${rname}_exabgp " >> "${DIRECTORY}"/groups/add_bridges.sh
             echo "ip link set dev ${group_k}_${rname}_exabgp up" >> "${DIRECTORY}"/groups/ip_setup.sh
 
-            subnet_bridge="$(subnet_router_EXABGP_MONITOR "${group_number}" "bridge" "${router_cnt}")"
-            subnet_exabgp_monitor="$(subnet_router_EXABGP_MONITOR "${group_number}" "monitor" "${router_cnt}")"
-            subnet_group="$(subnet_router_EXABGP_MONITOR "${group_number}" "group" "${router_cnt}")"
+            subnet_bridge="$(subnet_router_proxy "${i}" "bridge" )"
+            subnet_exabgp_monitor="$(subnet_router_proxy "${i}" "proxy" )"
+            subnet_group="$(subnet_router_proxy "${i}" "router" )"
 
             # Add port to EXABGP_MONITOR container
             d_part=$((router_cnt*4+2))
@@ -84,7 +84,7 @@ for ((k=0;k<group_numbers;k++)); do
 
             # Add port to router container
             ./setup/ovs-docker.sh add-port ${group_k}_${rname}_exabgp monitor \
-            "${group_number}"_"${rname}"router --ipaddress="${subnet_group}" \
+            "${group_number}"_"${rname}"router \
             --macaddress="aa:22:22:22:"$div":"$mod
 
             # Connect ports
