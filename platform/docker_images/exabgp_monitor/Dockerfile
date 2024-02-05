@@ -6,9 +6,9 @@ RUN apt-get update \
     && apt-get clean
 
 # # install debug tools
-# RUN apt-get install -y net-tools iproute2 \
-#     && apt-get clean
-# RUN apt install -y htop vim traceroute iputils-ping
+RUN apt-get install -y net-tools iproute2 \
+    && apt-get clean
+RUN apt install -y htop vim traceroute iputils-ping
 
 # Add ExaBGP
 ADD ./exabgp /opt/exabgp
