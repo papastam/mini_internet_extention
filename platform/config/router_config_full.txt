@@ -1,8 +1,8 @@
-LOND	DNS	host:335b/d_host
-ZURI	MEASUREMENT	L2-UNIV
-PARI	MATRIX host:335b/d_host
-GENE	N/A	L2-UNIV
-NEWY	N/A	host:335b/d_host
-BOST	N/A	host:335b/d_host
-ATLA	MATRIX_TARGET  host:335b/d_host
-MIAM	N/A	host:335b/d_host
+LOND	DNS	            host:miniinterneteth/d_host     vtysh
+ZURI	MEASUREMENT	    L2-UNIV                         vtysh
+PARI	MATRIX          host:miniinterneteth/d_host     vtysh
+GENE	N/A	            L2-UNIV                         vtysh
+NEWY	N/A	            host:miniinterneteth/d_host     vtysh
+BOST	N/A	            host:miniinterneteth/d_host     vtysh
+ATLA	MATRIX_TARGET   host:miniinterneteth/d_host     vtysh
+MIAM	N/A	            host:miniinterneteth/d_host     vtysh
