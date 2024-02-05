@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import json
 import logging
-from threading import Lock
 
 log = logging.getLogger('artemis')
 log.setLevel(logging.DEBUG)
@@ -24,7 +23,11 @@ def message_parser(line):
         if temp_message['type'] == 'update':
             log.debug('message: {}'.format(temp_message))
 
-            update_msg = temp_message['neighbor']['message']['update']
+            try:
+                update_msg = temp_message['neighbor']['message']['update']
+            except Exception:
+                log.warning('Update message not found in the message, skipping message...')
+                return None
 
             if 'announce' in update_msg:
                 announce_msg = update_msg['announce']

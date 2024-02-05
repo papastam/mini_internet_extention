@@ -35,12 +35,15 @@ for ((k=0;k<group_numbers;k++)); do
     group_config="${group_k[2]}"
     group_router_config="${group_k[3]}"
 
-    if [ "${group_as}" != "IXP" ] && [ "${group_config}" == "Monitored" ];then
-        monitor_as=$((group_number+1000))
-
+    if [ "${group_as}" != "IXP" ];then
         # Create as_prefixes.csv, format is: IP|AS|AS_NAME
         echo "${group_number}.0.0.0/8|${group_number}|${group_number}" >> ${GROUPSDIR}/output/as_prefixes.csv
         echo "Updated ${GROUPSDIR}/output/as_prefixes.csv"
+    fi
+
+
+    if [ "${group_as}" != "IXP" ] && [ "${group_config}" == "Monitored" ];then
+        monitor_as=$((group_number+1000))
 
         readarray routers < "${DIRECTORY}"/config/$group_router_config
         n_routers=${#routers[@]}
@@ -69,6 +72,11 @@ for ((k=0;k<group_numbers;k++)); do
 local-address $(subnet_router_EXABGP_MONITOR "${group_k}" "local-address" "${router_cnt}");
 local-as "${group_k}";
 peer-as "${group_k}";
+capability {
+    route-refresh;
+    graceful-restart;
+    add-path receive;
+}
 family {
     ipv4 unicast;
 }
