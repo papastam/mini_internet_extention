@@ -107,6 +107,27 @@ subnet_router_router_extern () {
     fi
 }
 
+subnet_router_proxy () {
+    local n_net="$1" device="$2"
+
+    mod=$((${n_net} % 100))
+    div=$((${n_net} / 100))
+
+    if [ "${device}" = "router" ] ; then
+
+        echo "178."${div}"."${mod}".1/24"
+
+    elif [ "${device}" = "proxy" ] ; then
+
+        echo "178."${div}"."${mod}".2/24"
+
+    elif [ "${device}" = "bridge" ] ; then
+
+        echo "178."${div}"."${mod}".0/24"
+
+    fi
+}
+
 subnet_router_IXP () {
   local n_grp="$1" n_ixp="$2" device="$3"
 
