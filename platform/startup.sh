@@ -181,6 +181,7 @@ time ./setup/dns_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
 echo ""
 echo ""
 
+sleep 120
 echo "add_bridges.sh: "
 echo "add_bridges.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 time ./groups/add_bridges.sh
@@ -246,7 +247,7 @@ echo ""
 echo ""
 
 # echo "Waiting 60sec for RPKI CA and proxy to startup.."
-# sleep 60
+sleep 60
 
 echo "rpki_setup.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 echo "rpki_setup.sh: "
