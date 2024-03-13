@@ -23,6 +23,25 @@ source "${DIRECTORY}"/config/subnet_config.sh
 readarray groups < "${DIRECTORY}"/config/AS_config.txt
 group_numbers=${#groups[@]}
 
+monitor_exists=false
+for ((k=0;k<group_numbers;k++)); do
+    group_k=(${groups[$k]})
+    group_number="${group_k[0]}"
+    group_as="${group_k[1]}"
+    group_config="${group_k[2]}"
+    group_router_config="${group_k[3]}"
+
+    if [ "${group_as}" != "IXP" ] && [ "${group_config}" == "Monitored" ];then
+        monitor_exists=true
+    fi
+done
+
+# if no monitor exists, dont create files
+if [ "$monitor_exists" = false ]; then
+    echo "No monitored ASes found, no monitor files created."
+    exit 0
+fi
+
 mkdir -p ${GROUPSDIR} | true
 mkdir -p ${GROUPSDIR}/configs | true 
 mkdir -p ${GROUPSDIR}/output | true
