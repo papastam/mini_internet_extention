@@ -181,7 +181,7 @@ time ./setup/dns_setup.sh "${DIRECTORY}" "${DOCKERHUB_USER}"
 echo ""
 echo ""
 
-sleep 120
+# sleep 120
 echo "add_bridges.sh: "
 echo "add_bridges.sh $(($(date +%s%N)/1000000))" >> "${DIRECTORY}"/log.txt
 time ./groups/add_bridges.sh
