@@ -1,2 +1,0 @@
-student_1   miniinterneteth/d_host UNIV   S1    10000   1000    10
-student_2   miniinterneteth/d_host UNIV   S2    10000   1000    10
