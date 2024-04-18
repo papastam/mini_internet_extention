@@ -27,6 +27,7 @@ var detect_asCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		CommandProvided = true
 		SpecificAsn = true
+		Interval = -1
 	},
 }
 

@@ -29,6 +29,8 @@ var HijackFile string
 var RelationsFile string
 var DebugEnabled bool
 var LineNo int64
+var Interval int64
+var MitigationScriptPath string
 
 var InputType string
 var Asn int64
@@ -38,7 +40,7 @@ var SpecificAsn bool = false
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "ihd",
+	Use:   "artemis_detector",
 	Short: "A BGP hijack detector",
 	Long:  `HCI is a BGP hijack detector witten in GO. It relies on historical data fetched with bgpreader and provided in a custom format.`,
 	// Uncomment the following line if your bare application
@@ -57,6 +59,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
@@ -69,7 +72,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&PrefixFile, "prefixes", "", "file containing prefix-to-as mappings")
 	rootCmd.PersistentFlags().StringVar(&HijackFile, "output", "hijacks.csv", "file containing the detected hijacks")
 	rootCmd.PersistentFlags().Int64Var(&LineNo, "lineno", 0, "the number of lines the update file contains ")
-	rootCmd.PersistentFlags().StringVar(&RelationsFile, "relations", "", "CAIDA's graph for AS relationships ")
 	rootCmd.PersistentFlags().BoolVar(&DebugEnabled, "debug", false, "enable debug mode")
 	// rootCmd.PersistentFlags().StringVar(&RelationsFile, "relations", "", "CAIDA's graph for AS relationships ")
 

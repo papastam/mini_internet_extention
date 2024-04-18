@@ -8,8 +8,12 @@ import (
 	"log"
 	"math"
 	"os"
+	"os/exec"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/kentik/patricia"
 	"github.com/kentik/patricia/string_tree"
@@ -79,6 +83,15 @@ var mitigatedPrefixes map[string]bool
 var MitigationEnabled bool = false
 
 func main() {
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		printHijacks()
+		debug("Exiting...")
+		os.Exit(1)
+	}()
+
 	cmd.Execute()
 	if !cmd.CommandProvided {
 		os.Exit(1)
@@ -103,44 +116,117 @@ func main() {
 	fmt.Println("Generating Patricia Tree...")
 	prefixASMap, prefixTree := generatePatriciaTree(prefixMapFilename)
 
-	if cmd.InputType == "file" {
-		fileUpdates, err := os.Open(updatesFilename)
-		if err != nil {
-			log.Fatal(err)
+	if cmd.Interval != -1 { // Real-time hijack detection
+		fmt.Print("Real-time hijack detection...\n")
+		if cmd.MitigationScriptPath != "" {
+			MitigationEnabled = true
 		}
 
-		defer func(fileUpdates *os.File) {
-			err := fileUpdates.Close()
+		// List with the last timestamp of each file
+		var last_timestamps []float64
+		var last_timestamp float64
+
+		if cmd.InputType == "directory" {
+
+			files, _ := os.ReadDir(updatesFilename)
+
+			// Initialize the list with zeros
+			for i := 0; i < len(files); i++ {
+				last_timestamps = append(last_timestamps, 0)
+			}
+		}
+
+		for {
+			// Check for ongoing hijacks and mitigate them
+			if MitigationEnabled {
+				fmt.Print("Checking for ongoing hijacks to mitigate...")
+				for _, hijack := range ongoingHijackMap {
+					// if getTimeDiffInSeconds(hijack.time_last, float64(time.Now().UnixNano()/1000000)) > 600 {
+					fmt.Printf("Mitigating hijack: %s", hijack.prefix)
+					mitigateHijack(hijack, asn)
+					// }
+				}
+			}
+
+			if cmd.InputType == "file" {
+				fileUpdates, err := os.Open(updatesFilename)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				defer func(fileUpdates *os.File) {
+					err := fileUpdates.Close()
+					if err != nil {
+						log.Fatal(err)
+					}
+				}(fileUpdates)
+
+				last_timestamp = artemisDetection(asn, fileUpdates, prefixTree, prefixASMap, peerGraph, last_timestamp)
+
+			} else if cmd.InputType == "directory" {
+
+				// Get all files in the directory
+				files, err := os.ReadDir(updatesFilename)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				// Iterate over all files in the directory
+				for i, file := range files {
+					fmt.Printf("Processing file: %s\n", file.Name())
+					fileUpdates, err := os.Open(fmt.Sprintf("%s/%s", updatesFilename, file.Name()))
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					last_timestamps[i] = artemisDetection(asn, fileUpdates, prefixTree, prefixASMap, peerGraph, last_timestamps[i])
+				}
+			}
+			// Sleep for the specified interval
+			fmt.Printf("Sleeping for %d minutes...\n", cmd.Interval)
+			time.Sleep(time.Duration(cmd.Interval) * time.Minute)
+		}
+
+	} else { // Historical hijack detection
+		if cmd.InputType == "file" {
+			fileUpdates, err := os.Open(updatesFilename)
 			if err != nil {
 				log.Fatal(err)
 			}
-		}(fileUpdates)
 
-		if cmd.SpecificAsn {
-			artemisDetection(asn, fileUpdates, prefixTree, prefixASMap, peerGraph)
-		} else {
-			artemisDetection(0, fileUpdates, prefixTree, prefixASMap, peerGraph)
-		}
-	} else if cmd.InputType == "directory" {
-
-		// Get all files in the directory
-		files, err := os.ReadDir(updatesFilename)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// Iterate over all files in the directory
-		for _, file := range files {
-			fmt.Printf("Processing file: %s\n", file.Name())
-			fileUpdates, err := os.Open(fmt.Sprintf("%s/%s", updatesFilename, file.Name()))
-			if err != nil {
-				log.Fatal(err)
-			}
+			defer func(fileUpdates *os.File) {
+				err := fileUpdates.Close()
+				if err != nil {
+					log.Fatal(err)
+				}
+			}(fileUpdates)
 
 			if cmd.SpecificAsn {
-				artemisDetection(asn, fileUpdates, prefixTree, prefixASMap, peerGraph)
+				artemisDetection(asn, fileUpdates, prefixTree, prefixASMap, peerGraph, 0)
 			} else {
-				artemisDetection(0, fileUpdates, prefixTree, prefixASMap, peerGraph)
+				artemisDetection(0, fileUpdates, prefixTree, prefixASMap, peerGraph, 0)
+			}
+		} else if cmd.InputType == "directory" {
+
+			// Get all files in the directory
+			files, err := os.ReadDir(updatesFilename)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// Iterate over all files in the directory
+			for _, file := range files {
+				fmt.Printf("Processing file: %s\n", file.Name())
+				fileUpdates, err := os.Open(fmt.Sprintf("%s/%s", updatesFilename, file.Name()))
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				if cmd.SpecificAsn {
+					artemisDetection(asn, fileUpdates, prefixTree, prefixASMap, peerGraph, 0)
+				} else {
+					artemisDetection(0, fileUpdates, prefixTree, prefixASMap, peerGraph, 0)
+				}
 			}
 		}
 	}
@@ -148,7 +234,7 @@ func main() {
 	printHijacks()
 }
 
-func artemisDetection(asn int64, fileUpdates *os.File, prefixTree *string_tree.TreeV4, prefixASMap map[string][]string, peerGraph map[string][]string) float64 {
+func artemisDetection(asn int64, fileUpdates *os.File, prefixTree *string_tree.TreeV4, prefixASMap map[string][]string, peerGraph map[string][]string, offset float64) float64 {
 	csvReader2 := csv.NewReader(fileUpdates)
 	csvReader2.Comma = '|'
 	debug("Initiating Hijack Detection...")
@@ -156,6 +242,22 @@ func artemisDetection(asn int64, fileUpdates *os.File, prefixTree *string_tree.T
 	bar := progressbar.Default(cmd.LineNo)
 	final_timestamp := float64(0)
 	counter := 0
+
+	// If offset!=0 seek the timestamp specified
+	if offset != 0 {
+		debug(fmt.Sprintf("Seeking to timestamp: %f", offset))
+		for {
+			updateRecord, err := csvReader2.Read()
+			if err == io.EOF {
+				break
+			}
+			s, _ := strconv.ParseFloat(updateRecord[8], 64)
+			if s > offset {
+				break
+			}
+		}
+	}
+
 	for {
 		updateRecord, err := csvReader2.Read()
 		if err == io.EOF {
@@ -225,6 +327,9 @@ func artemisDetection(asn int64, fileUpdates *os.File, prefixTree *string_tree.T
 	debug(fmt.Sprintln("Total number of updates processed: ", counter))
 
 	// return last message's timestamp
+	if final_timestamp == 0 {
+		return offset
+	}
 	return final_timestamp
 }
 
@@ -503,6 +608,15 @@ func getHijackDetectionStatus(updateMessage BGPUpdate, prefixTree *string_tree.T
 	return hijackType, hijackerAs, isHijack, updateMessage, asnOrigin, validPrefix
 }
 
+func mitigateHijack(hijack Hijack, as int64) {
+	// Call the script specified in the arguements to mitigate the hijack
+	debug(fmt.Sprintf("Calling: %s -p %s -a %d", cmd.MitigationScriptPath, hijack.prefix, as))
+	out, out2 := exec.Command(cmd.MitigationScriptPath, "-p", hijack.prefix, "-a", strconv.FormatInt(as, 10)).Output()
+
+	fmt.Printf("Output: %s", out)
+	debug(fmt.Sprintf("Output2: %s", out2))
+}
+
 func printStatus() {
 	// Calculate terminated hijacks
 	terminatedHijacks := len(detectedHijackMap) - len(ongoingHijackMap)
@@ -531,7 +645,7 @@ func printHijacks() {
 		if hijack.state == Withdrawn {
 			hijack.time_ended = hijack.time_last
 		} else {
-			hijack.state = Dormant
+			// hijack.state = Dormant
 			hijack.time_ended = hijack.time_last + 600
 		}
 
@@ -542,7 +656,7 @@ func printHijacks() {
 
 	// Print ongoing hijacks
 	for _, hijack := range ongoingHijackMap {
-		hijack.state = Dormant
+		// hijack.state = Dormant
 		hijack.time_ended = hijack.time_last + 600
 		// WHY IS THIS NEEDED?
 		// if hijack.time_started != hijack.time_last {
