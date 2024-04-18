@@ -56,8 +56,8 @@ for ((k=0;k<group_numbers;k++)); do
 
     if [ "${group_as}" != "IXP" ];then
         # Create as_prefixes.csv, format is: IP|AS|AS_NAME
-        echo "${group_number}.0.0.0/8|${group_number}|${group_number}" >> ${GROUPSDIR}/output/as_prefixes.csv
-        echo "Updated ${GROUPSDIR}/output/as_prefixes.csv"
+        echo "${group_number}.0.0.0/8|${group_number}" >> ${GROUPSDIR}/as_prefixes.csv
+        echo "Updated ${GROUPSDIR}/as_prefixes.csv"
     fi
 
 
@@ -91,11 +91,6 @@ for ((k=0;k<group_numbers;k++)); do
 local-address $(subnet_router_EXABGP_MONITOR "${group_k}" "local-address" "${router_cnt}");
 local-as "${group_k}";
 peer-as "${group_k}";
-capability {
-    route-refresh;
-    graceful-restart;
-    add-path receive;
-}
 family {
     ipv4 unicast;
 }
