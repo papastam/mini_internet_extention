@@ -1,0 +1,624 @@
+go build -o artemis_detector main.go	utils.go
+./artemis_detector active \
+--updates ../platform/groups/exabgp_monitor/output \
+--input_type directory \
+--prefixes as_prefixes.csv \
+--output mini-internet_hijacks.csv \
+--interval 1 \
+--asn 3 \
+--debug
+     _      ____    _____   _____   __  __   ___   ____      ____    _____   _____   _____    ____   _____    ___    ____
+    / \    |  _ \  |_   _| | ____| |  \/  | |_ _| / ___|    |  _ \  | ____| |_   _| | ____|  / ___| |_   _|  / _ \  |  _ \
+   / _ \   | |_) |   | |   |  _|   | |\/| |  | |  \___ \    | | | | |  _|     | |   |  _|   | |       | |   | | | | | |_) |
+  / ___ \  |  _ <    | |   | |___  | |  | |  | |   ___) |   | |_| | | |___    | |   | |___  | |___    | |   | |_| | |  _ <
+ /_/   \_\ |_| \_\   |_|   |_____| |_|  |_| |___| |____/    |____/  |_____|   |_|   |_____|  \____|   |_|    \___/  |_| \_\
+
+Generating Peer Graph...
+Generating Patricia Tree...
+Real-time hijack detection...
+Checking for ongoing hijacks to mitigate...
+Processing file: 1_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+Handling update message:  {3.0.0.0/8 A 3 1.712848326943023e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 0 hijacks:
+	- 0 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.7128484405533257e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 0 hijacks:
+	- 0 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.71284844055515e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 0 hijacks:
+	- 0 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.7128484405986521e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 0 hijacks:
+	- 0 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+No new updates found!
+Total number of updates processed:  13
+
+Processing file: 2_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+Handling update message:  {3.0.0.0/8 A 3 1.712848342267766e+09 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 0 hijacks:
+	- 0 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.7128484406057286e+09 2 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 0 hijacks:
+	- 0 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.7128484413324971e+09 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 0 hijacks:
+	- 0 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.7128484413330393e+09 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 0 hijacks:
+	- 0 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.7128484413782184e+09 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 0 hijacks:
+	- 0 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 1 1.712848470843993e+09 2 1 }
+
+Hijack type:  E|0|-|-
+
+Hijack key:  3.0.0.0/8_1_E|0|-|-
+
+We have detected 0 hijacks:
+	- 1 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+No new updates found!
+Total number of updates processed:  16
+
+Processing file: 3_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+No new updates found!
+Total number of updates processed:  16
+
+Processing file: 4_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+Handling update message:  {3.0.0.0/8 A 3 1.7128483321473508e+09 4 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+Handling implicit withdrawal
+We have detected 1 hijacks:
+	- 0 ongoing hijacks
+	- 1 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.7128484406051369e+09 4 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 1 hijacks:
+	- 0 ongoing hijacks
+	- 1 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.7128484413834014e+09 4 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 1 hijacks:
+	- 0 ongoing hijacks
+	- 1 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.7128484428514216e+09 4 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 1 hijacks:
+	- 0 ongoing hijacks
+	- 1 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.7128484428518395e+09 4 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 1 hijacks:
+	- 0 ongoing hijacks
+	- 1 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 3 1.7128484428835585e+09 4 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/8
+
+We have detected 1 hijacks:
+	- 0 ongoing hijacks
+	- 1 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 1 1.7128484708440514e+09 4 1 }
+
+Hijack type:  E|0|-|-
+
+Hijack key:  3.0.0.0/8_1_E|0|-|-
+
+We have detected 1 hijacks:
+	- 1 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 1 1.712848470895544e+09 4 1 }
+
+Hijack type:  E|0|-|-
+
+Key exists: 3.0.0.0/8_1_E|0|-|-
+
+Hijack key:  3.0.0.0/8_1_E|0|-|-
+
+We have detected 1 hijacks:
+	- 1 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.0.0.0/8 A 1 1.712848470896295e+09 4 1 }
+
+Hijack type:  E|0|-|-
+
+Key exists: 3.0.0.0/8_1_E|0|-|-
+
+Hijack key:  3.0.0.0/8_1_E|0|-|-
+
+We have detected 1 hijacks:
+	- 1 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+No new updates found!
+Total number of updates processed:  21
+
+Sleeping for 1 minutes...
+Checking for ongoing hijacks to mitigate...
+Mitigating hijack: 3.0.0.0/8
+Calling: ../platform/utils/bgp_hijack/mitigate.sh -p 3.0.0.0/8 -a 3
+Output: (AS3)Advertising prefixes 3.0.0.0/9 and 3.128.0.0/9 from router
+(AS3)Advertising prefixes 3.0.0.0/9 and 3.128.0.0/9 from router
+(AS3)Advertising prefixes 3.0.0.0/9 and 3.128.0.0/9 from router
+(AS3)Advertising prefixes 3.0.0.0/9 and 3.128.0.0/9 from router
+(AS3)Mitigating indefinitely
+
+Output2: %!s(<nil>)
+Processing file: 1_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+Seeking to timestamp: 1712848440.598652
+Handling update message:  {3.0.0.0/9 A 3 1.7128496365328398e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.0.0.0/9 added to mitigated prefixes
+
+We have detected 1 hijacks:
+	- 1 ongoing hijacks
+	- 0 terminated hijacks
+	- 0 mitigated prefixes
+Handling update message:  {3.128.0.0/9 A 3 1.7128496365328398e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix exists
+Hijack 3.0.0.0/8_1_E|0|-|- marked as mitigated
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.0.0.0/9 A 3 1.7128496365834694e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.0.0.0/9 added to mitigated prefixes
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.128.0.0/9 A 3 1.7128496365834694e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix exists
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.0.0.0/9 A 3 1.712849636584784e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.0.0.0/9 added to mitigated prefixes
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.128.0.0/9 A 3 1.712849636584784e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix exists
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.0.0.0/9 A 3 1.7128496365855763e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.0.0.0/9 added to mitigated prefixes
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.128.0.0/9 A 3 1.7128496365855763e+09 1 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix exists
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+No new updates found!
+Total number of updates processed:  8
+
+Processing file: 2_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+Seeking to timestamp: 1712848470.843993
+Handling update message:  {3.128.0.0/9 A 3 1.712849636530443e+09 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.128.0.0/9 added to mitigated prefixes
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.0.0.0/9 A 3 1.7128496365810015e+09 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix exists
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.128.0.0/9 A 3 1.7128496365810015e+09 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.128.0.0/9 added to mitigated prefixes
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.0.0.0/9 A 3 1.7128496365821457e+09 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix exists
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.128.0.0/9 A 3 1.7128496365821457e+09 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.128.0.0/9 added to mitigated prefixes
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.0.0.0/9 A 3 1.7128496365831707e+09 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix exists
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.128.0.0/9 A 3 1.7128496365831707e+09 2 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.128.0.0/9 added to mitigated prefixes
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+No new updates found!
+Total number of updates processed:  7
+
+Processing file: 3_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+No new updates found!
+Total number of updates processed:  16
+
+Processing file: 4_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+Seeking to timestamp: 1712848470.896295
+Handling update message:  {3.128.0.0/9 A 3 1.7128496365305896e+09 4 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.128.0.0/9 added to mitigated prefixes
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.0.0.0/9 A 3 1.7128496365810146e+09 4 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix exists
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.128.0.0/9 A 3 1.7128496365810146e+09 4 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.128.0.0/9 added to mitigated prefixes
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.0.0.0/9 A 3 1.7128496365843277e+09 4 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix exists
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.128.0.0/9 A 3 1.7128496365843277e+09 4 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.128.0.0/9 added to mitigated prefixes
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.0.0.0/9 A 3 1.7128496365856068e+09 4 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.0.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix exists
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Handling update message:  {3.128.0.0/9 A 3 1.7128496365856068e+09 4 3 }
+
+Hijack type:  valid
+
+3.0.0.0/8 == 3.128.0.0/9
+
+Handling mitigation
+Handling mitigation
+Mitigation detected, complement prefix does not exist
+Prefix 3.128.0.0/9 added to mitigated prefixes
+
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+No new updates found!
+Total number of updates processed:  7
+
+Sleeping for 1 minutes...
+Checking for ongoing hijacks to mitigate...
+Processing file: 1_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+Seeking to timestamp: 1712849636.585576
+No new updates found!
+Total number of updates processed:  0
+
+Processing file: 2_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+Seeking to timestamp: 1712849636.583171
+No new updates found!
+Total number of updates processed:  0
+
+Processing file: 3_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+No new updates found!
+Total number of updates processed:  16
+
+Processing file: 4_output.csv
+Initiating Hijack Detection...
+   0% |                                                | (0/0, 0 it/hr) [0s:0s]
+Seeking to timestamp: 1712849636.585607
+No new updates found!
+Total number of updates processed:  0
+
+Sleeping for 1 minutes...
+We have detected 2 hijacks:
+	- 0 ongoing hijacks
+	- 2 terminated hijacks
+	- 1 mitigated prefixes
+Exiting...
+make: *** [Makefile:22: active] Error 1

@@ -184,9 +184,6 @@ func generatePeerGraph(filename string) map[string][]string {
 		if err == io.EOF {
 			break
 		}
-		if strings.Contains(peerRecord[0], "#") || strings.Contains(peerRecord[2], "-1") {
-			continue
-		}
 		val, ok := peer2peer[peerRecord[0]]
 		// If the key doesnt exist
 		if !ok {
