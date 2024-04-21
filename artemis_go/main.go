@@ -139,10 +139,10 @@ func main() {
 		for {
 			// Check for ongoing hijacks and mitigate them
 			if MitigationEnabled {
-				fmt.Print("Checking for ongoing hijacks to mitigate...")
 				for _, hijack := range ongoingHijackMap {
 					// if getTimeDiffInSeconds(hijack.time_last, float64(time.Now().UnixNano()/1000000)) > 600 {
-					fmt.Printf("Mitigating hijack: %s", hijack.prefix)
+					fmt.Printf("Detected hijack for prefix: %s\n", hijack.prefix)
+					fmt.Printf("Mitigating the hijack...\n")
 					mitigateHijack(hijack, asn)
 					// }
 				}
@@ -613,8 +613,9 @@ func mitigateHijack(hijack Hijack, as int64) {
 	debug(fmt.Sprintf("Calling: %s -p %s -a %d", cmd.MitigationScriptPath, hijack.prefix, as))
 	out, out2 := exec.Command(cmd.MitigationScriptPath, "-p", hijack.prefix, "-a", strconv.FormatInt(as, 10)).Output()
 
-	fmt.Printf("Output: %s", out)
-	debug(fmt.Sprintf("Output2: %s", out2))
+	fmt.Printf("Mitigation script output:\n %s", out)
+	fmt.Printf("End of mitigation script output.\n")
+	debug(fmt.Sprintf("Error Output: %s", out2))
 }
 
 func printStatus() {
