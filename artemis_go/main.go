@@ -137,16 +137,6 @@ func main() {
 		}
 
 		for {
-			// Check for ongoing hijacks and mitigate them
-			if MitigationEnabled {
-				for _, hijack := range ongoingHijackMap {
-					// if getTimeDiffInSeconds(hijack.time_last, float64(time.Now().UnixNano()/1000000)) > 600 {
-					fmt.Printf("Detected hijack for prefix: %s\n", hijack.prefix)
-					fmt.Printf("Mitigating the hijack...\n")
-					mitigateHijack(hijack, asn)
-					// }
-				}
-			}
 
 			if cmd.InputType == "file" {
 				fileUpdates, err := os.Open(updatesFilename)
@@ -182,6 +172,19 @@ func main() {
 					last_timestamps[i] = artemisDetection(asn, fileUpdates, prefixTree, prefixASMap, peerGraph, last_timestamps[i])
 				}
 			}
+
+			// Check for ongoing hijacks and mitigate them
+			if MitigationEnabled {
+				debug(fmt.Sprintf("Number of ongoing hijacks: %d", len(ongoingHijackMap)))
+				for _, hijack := range ongoingHijackMap {
+					// if getTimeDiffInSeconds(hijack.time_last, float64(time.Now().UnixNano()/1000000)) > 600 {
+					fmt.Printf("Detected hijack for prefix: %s\n", hijack.prefix)
+					fmt.Printf("Mitigating the hijack...\n")
+					mitigateHijack(hijack, asn)
+					// }
+				}
+			}
+
 			// Sleep for the specified interval
 			fmt.Printf("Sleeping for %d minutes...\n", cmd.Interval)
 			time.Sleep(time.Duration(cmd.Interval) * time.Minute)
