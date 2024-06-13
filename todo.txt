@@ -1,7 +1,0 @@
-TODO:
-repair dashboard
-display rendezvous in chronological order
-
-BUGS:
-
-Further checks to be implemented:
